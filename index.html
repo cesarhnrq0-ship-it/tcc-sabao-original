@@ -323,7 +323,6 @@ body{background:var(--bg);color:var(--tx);font-family:system-ui,-apple-system,"S
 </div>
 
 <script>
-// Imagem SVG auto-contida para garantir que carrega sempre sem erros de servidor ou link quebrado
 const IMG = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="500" height="500" viewBox="0 0 500 500"><rect width="100%" height="100%" fill="%23e3efe5"/><circle cx="250" cy="220" r="120" fill="%233f7d4e" opacity="0.15"/><path d="M250 140 C210 140 180 180 180 230 C180 280 210 320 250 320 C290 320 320 280 320 230 C320 180 290 140 250 140 Z" fill="%233f7d4e"/><path d="M250 170 C230 190 230 220 250 240 C270 220 270 190 250 170 Z" fill="%236fbf84"/><text x="50%" y="380" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-weight="bold" font-size="22" fill="%231f2a22">Farmaura Wayfarer</text><text x="50%" y="410" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="14" fill="%235d6b61">Sabonete em Pó Natural</text></svg>';
 
 function loja() {
@@ -383,7 +382,8 @@ function loja() {
       { id: 'p1', base: 'wayfarer', nome: 'Kit Sabonete em Pó Wayfarer', desc: 'Edição artesanal compacta, ideal para viagens e uso diário.', info: 'Rende até 30 banhos · Vegano', cat: 'Sabonetes', preco: 69.90, img: IMG, tam: [{k:'30', rotulo:'30 sachês'}, {k:'60', rotulo:'60 sachês'}] },
       { id: 'p2', base: 'refill', nome: 'Refill Sabonete em Pó (100g)', desc: 'Embalagem biodegradável para reabastecer seu frasco reutilizável.', info: 'Sustentável · Eco-friendly', cat: 'Sabonetes', preco: 45.00, emoji: '🌿', tam: [{k:'100g', rotulo:'100g'}, {k:'200g', rotulo:'200g'}] },
       { id: 'p3', base: 'protetor', nome: 'Protetor Solar Mineral em Pó', desc: 'Proteção FPS 30 natural contra raios UVA/UVB.', info: 'Resistente à água · Mineral', cat: 'Protetor solar', preco: 59.90, emoji: '☀️' },
-      { id: 'p4', base: 'pote', nome: 'Porta-Sabonete de Silicone', desc: 'Acessório lavável e higiênico para transporte.', info: '100% silicone medicinal', cat: 'Acessórios', preco: 24.90, emoji: '🧳' }
+      { id: 'p4', base: 'pote', nome: 'Porta-Sabonete de Silicone', desc: 'Acessório lavável e higiênico para transporte.', info: '100% silicone medicinal', cat: 'Acessórios', preco: 24.90, emoji: '🧳' },
+      { id: 'p5', base: 'ecobag', nome: 'Ecobag Wayfarer de Algodão', desc: 'Sacola ecológica em algodão sustentável com estampa exclusiva Wayfarer.', info: '100% Algodão · Sustentável', cat: 'Acessórios', preco: 29.99, img: 'SPLASH.jpg' }
     ],
 
     init() {
