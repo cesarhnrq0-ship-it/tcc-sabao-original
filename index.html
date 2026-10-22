@@ -69,8 +69,8 @@ body{background:var(--bg);color:var(--tx);font-family:system-ui,-apple-system,"S
     <div class="grid sm:grid-cols-2 gap-6">
       <template x-for="p in lista" :key="p.base||p.id">
         <article class="card p-5 flex flex-col">
-          <div class="rounded-xl flex items-center justify-center h-64 overflow-hidden" style="background:var(--g2)">
-            <img x-show="p.img" :src="p.img" :alt="p.nome" class="h-full w-full object-cover">
+          <div class="rounded-xl flex items-center justify-center aspect-square w-full overflow-hidden" style="background:var(--g2)">
+            <img x-show="p.img" :src="p.img" :alt="p.nome" class="w-full h-full" :class="p.fit==='contain'?'object-contain p-4':'object-cover'">
             <span x-show="!p.img" class="text-6xl" x-text="p.emoji"></span>
           </div>
           <h3 class="mt-4 text-xl font-bold" x-text="p.nome"></h3>
@@ -167,34 +167,46 @@ body{background:var(--bg);color:var(--tx);font-family:system-ui,-apple-system,"S
   © 2026 Farmaura Natural · Projeto acadêmico (TCC) · Contato: contato@farmaura.com.br · <button class="underline" @click="abrirMeus()">Meus pedidos</button> · <button class="underline" @click="abrirAdmin()">Admin</button>
 </footer>
 
+<!-- Modal de Cadastro -->
 <div x-show="modal==='cadastro'" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4" @keydown.escape.window="modal=''">
   <div class="absolute inset-0 bg-black/50" @click="modal=''"></div>
   <form @submit.prevent="salvarPerfil()" class="card relative w-full max-w-md p-5 space-y-3 max-h-full overflow-y-auto">
     <div class="flex justify-between items-center"><h2 class="text-2xl font-bold" x-text="perfil?'Meu cadastro':'Criar cadastro'"></h2><button type="button" class="text-2xl" @click="modal=''" aria-label="Fechar">×</button></div>
-    <p x-show="!podeGravar" class="text-sm p-3 rounded-lg" style="background:var(--g2)">Para salvar o cadastro é preciso estar conectado ao Claude com acesso de colaborador a este site. Sem isso, o site funciona só como vitrine.</p>
-    <template x-for="c in campos" :key="c[0]"><label class="block text-sm font-medium"><span x-text="c[1]"></span><input class="inp mt-1" :type="c[2]" :required="c[3]" x-model="f2[c[0]]"></label></template>
+    <template x-for="c in campos" :key="c[0]">
+      <label class="block text-sm font-medium"><span x-text="c[1]"></span><input class="inp mt-1" :type="c[2]" :required="c[3]" x-model="f2[c[0]]"></label>
+    </template>
     <label class="flex gap-2 text-xs mut"><input type="checkbox" required x-model="f2.ok"><span>Concordo em compartilhar meus dados com a Farmaura para compra e contato (LGPD).</span></label>
     <p class="text-sm gr font-medium" x-text="msg"></p>
     <button class="btn w-full" x-text="perfil?'Atualizar cadastro':'Cadastrar'"></button>
+    <button type="button" x-show="perfil" class="btn2 w-full" @click="sairPerfil()">Sair deste cadastro</button>
   </form>
 </div>
 
+<!-- Modal Meus Pedidos -->
 <div x-show="modal==='meus'" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4">
   <div class="absolute inset-0 bg-black/50" @click="modal=''"></div>
   <div class="card relative w-full max-w-md p-5 max-h-full overflow-y-auto">
     <div class="flex justify-between items-center mb-3"><h2 class="text-2xl font-bold">Meus pedidos</h2><button class="text-2xl" @click="modal=''" aria-label="Fechar">×</button></div>
-    <p x-show="!meus.length" class="mut text-sm">Nenhum pedido encontrado. Os pedidos só aparecem para quem está conectado ao Claude com acesso de colaborador.</p>
-    <template x-for="p in meus" :key="p.num+p.data"><div class="mb-3 p-3 rounded-lg" style="background:var(--g2)"><div class="flex justify-between"><b x-text="p.num"></b><span class="text-xs font-semibold gr" x-text="p.status||'Pendente'"></span></div><p class="text-xs mut" x-text="dt(p.data)"></p><p class="text-sm" x-text="(p.itens||[]).join(', ')"></p><p class="text-sm font-semibold" x-text="moeda(+p.total||0)"></p></div></template>
+    <p x-show="!meus.length" class="mut text-sm">Nenhum pedido encontrado para o seu e-mail cadastrado.</p>
+    <template x-for="p in meus" :key="p.num+p.data">
+      <div class="mb-3 p-3 rounded-lg" style="background:var(--g2)">
+        <div class="flex justify-between"><b x-text="p.num"></b><span class="text-xs font-semibold gr" x-text="p.status||'Pendente'"></span></div>
+        <p class="text-xs mut" x-text="dt(p.data)"></p>
+        <p class="text-sm" x-text="(p.itens||[]).join(', ')"></p>
+        <p class="text-sm font-semibold" x-text="moeda(+p.total||0)"></p>
+      </div>
+    </template>
   </div>
 </div>
 
+<!-- Painel Admin -->
 <div x-show="modal==='admin'" x-cloak class="fixed inset-0 z-50 overflow-y-auto" style="background:var(--bg);padding-top:env(safe-area-inset-top,0px)" @keydown.escape.window="if(modal==='admin')modal=''">
   <div class="max-w-5xl mx-auto p-4 sm:p-6">
     <div class="flex justify-between items-center mb-4 gap-2">
       <h2 class="text-2xl font-bold">Painel do administrador</h2>
       <div class="flex gap-2"><button class="btn2" x-show="logado" @click="sair()">Sair</button><button class="btn2" @click="sair(); modal=''">Fechar</button></div>
     </div>
-    <p x-show="!logado && !eAdmin" class="card p-5 max-w-md">🔒 Acesso restrito. O painel só abre para quem administra este site (dono ou editor), com a senha do painel.</p>
+    <p x-show="!logado && !eAdmin" class="card p-5 max-w-md">🔒 Acesso restrito ao administrador do site.</p>
     <form x-show="!logado && eAdmin" @submit.prevent="entrar()" class="card p-5 max-w-sm space-y-3">
       <p class="text-sm mut" x-text="semSenha ? 'Primeiro acesso: crie a senha do painel (mínimo 6 caracteres).' : 'Digite a senha para entrar.'"></p>
       <input class="inp" type="password" required minlength="6" autocomplete="current-password" placeholder="Senha" x-model="senha">
@@ -234,6 +246,7 @@ body{background:var(--bg);color:var(--tx);font-family:system-ui,-apple-system,"S
   </div>
 </div>
 
+<!-- Chat de ajuda -->
 <div x-show="chatAberto" x-cloak x-transition class="fixed z-40 inset-x-3 bottom-3 sm:inset-x-auto sm:right-3 sm:w-96 card flex flex-col shadow-xl" style="height:min(30rem,75vh);margin-bottom:env(safe-area-inset-bottom,0px)" @keydown.escape.window="chatAberto=false">
   <div class="flex justify-between items-center p-3" style="border-bottom:1px solid var(--bd)"><b>🌿 Assistente Farmaura</b><button @click="chatAberto=false" class="text-xl" aria-label="Fechar chat">×</button></div>
   <div x-ref="msgs" class="flex-1 overflow-y-auto p-3 space-y-2" aria-live="polite">
@@ -246,6 +259,8 @@ body{background:var(--bg);color:var(--tx);font-family:system-ui,-apple-system,"S
 <button x-show="!chatAberto && !abrir && modal===''" x-cloak class="fixed right-3 z-30 btn shadow-lg !rounded-full" :style="'bottom:calc('+(qtd>0?'5rem':'1rem')+' + env(safe-area-inset-bottom,0px))'" @click="chatAberto=true">💬 Ajuda</button>
 
 <div x-show="toast" x-cloak x-transition class="fixed left-1/2 -translate-x-1/2 z-50 card px-4 py-2 text-sm font-medium shadow-lg" style="bottom:calc(5rem + env(safe-area-inset-bottom,0px))" role="status" x-text="'✓ '+toast"></div>
+
+<!-- Barra inferior do carrinho -->
 <div x-show="qtd>0 && !abrir" x-cloak class="fixed inset-x-0 bottom-0 z-30 p-3" style="padding-bottom:max(.75rem,env(safe-area-inset-bottom,0px))">
   <button class="btn w-full flex justify-between shadow-lg max-w-md mx-auto" @click="etapa='carrinho';abrir=true"><span>Ver carrinho (<span x-text="qtd"></span>)</span><span x-text="moeda(total)"></span></button>
 </div>
@@ -264,7 +279,7 @@ body{background:var(--bg);color:var(--tx);font-family:system-ui,-apple-system,"S
       </template>
     </div>
 
-    <!-- Etapa 1 -->
+    <!-- Etapa 1: Carrinho -->
     <div x-show="etapa==='carrinho'">
       <div x-show="!itens.length" class="text-center py-8"><div class="text-5xl">🛒</div><p class="mut mt-2">Seu carrinho está vazio.</p><a href="#produtos" @click="abrir=false" class="btn inline-block mt-4">Ver produtos</a></div>
       <template x-for="it in itens" :key="it.id">
@@ -294,7 +309,7 @@ body{background:var(--bg);color:var(--tx);font-family:system-ui,-apple-system,"S
       </div>
     </div>
 
-    <!-- Etapa 2 -->
+    <!-- Etapa 2: Dados -->
     <form x-show="etapa==='dados'" @submit.prevent="finalizar()" class="space-y-3">
       <label class="block text-sm font-medium">Nome completo<input class="inp mt-1" required autocomplete="name" x-model="f.nome"></label>
       <label class="block text-sm font-medium">E-mail<input class="inp mt-1" required type="email" autocomplete="email" placeholder="voce@email.com" x-model="f.email"></label>
@@ -310,13 +325,12 @@ body{background:var(--bg);color:var(--tx);font-family:system-ui,-apple-system,"S
       <button type="button" class="btn2 w-full" @click="etapa='carrinho'">Voltar</button>
     </form>
 
-    <!-- Etapa 3 -->
+    <!-- Etapa 3: Sucesso -->
     <div x-show="etapa==='ok'" class="text-center py-8">
       <div class="text-5xl">✅</div>
       <p class="mt-3 font-semibold">Obrigado, <span x-text="f.nome.split(' ')[0]"></span>!</p>
       <p class="mut text-sm mt-1">Pedido <b x-text="pedido"></b> registrado. Enviamos os detalhes para <span x-text="f.email"></span>.</p>
       <p class="mut text-xs mt-3">(Demonstração acadêmica: nenhum pagamento real é feito.)</p>
-      <p x-show="!salvo" class="mut text-xs mt-1">Este acesso não permite registrar o pedido no painel do administrador.</p>
       <button class="btn mt-5" @click="abrir=false; etapa='carrinho'">Voltar à loja</button>
     </div>
   </aside>
@@ -327,6 +341,7 @@ const IMG = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" wid
 
 function loja() {
   return {
+    uid: '',
     modal: '',
     abrir: false,
     cat: 'Todos',
@@ -344,7 +359,6 @@ function loja() {
     pedido: '',
     salvo: true,
     perfil: null,
-    podeGravar: true,
     campos: [
       ['nome', 'Nome completo', 'text', true],
       ['email', 'E-mail', 'email', true],
@@ -379,19 +393,61 @@ function loja() {
       ['É adequado para viagens?', 'Sim, é perfeito! Por não conter água na fórmula, não corre o risco de vazar na mala e pode ser levado em bagagens de mão.']
     ],
     produtos: [
-      { id: 'p1', base: 'wayfarer', nome: 'Kit Sabonete em Pó Wayfarer', desc: 'Edição artesanal compacta, ideal para viagens e uso diário.', info: 'Rende até 30 banhos · Vegano', cat: 'Sabonetes', preco: 69.90, img: IMG, tam: [{k:'30', rotulo:'30 sachês'}, {k:'60', rotulo:'60 sachês'}] },
+      { id: 'p1', base: 'wayfarer', nome: 'Kit Sabonete em Pó Wayfarer', desc: 'Edição artesanal compacta, ideal para viagens e uso diário.', info: 'Rende até 30 banhos · Vegano', cat: 'Sabonetes', preco: 69.90, img: IMG, fit: 'cover', tam: [{k:'30', rotulo:'30 sachês'}, {k:'60', rotulo:'60 sachês'}] },
       { id: 'p2', base: 'refill', nome: 'Refill Sabonete em Pó (100g)', desc: 'Embalagem biodegradável para reabastecer seu frasco reutilizável.', info: 'Sustentável · Eco-friendly', cat: 'Sabonetes', preco: 45.00, emoji: '🌿', tam: [{k:'100g', rotulo:'100g'}, {k:'200g', rotulo:'200g'}] },
       { id: 'p3', base: 'protetor', nome: 'Protetor Solar Mineral em Pó', desc: 'Proteção FPS 30 natural contra raios UVA/UVB.', info: 'Resistente à água · Mineral', cat: 'Protetor solar', preco: 59.90, emoji: '☀️' },
       { id: 'p4', base: 'pote', nome: 'Porta-Sabonete de Silicone', desc: 'Acessório lavável e higiênico para transporte.', info: '100% silicone medicinal', cat: 'Acessórios', preco: 24.90, emoji: '🧳' },
-      { id: 'p5', base: 'ecobag', nome: 'Ecobag Wayfarer de Algodão', desc: 'Sacola ecológica em algodão sustentável com estampa exclusiva Wayfarer.', info: '100% Algodão · Sustentável', cat: 'Acessórios', preco: 29.99, img: 'SPLASH.jpg' }
+      { id: 'p5', base: 'ecobag', nome: 'Ecobag Wayfarer de Algodão', desc: 'Sacola ecológica em algodão sustentável com estampa exclusiva Wayfarer.', info: '100% Algodão · Sustentável', cat: 'Acessórios', preco: 29.99, img: 'SPLASH.jpg', fit: 'cover' }
     ],
 
     init() {
+      try {
+        this.uid = localStorage.getItem('farmaura-uid') || crypto.randomUUID();
+        localStorage.setItem('farmaura-uid', this.uid);
+      } catch(e) {
+        this.uid = 'user-demo';
+      }
+
       this.produtos.forEach(p => {
         if (p.tam && p.tam.length > 0) {
           this.sel[p.base] = p.tam[0].k;
         }
       });
+    },
+
+    sairPerfil() {
+      this.uid = crypto.randomUUID();
+      try { localStorage.setItem('farmaura-uid', this.uid); } catch(e) {}
+      this.perfil = null;
+      this.meus = [];
+      this.f2 = { nome: '', email: '', tel: '', nasc: '', end: '', cidade: '', ok: false };
+      this.f = { nome: '', email: '', end: '', pag: 'Pix' };
+      this.msg = '';
+      this.modal = '';
+      this.showToast('Você saiu do cadastro.');
+    },
+
+    salvarPerfil() {
+      if (!this.f2.ok) return;
+      this.perfil = { ...this.f2 };
+      this.msg = 'Cadastro salvo com sucesso!';
+      
+      if (!this.clientes.some(c => c.email === this.f2.email)) {
+        this.clientes.push({
+          nome: this.f2.nome,
+          email: this.f2.email,
+          tel: this.f2.tel,
+          nasc: this.f2.nasc,
+          end: this.f2.end,
+          cidade: this.f2.cidade,
+          criado: new Date().toISOString()
+        });
+      }
+
+      setTimeout(() => {
+        this.modal = '';
+        this.msg = '';
+      }, 1000);
     },
 
     get lista() {
@@ -545,16 +601,6 @@ function loja() {
 
       this.itens = [];
       this.etapa = 'ok';
-    },
-
-    salvarPerfil() {
-      if (!this.f2.ok) return;
-      this.perfil = { ...this.f2 };
-      this.msg = 'Cadastro salvo com sucesso!';
-      setTimeout(() => {
-        this.modal = '';
-        this.msg = '';
-      }, 1200);
     },
 
     abrirMeus() { this.modal = 'meus'; },
