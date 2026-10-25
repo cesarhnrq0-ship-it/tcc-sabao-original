@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Farmaura</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;1,9..144,400&family=DM+Sans:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;1,9..144,400&family=DM+Sans:wght@400;500;600;700&family=Caveat:wght@600;700&display=swap">
 <style>
 /* Layout: loja editorial em faixas largas; tokens trocam entre claro e escuro */
 :root{--stone-50:250 250 249;--stone-100:245 245 244;--stone-200:231 229 228;--stone-300:214 211 209;--stone-400:168 162 158;--stone-500:120 113 108;--stone-600:87 83 78;--stone-700:68 64 60;--stone-800:41 37 36;--stone-900:28 25 23;--stone-950:12 10 9;--emerald-50:236 253 245;--emerald-100:209 250 229;--emerald-200:167 243 208;--emerald-300:110 231 183;--emerald-400:52 211 153;--emerald-500:16 185 129;--emerald-600:5 150 105;--emerald-700:4 120 87;--emerald-800:6 95 70;--emerald-900:6 78 59;--emerald-950:2 44 34;--amber-50:255 251 235;--amber-100:254 243 199;--amber-200:253 230 138;--amber-300:252 211 77;--amber-400:251 191 36;--amber-500:245 158 11;--amber-600:217 119 6;--amber-700:180 83 9;--amber-800:146 64 14;--amber-900:120 53 15;--amber-950:69 26 3;--sky-50:240 249 255;--sky-100:224 242 254;--sky-200:186 230 253;--sky-300:125 211 252;--sky-400:56 189 248;--sky-500:14 165 233;--sky-600:2 132 199;--sky-700:3 105 161;--sky-800:7 89 133;--sky-900:12 74 110;--sky-950:8 47 73;--rose-50:255 241 242;--rose-100:255 228 230;--rose-200:254 205 211;--rose-300:253 164 175;--rose-400:251 113 133;--rose-500:244 63 94;--rose-600:225 29 72;--rose-700:190 18 60;--rose-800:159 18 57;--rose-900:136 19 55;--rose-950:76 5 25;--violet-50:245 243 255;--violet-100:237 233 254;--violet-200:221 214 254;--violet-300:196 181 253;--violet-400:167 139 250;--violet-500:139 92 246;--violet-600:124 58 237;--violet-700:109 40 217;--violet-800:91 33 182;--violet-900:76 29 149;--violet-950:46 16 101;--lime-50:247 254 231;--lime-100:236 252 203;--lime-200:217 249 157;--lime-300:190 242 100;--lime-400:163 230 53;--lime-500:132 204 22;--lime-600:101 163 13;--lime-700:77 124 15;--lime-800:63 98 18;--lime-900:54 83 20;--lime-950:26 46 5;--page:250 248 243;--surface:255 255 255;--ink:28 25 23;--ink-fg:255 255 255;color-scheme:light}
@@ -34,6 +34,7 @@ try{var t=localStorage.getItem("farmaura_theme_v1");if(t==="dark"||t==="light")d
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
 </head>
 <body>
@@ -115,6 +116,11 @@ const Copy = __icon('<rect width="14" height="14" x="8" y="8" rx="2"/><path d="M
 const EyeOff = __icon('<path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.53 13.53 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" x2="22" y1="2" y2="22"/>');
 const BarChart = __icon('<path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/>');
 const ChevronRight = __icon('<path d="m9 18 6-6-6-6"/>');
+const StickyNote = __icon('<path d="M15.5 3H5a2 2 0 0 0-2 2v14c0 1.1.9 2 2 2h14a2 2 0 0 0 2-2V8.5L15.5 3Z"/><path d="M15 3v6h6"/>');
+const Settings = __icon('<path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/>');
+const AlertTriangle = __icon('<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/>');
+const Instagram = __icon('<rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/>');
+const Type = __icon('<polyline points="4 7 4 4 20 4 20 7"/><line x1="9" x2="15" y1="20" y2="20"/><line x1="12" x2="12" y1="4" y2="20"/>');
 const Eye = __icon('<path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/>');
 
 /* ============================================================================
@@ -450,13 +456,59 @@ const PRODUCTS = [
 
 /** Acessórios que aceitam personalização com nome (texto + taxa) */
 const CUSTOMIZATION = {
-  "acc-ecobag": { label: "Estampar um nome na sacola", fee: 12.9, max: 14 },
-  "acc-chaveiro": { label: "Gravar um nome no verso", fee: 7.9, max: 10 },
-  "acc-bone-av": { label: "Bordar um nome na lateral", fee: 14.9, max: 12 },
-  "acc-toalha-av": { label: "Bordar um nome na toalha", fee: 14.9, max: 14 },
+  "acc-ecobag": {
+    label: "Estampar um nome na sacola", verb: "Estampa", fee: 12.9, max: 14, material: "Algodão cru",
+    surface: "repeating-linear-gradient(90deg, rgba(60,45,20,.05) 0 2px, transparent 2px 5px), linear-gradient(135deg, #f1e9d6, #e0d3b6)",
+    stitch: "rgba(80,64,40,.35)", shadow: "none",
+    colors: [
+      { id: "verde", label: "Verde floresta", hex: "#1f3a2c" },
+      { id: "preto", label: "Preto", hex: "#1c1917" },
+      { id: "terracota", label: "Terracota", hex: "#a4492f" },
+    ],
+  },
+  "acc-chaveiro": {
+    label: "Gravar um nome no verso", verb: "Gravação", fee: 7.9, max: 10, material: "Verso emborrachado",
+    surface: "radial-gradient(circle at 30% 20%, #2e5446, #17302a 70%)",
+    stitch: "rgba(239,230,207,.3)", shadow: "0 1px 0 rgba(0,0,0,.45)",
+    colors: [
+      { id: "creme", label: "Creme", hex: "#efe6cf" },
+      { id: "salvia", label: "Verde-sálvia", hex: "#b9d3ad" },
+    ],
+  },
+  "acc-bone-av": {
+    label: "Bordar um nome na lateral", verb: "Bordado", fee: 14.9, max: 12, material: "Lateral do boné",
+    surface: "repeating-linear-gradient(45deg, rgba(255,255,255,.05) 0 3px, transparent 3px 6px), linear-gradient(135deg, #1e4fd8, #3aa0f0)",
+    stitch: "rgba(255,255,255,.45)", shadow: "0 1px 0 rgba(0,0,0,.3), 0 0 1px rgba(0,0,0,.5)",
+    colors: [
+      { id: "branco", label: "Branco", hex: "#ffffff" },
+      { id: "amarelo", label: "Amarelo sol", hex: "#fcd34d" },
+    ],
+  },
+  "acc-toalha-av": {
+    label: "Bordar um nome na toalha", verb: "Bordado", fee: 14.9, max: 14, material: "Canto da toalha",
+    surface: "radial-gradient(rgba(255,255,255,.12) 1px, transparent 1.5px) 0 0 / 6px 6px, linear-gradient(135deg, #2563eb, #38bdf8)",
+    stitch: "rgba(255,255,255,.45)", shadow: "0 1px 0 rgba(0,0,0,.3), 0 0 1px rgba(0,0,0,.5)",
+    colors: [
+      { id: "branco", label: "Branco", hex: "#ffffff" },
+      { id: "amarelo", label: "Amarelo sol", hex: "#fcd34d" },
+    ],
+  },
 };
-/** Embalagem para presente no checkout */
-const GIFT_FEE = 7.9;
+
+/** Estilos de letra para a personalização */
+const CUSTOM_FONTS = [
+  { id: "classica", label: "Clássica", style: { fontFamily: "Fraunces, Georgia, serif", fontWeight: 500 } },
+  { id: "manuscrita", label: "Manuscrita", style: { fontFamily: '"Caveat", "Segoe Script", cursive', fontWeight: 700, fontSize: "1.3em" } },
+  { id: "bastao", label: "Bastão", style: { fontFamily: '"DM Sans", system-ui, sans-serif', fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.12em", fontSize: "0.78em" } },
+];
+const fontById = (id) => CUSTOM_FONTS.find((f) => f.id === id) || CUSTOM_FONTS[0];
+/** "Manuscrita · Verde floresta" a partir do item do carrinho/pedido */
+const customStyleText = (item) => {
+  if (!item.customStyle) return "";
+  const cfg = CUSTOMIZATION[item.id];
+  const color = cfg && cfg.colors.find((c) => c.id === item.customStyle.color);
+  return [fontById(item.customStyle.font).label, color && color.label].filter(Boolean).join(" · ");
+};
 
 /** Status possíveis de um pedido e seus estilos visuais */
 const ORDER_STATUS = {
@@ -478,15 +530,97 @@ const BRAZIL_STATES = [
   "PB", "PR", "PE", "PI", "RJ", "RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO",
 ];
 
-/** Regras comerciais */
-const FREE_SHIPPING_THRESHOLD = 150;
-const SHIPPING_FEE = 15.9;
-const PIX_DISCOUNT = 0.05;
-/** Cupons de desconto aceitos no carrinho */
-const COUPONS = {
-  BEMVINDO10: { rate: 0.1, label: "10% na primeira compra" },
-  WAYFARER15: { rate: 0.15, label: "15% para aventureiros" },
+/* ----------------------------------------------------------------------------
+ * LOJA EDITÁVEL
+ * Valores padrão. O Painel Admin altera preços, estoque, cupons e regras,
+ * e as alterações ficam salvas no navegador (localStorage).
+ * -------------------------------------------------------------------------- */
+const DEFAULT_SETTINGS = {
+  freeShipping: 150,   // frete grátis a partir de (R$)
+  shippingFee: 15.9,   // valor do frete (R$)
+  pixDiscount: 5,      // desconto no PIX (%)
+  giftFee: 7.9,        // embalagem para presente (R$)
+  lowStock: 5,         // alerta de estoque baixo (unidades)
+  announcement: "",    // aviso do topo (vazio = texto automático)
+  adminPassword: "farmaura2026",
+  pixKey: "f7b4fedc-54ca-4672-a6b2-f5aab823fce4", // chave PIX que recebe os pagamentos
+  pixName: "FARMAURA",                            // nome do recebedor (até 25 letras)
+  pixCity: "SAO PAULO",                           // cidade do recebedor (até 15 letras)
+  donationsEnabled: true,                         // mostra a seção de doação na loja
 };
+
+/** Estoque inicial de cada produto */
+const DEFAULT_STOCK = {
+  "sabonete-cha-verde": 48, "wayfarer-kit": 35, "wayfarer-combo": 22, "aura-vital": 60,
+  "acc-ecobag": 25, "acc-chaveiro": 4, "acc-adesivos": 120, "acc-bone-av": 18,
+  "acc-toalha-av": 12, "acc-chaveiro-av": 30,
+};
+
+/** Cupons iniciais (type: "percent" = %, "fixed" = R$) */
+const DEFAULT_COUPONS = [
+  { code: "BEMVINDO10", type: "percent", value: 10, minOrder: 0, label: "10% na primeira compra", active: true, uses: 0 },
+  { code: "WAYFARER15", type: "percent", value: 15, minOrder: 0, label: "15% para aventureiros", active: true, uses: 0 },
+  { code: "VERAO20", type: "fixed", value: 20, minOrder: 150, label: "R$ 20 de desconto no verão", active: true, uses: 0 },
+];
+
+const DEFAULT_STORE = { settings: DEFAULT_SETTINGS, coupons: DEFAULT_COUPONS, products: {}, customization: {} };
+const STORE_KEY = "farmaura_store_v1";
+const loadStore = () => {
+  try {
+    const raw = JSON.parse(window.localStorage.getItem(STORE_KEY) || "null");
+    if (!raw) return DEFAULT_STORE;
+    return {
+      settings: { ...DEFAULT_SETTINGS, ...(raw.settings || {}) },
+      coupons: Array.isArray(raw.coupons) ? raw.coupons : DEFAULT_COUPONS,
+      products: raw.products || {},
+      customization: raw.customization || {},
+    };
+  } catch {
+    return DEFAULT_STORE;
+  }
+};
+const saveStore = (data) => {
+  try { window.localStorage.setItem(STORE_KEY, JSON.stringify(data)); } catch { /* sem armazenamento */ }
+};
+
+/** Junta os dados fixos dos produtos com o que foi alterado no painel */
+const buildStore = (data) => {
+  const allProducts = PRODUCTS.map((p) => ({
+    ...p,
+    stock: DEFAULT_STOCK[p.id] ?? 30,
+    active: true,
+    ...(data.products[p.id] || {}),
+  }));
+  const customizationAll = {};
+  Object.keys(CUSTOMIZATION).forEach((id) => {
+    customizationAll[id] = { ...CUSTOMIZATION[id], enabled: true, ...(data.customization[id] || {}) };
+  });
+  const customization = {};
+  Object.keys(customizationAll).forEach((id) => {
+    if (customizationAll[id].enabled) customization[id] = customizationAll[id];
+  });
+  return {
+    data,
+    settings: data.settings,
+    coupons: data.coupons,
+    allProducts,
+    products: allProducts.filter((p) => p.active),
+    customization,
+    customizationAll,
+  };
+};
+
+/** Contexto com a loja atual, disponível para qualquer componente via useStore() */
+const StoreContext = React.createContext(null);
+const useStore = () => React.useContext(StoreContext);
+
+/** Textos de cupom */
+const couponValueText = (c) => (c.type === "percent" ? `${numBR(c.value)}%` : formatBRL(c.value));
+const couponLabel = (c) =>
+  (c.label || `${couponValueText(c)} de desconto`) + (c.minOrder ? ` · acima de ${formatBRL(c.minOrder)}` : "");
+/** Aviso do topo gerado a partir das regras */
+const autoAnnouncement = (st) =>
+  `Frete grátis acima de ${formatBRL(st.freeShipping)}${st.pixDiscount ? ` · ${numBR(st.pixDiscount)}% OFF no PIX` : ""}`;
 
 /** Imagens conceituais (Unsplash) */
 const IMAGES = {
@@ -534,7 +668,7 @@ const MOCK_ORDERS = [
     },
     items: [
       { id: "sabonete-cha-verde", name: "Wayfarer Refil", variant: "Chá Verde · 100g", price: 59.9, qty: 2 },
-      { lineId: "acc-chaveiro::pedro", id: "acc-chaveiro", name: "Chaveiro Wayfarer", variant: "Emborrachado · 7 cm", price: 27.8, qty: 1, custom: "Pedro" },
+      { lineId: "acc-chaveiro::pedro::manuscrita::creme", id: "acc-chaveiro", name: "Chaveiro Wayfarer", variant: "Emborrachado · 7 cm", price: 27.8, qty: 1, custom: "Pedro", customStyle: { font: "manuscrita", color: "creme" } },
     ],
     subtotal: 147.6, shipping: 15.9, discount: 0, total: 171.4,
     gift: { message: "Feliz aniversário, Pedro! Que venham muitas trilhas. Com carinho, Ju." },
@@ -558,6 +692,8 @@ const formatDateTime = (iso) =>
 
 /** Arredonda para 2 casas decimais (evita erros de ponto flutuante) */
 const round2 = (n) => Math.round(n * 100) / 100;
+/** 5 -> "5", 7.5 -> "7,5" */
+const numBR = (n) => String(n).replace(".", ",");
 
 /** Máscaras de input */
 const onlyDigits = (v) => v.replace(/\D/g, "");
@@ -585,15 +721,51 @@ const nextOrderId = (orders) => {
 };
 
 /** Calcula os totais do carrinho com base nas regras comerciais */
-const calcTotals = (cart, payment, coupon = null, gift = false) => {
+const calcTotals = (cart, payment, couponCode, gift, store) => {
+  const { settings } = store;
   const subtotal = round2(cart.reduce((acc, i) => acc + i.price * i.qty, 0));
-  const shipping = subtotal === 0 || subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_FEE;
-  const couponDiscount = coupon && COUPONS[coupon] ? round2(subtotal * COUPONS[coupon].rate) : 0;
-  const pixDiscount = payment === "PIX" ? round2((subtotal - couponDiscount) * PIX_DISCOUNT) : 0;
+  const shipping = subtotal === 0 || subtotal >= settings.freeShipping ? 0 : settings.shippingFee;
+  const c = couponCode ? store.coupons.find((x) => x.code === couponCode) : null;
+  let couponDiscount = 0;
+  let couponIssue = null;
+  if (couponCode) {
+    if (!c || !c.active) couponIssue = "inactive";
+    else if (subtotal < (c.minOrder || 0)) couponIssue = "min";
+    else couponDiscount = round2(c.type === "percent" ? (subtotal * c.value) / 100 : Math.min(c.value, subtotal));
+  }
+  const pixDiscount = payment === "PIX" ? round2(((subtotal - couponDiscount) * settings.pixDiscount) / 100) : 0;
   const discount = round2(couponDiscount + pixDiscount);
-  const giftFee = gift && subtotal > 0 ? GIFT_FEE : 0;
-  const total = round2(subtotal + shipping + giftFee - discount);
-  return { subtotal, shipping, giftFee, couponDiscount, pixDiscount, discount, total, coupon: couponDiscount ? coupon : null };
+  const giftFee = gift && subtotal > 0 ? settings.giftFee : 0;
+  const total = round2(Math.max(0, subtotal + shipping + giftFee - discount));
+  return {
+    subtotal, shipping, giftFee, couponDiscount, pixDiscount, discount, total,
+    coupon: couponDiscount ? couponCode : null, couponIssue, couponInfo: c,
+  };
+};
+
+/* ----------------------------------------------------------------------------
+ * PIX "copia e cola" (BR Code / padrão EMV do Banco Central)
+ * Monta o código com chave, valor e identificador do pedido + CRC16 no final.
+ * -------------------------------------------------------------------------- */
+const emv = (id, value) => id + String(value.length).padStart(2, "0") + value;
+const crc16 = (str) => {
+  let crc = 0xffff;
+  for (let i = 0; i < str.length; i++) {
+    crc ^= str.charCodeAt(i) << 8;
+    for (let j = 0; j < 8; j++) crc = crc & 0x8000 ? ((crc << 1) ^ 0x1021) & 0xffff : (crc << 1) & 0xffff;
+  }
+  return crc.toString(16).toUpperCase().padStart(4, "0");
+};
+const pixText = (s, max) =>
+  String(s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^A-Za-z0-9 ]/g, "").toUpperCase().trim().slice(0, max);
+const buildPixPayload = ({ key, name, city, amount, txid }) => {
+  const account = emv("00", "br.gov.bcb.pix") + emv("01", String(key).trim());
+  let p = emv("00", "01") + emv("26", account) + emv("52", "0000") + emv("53", "986");
+  if (amount > 0) p += emv("54", amount.toFixed(2));
+  p += emv("58", "BR") + emv("59", pixText(name, 25) || "FARMAURA") + emv("60", pixText(city, 15) || "SAO PAULO");
+  p += emv("62", emv("05", String(txid || "").replace(/[^A-Za-z0-9]/g, "").slice(0, 25) || "***"));
+  p += "6304";
+  return p + crc16(p);
 };
 
 /** Carrinho salvo no navegador */
@@ -635,6 +807,25 @@ const loadTheme = () => {
   } catch { /* ignora */ }
   return systemPrefersDark() ? "dark" : "light";
 };
+
+/** Doações registradas (ficam no navegador, como os pedidos) */
+const DONATIONS_KEY = "farmaura_donations_v1";
+const DONATION_STATUS = {
+  Aguardando: { color: "bg-amber-100 text-amber-800 ring-amber-200", dot: "bg-amber-500" },
+  Recebida: { color: "bg-emerald-100 text-emerald-800 ring-emerald-200", dot: "bg-emerald-500" },
+};
+const loadDonations = () => {
+  try {
+    const raw = JSON.parse(window.localStorage.getItem(DONATIONS_KEY) || "[]");
+    return Array.isArray(raw) ? raw : [];
+  } catch {
+    return [];
+  }
+};
+const saveDonations = (list) => {
+  try { window.localStorage.setItem(DONATIONS_KEY, JSON.stringify(list)); } catch { /* sem armazenamento */ }
+};
+const nextDonationId = (list) => `DO-${list.reduce((m, d) => Math.max(m, parseInt(d.id.split("-")[1], 10) || 0), 1000) + 1}`;
 
 /** Leitura/escrita segura no localStorage (pode não estar disponível no ambiente) */
 const STORAGE_KEY = "farmaura_orders_v1";
@@ -706,6 +897,7 @@ function Logo({ light = false }) {
 
 /** Cabeçalho com navegação, carrinho e alternância Loja/Admin */
 function Header({ view, setView, cartCount, onOpenCart, onNavigate, theme, onToggleTheme, activeSection, cartBump }) {
+  const { settings } = useStore();
   const [mobileOpen, setMobileOpen] = useState(false);
   const links = [
     { id: "inicio", label: "Início" },
@@ -714,8 +906,9 @@ function Header({ view, setView, cartCount, onOpenCart, onNavigate, theme, onTog
     { id: "catalogo-acessorios", label: "Acessórios" },
     { id: "rastrear", label: "Rastrear" },
     { id: "duvidas", label: "Dúvidas" },
+    { id: "doar", label: "Doar" },
     { id: "contato", label: "Contato" },
-  ];
+  ].filter((l) => l.id !== "doar" || settings.donationsEnabled);
 
   const go = (id) => {
     setMobileOpen(false);
@@ -725,9 +918,9 @@ function Header({ view, setView, cartCount, onOpenCart, onNavigate, theme, onTog
   return (
     <header className="sticky top-0 z-40 border-b border-stone-200/70 bg-page/80 backdrop-blur-xl">
       {/* Barra de anúncio */}
-      <div className="palette-light bg-emerald-950 px-4 py-2 text-center text-xs tracking-wide text-emerald-50">
+      <div className="palette-light bg-emerald-950 px-4 py-2 text-center text-[11px] tracking-wide text-emerald-50 sm:text-xs">
         <Truck className="mr-1.5 inline h-3.5 w-3.5" />
-        Frete grátis em compras acima de {formatBRL(FREE_SHIPPING_THRESHOLD)} · 5% OFF no PIX
+        {settings.announcement || autoAnnouncement(settings)}
       </div>
 
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3.5 sm:px-6 lg:px-8">
@@ -763,6 +956,8 @@ function Header({ view, setView, cartCount, onOpenCart, onNavigate, theme, onTog
           <div className="flex rounded-full bg-stone-200/70 p-1 text-xs font-semibold">
             <button
               onClick={() => setView("store")}
+              aria-label="Modo Loja"
+              title="Modo Loja"
               className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 transition ${
                 view === "store" ? "bg-surface text-emerald-800 shadow-sm" : "text-stone-500 hover:text-stone-800"
               }`}
@@ -772,6 +967,8 @@ function Header({ view, setView, cartCount, onOpenCart, onNavigate, theme, onTog
             </button>
             <button
               onClick={() => setView("admin")}
+              aria-label="Painel Admin"
+              title="Painel Admin"
               className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 transition ${
                 view === "admin" ? "bg-ink text-ink-fg shadow-sm" : "text-stone-500 hover:text-stone-800"
               }`}
@@ -943,6 +1140,9 @@ function BenefitsStrip() {
 
 /** Card de produto do catálogo */
 function ProductCard({ product, onOpen, onAdd, isFav, onToggleFav }) {
+  const { customization, settings } = useStore();
+  const soldOut = product.stock <= 0;
+  const lastUnits = !soldOut && product.stock <= settings.lowStock;
   return (
     <article className="group relative flex flex-col overflow-hidden rounded-[2rem] border border-stone-200/80 bg-surface transition duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-black/10">
       <button
@@ -953,8 +1153,13 @@ function ProductCard({ product, onOpen, onAdd, isFav, onToggleFav }) {
         <SafeImage
           src={product.image}
           alt={product.name}
-          className="aspect-[4/3] w-full object-cover transition duration-700 group-hover:scale-105"
+          className={`aspect-[4/3] w-full object-cover transition duration-700 group-hover:scale-105 ${soldOut ? "opacity-60 grayscale" : ""}`}
         />
+        {soldOut && (
+          <span className="absolute inset-x-0 top-1/2 -translate-y-1/2 bg-black/70 py-2 text-center text-xs font-bold uppercase tracking-[0.3em] text-white">
+            Esgotado
+          </span>
+        )}
         <span className="absolute left-4 top-4 flex flex-wrap gap-1.5 pr-14">
           <span
             className={`rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-wider ${
@@ -996,7 +1201,12 @@ function ProductCard({ product, onOpen, onAdd, isFav, onToggleFav }) {
         <p className="mt-2 text-sm text-stone-500">{product.tagline}</p>
 
         <div className="mt-4 flex flex-wrap gap-2">
-          {CUSTOMIZATION[product.id] && (
+          {lastUnits && (
+            <span className="inline-flex items-center gap-1 rounded-full bg-rose-50 px-2.5 py-1 text-[11px] font-semibold text-rose-700">
+              <Clock className="h-3 w-3" /> {product.stock === 1 ? "Última unidade" : `Últimas ${product.stock} unidades`}
+            </span>
+          )}
+          {customization[product.id] && (
             <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-1 text-[11px] font-semibold text-amber-800">
               <PenLine className="h-3 w-3" /> Personalizável
             </span>
@@ -1012,15 +1222,23 @@ function ProductCard({ product, onOpen, onAdd, isFav, onToggleFav }) {
           <div>
             {product.oldPrice && <p className="text-sm text-stone-400 line-through">{formatBRL(product.oldPrice)}</p>}
             <p className="text-2xl font-bold text-stone-900">{formatBRL(product.price)}</p>
-            <p className="text-xs text-emerald-700">{formatBRL(product.price * (1 - PIX_DISCOUNT))} no PIX</p>
+            {settings.pixDiscount > 0 && (
+              <p className="text-xs text-emerald-700">{formatBRL(product.price * (1 - settings.pixDiscount / 100))} no PIX</p>
+            )}
           </div>
-          <button
-            onClick={() => onAdd(product)}
-            className="inline-flex items-center gap-2 rounded-full bg-emerald-900 px-5 py-3 text-sm font-semibold text-white transition hover:brightness-110 active:scale-95"
-          >
-            <ShoppingBag className="h-4 w-4" />
-            Adicionar
-          </button>
+          {soldOut ? (
+            <span className="inline-flex items-center rounded-full border border-stone-300 px-5 py-3 text-sm font-semibold text-stone-500">
+              Esgotado
+            </span>
+          ) : (
+            <button
+              onClick={() => (customization[product.id] ? onOpen(product) : onAdd(product))}
+              className="inline-flex items-center gap-2 rounded-full bg-emerald-900 px-5 py-3 text-sm font-semibold text-white transition hover:brightness-110 active:scale-95"
+            >
+              {customization[product.id] ? <PenLine className="h-4 w-4" /> : <ShoppingBag className="h-4 w-4" />}
+              {customization[product.id] ? "Escolher" : "Adicionar"}
+            </button>
+          )}
         </div>
       </div>
     </article>
@@ -1032,6 +1250,7 @@ const CATALOGS = [
   {
     id: "catalogo-sabonete",
     category: "sabonete",
+    short: "Sabonete em Pó",
     eyebrow: "Catálogo · Sabonete em Pó",
     title: "Wayfarer for Men",
     text: "Sabonete corporal em pó de Chá Verde em três formatos: o refil para casa, o kit de sachês para a viagem e o combo com os dois.",
@@ -1040,6 +1259,7 @@ const CATALOGS = [
   {
     id: "catalogo-protetor",
     category: "protetor",
+    short: "Protetor Solar",
     eyebrow: "Catálogo · Protetor Solar",
     title: "Aura Vital",
     text: "Proteção solar facial e corporal FPS 67, resistente à água e com toque seco, para o dia a dia e para a praia.",
@@ -1048,6 +1268,7 @@ const CATALOGS = [
   {
     id: "catalogo-acessorios",
     category: "acessorios",
+    short: "Acessórios",
     eyebrow: "Catálogo · Acessórios",
     title: "Acessórios Wayfarer",
     text: "Itens Wayfarer para levar o ritual na mochila e a linha Aura Vital para os dias de praia: sacola, chaveiros, adesivos, boné e toalha.",
@@ -1085,13 +1306,16 @@ function CatalogSection({ catalog, items, onOpen, onAdd, favs, onToggleFav }) {
 }
 
 function ProductsSection({ onOpen, onAdd, favs, onToggleFav }) {
+  const { products } = useStore();
+  const [category, setCategory] = useState("todos");
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState("relevancia");
   const [onlyFavs, setOnlyFavs] = useState(false);
 
   const filtered = useMemo(() => {
     const q = normalize(query.trim());
-    let list = PRODUCTS.filter((p) => {
+    let list = products.filter((p) => {
+      if (category !== "todos" && p.category !== category) return false;
       if (onlyFavs && !favs.includes(p.id)) return false;
       if (!q) return true;
       return normalize(`${p.name} ${p.variant} ${p.tagline} ${p.category}`).includes(q);
@@ -1100,10 +1324,14 @@ function ProductsSection({ onOpen, onAdd, favs, onToggleFav }) {
     if (sort === "maior") list = [...list].sort((a, b) => b.price - a.price);
     if (sort === "avaliados") list = [...list].sort((a, b) => b.reviews - a.reviews);
     return list;
-  }, [query, sort, onlyFavs, favs]);
+  }, [query, sort, onlyFavs, favs, products, category]);
 
-  const filtering = query.trim() || onlyFavs;
-  const clear = () => { setQuery(""); setOnlyFavs(false); setSort("relevancia"); };
+  const filtering = query.trim() || onlyFavs || category !== "todos";
+  const clear = () => { setQuery(""); setOnlyFavs(false); setSort("relevancia"); setCategory("todos"); };
+  const chips = [
+    { id: "todos", label: "Todos", n: products.length },
+    ...CATALOGS.map((c) => ({ id: c.category, label: c.short, n: products.filter((p) => p.category === c.category).length })),
+  ];
 
   return (
     <div id="produtos">
@@ -1150,6 +1378,21 @@ function ProductsSection({ onOpen, onAdd, favs, onToggleFav }) {
             </button>
           </div>
         </div>
+        <div className="mx-auto flex max-w-7xl gap-2 overflow-x-auto px-4 pb-4 sm:px-6 lg:px-8">
+          {chips.map((c) => (
+            <button
+              key={c.id}
+              onClick={() => setCategory(c.id)}
+              aria-pressed={category === c.id}
+              className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-4 py-2 text-xs font-semibold transition ${
+                category === c.id ? "bg-emerald-900 text-white" : "bg-stone-100 text-stone-700 hover:bg-stone-200"
+              }`}
+            >
+              {c.label}
+              <span className={`tabular-nums ${category === c.id ? "text-white/70" : "text-stone-400"}`}>{c.n}</span>
+            </button>
+          ))}
+        </div>
         {filtering && (
           <div className="mx-auto max-w-7xl px-4 pb-4 text-xs text-stone-500 sm:px-6 lg:px-8">
             {filtered.length} {filtered.length === 1 ? "produto encontrado" : "produtos encontrados"} ·{" "}
@@ -1194,13 +1437,19 @@ function ProductsSection({ onOpen, onAdd, favs, onToggleFav }) {
 
 /** Modal de detalhes do produto (ingredientes, modo de uso, benefícios) */
 function ProductModal({ product, onClose, onAdd, isFav, onToggleFav }) {
+  const { customization } = useStore();
   const [tab, setTab] = useState("beneficios");
   const [qty, setQty] = useState(1);
-  const custom = CUSTOMIZATION[product.id];
-  const [wantsCustom, setWantsCustom] = useState(false);
+  const custom = customization[product.id];
+  const [wantsCustom, setWantsCustom] = useState(!!custom);
   const [customText, setCustomText] = useState("");
+  const [customFont, setCustomFont] = useState(CUSTOM_FONTS[0].id);
+  const [customColor, setCustomColor] = useState(custom ? custom.colors[0].id : null);
   const customOn = custom && wantsCustom && customText.trim().length > 0;
+  const needsText = custom && wantsCustom && !customText.trim();
   const unitPrice = product.price + (customOn ? custom.fee : 0);
+  const soldOut = product.stock <= 0;
+  const maxQty = Math.max(1, Math.min(20, product.stock));
 
   if (!product) return null;
 
@@ -1291,12 +1540,17 @@ function ProductModal({ product, onClose, onAdd, isFav, onToggleFav }) {
               {product.oldPrice && <p className="text-sm text-stone-400 line-through">{formatBRL(product.oldPrice)}</p>}
               <p className="text-3xl font-bold text-stone-900">{formatBRL(product.price)}</p>
             </div>
-            <QtyControl qty={qty} onChange={setQty} />
+            {!soldOut && <QtyControl qty={qty} onChange={setQty} max={maxQty} />}
           </div>
+          {!soldOut && product.stock <= 10 && (
+            <p className="mt-2 text-right text-xs font-semibold text-rose-700">
+              {product.stock === 1 ? "Última unidade em estoque" : `Só ${product.stock} unidades em estoque`}
+            </p>
+          )}
 
           {/* Personalização com nome */}
-          {custom && (
-            <div className={`mt-4 rounded-2xl border p-4 transition ${wantsCustom ? "border-amber-400 bg-amber-50" : "border-stone-200 bg-surface"}`}>
+          {custom && !soldOut && (
+            <div className={`mt-4 rounded-2xl border p-4 transition ${wantsCustom ? "border-amber-400 bg-amber-50/70" : "border-stone-200 bg-surface"}`}>
               <label className="flex cursor-pointer items-center gap-3">
                 <input
                   id="personalizar"
@@ -1312,35 +1566,93 @@ function ProductModal({ product, onClose, onAdd, isFav, onToggleFav }) {
                 <span className="text-xs font-semibold text-amber-800">+ {formatBRL(custom.fee)}</span>
               </label>
               {wantsCustom && (
-                <div className="mt-3">
-                  <input
-                    id="texto-personalizado"
-                    value={customText}
-                    maxLength={custom.max}
-                    onChange={(e) => setCustomText(e.target.value.replace(/[^\p{L}\p{N} .'-]/gu, ""))}
-                    placeholder="Digite o nome"
-                    className="w-full rounded-xl border border-stone-300 bg-surface px-4 py-2.5 text-sm outline-none focus:border-emerald-700 focus:ring-2 focus:ring-emerald-700/15"
-                  />
-                  <div className="mt-2 flex items-center justify-between text-[11px] text-stone-500">
-                    <span>
-                      Prévia: <b className="font-serif text-sm italic text-emerald-800">{customText.trim() || "Seu nome"}</b>
-                    </span>
-                    <span className="tabular-nums">{customText.length}/{custom.max}</span>
+                <div className="mt-4 space-y-4">
+                  <CustomPreview custom={custom} text={customText.trim()} font={customFont} color={customColor} />
+                  <div>
+                    <div className="mb-1.5 flex items-center justify-between text-xs">
+                      <span className="font-semibold text-stone-700">Nome</span>
+                      <span className="tabular-nums text-stone-500">{customText.length}/{custom.max}</span>
+                    </div>
+                    <input
+                      id="texto-personalizado"
+                      value={customText}
+                      maxLength={custom.max}
+                      onChange={(e) => setCustomText(e.target.value.replace(/[^\p{L}\p{N} .'-]/gu, ""))}
+                      placeholder="Digite o nome"
+                      className="w-full rounded-xl border border-stone-300 bg-surface px-4 py-2.5 text-sm outline-none focus:border-emerald-700 focus:ring-2 focus:ring-emerald-700/15"
+                    />
                   </div>
+                  <div className="grid gap-4 sm:grid-cols-[1fr_auto]">
+                    <div>
+                      <p className="mb-1.5 text-xs font-semibold text-stone-700">Letra</p>
+                      <div className="grid grid-cols-3 gap-1.5" role="radiogroup" aria-label="Estilo da letra">
+                        {CUSTOM_FONTS.map((f) => (
+                          <button
+                            key={f.id}
+                            type="button"
+                            role="radio"
+                            aria-checked={customFont === f.id}
+                            onClick={() => setCustomFont(f.id)}
+                            className={`flex flex-col items-center rounded-xl border px-2 py-2 transition ${
+                              customFont === f.id ? "border-emerald-700 bg-surface ring-2 ring-emerald-700/15" : "border-stone-300 bg-surface/60 hover:border-stone-400"
+                            }`}
+                          >
+                            <span className="text-lg leading-tight text-stone-900" style={f.style}>Aa</span>
+                            <span className="text-[10px] font-semibold text-stone-500">{f.label}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <div>
+                      <p className="mb-1.5 text-xs font-semibold text-stone-700">Cor da linha</p>
+                      <div className="flex gap-2" role="radiogroup" aria-label="Cor">
+                        {custom.colors.map((c) => (
+                          <button
+                            key={c.id}
+                            type="button"
+                            role="radio"
+                            aria-checked={customColor === c.id}
+                            aria-label={c.label}
+                            title={c.label}
+                            onClick={() => setCustomColor(c.id)}
+                            className={`h-10 w-10 rounded-full border-2 transition ${customColor === c.id ? "border-emerald-700 ring-2 ring-emerald-700/25 ring-offset-2 ring-offset-page" : "border-stone-300"}`}
+                            style={{ background: c.hex }}
+                          />
+                        ))}
+                      </div>
+                      <p className="mt-1 text-[11px] text-stone-500">{(custom.colors.find((c) => c.id === customColor) || custom.colors[0]).label}</p>
+                    </div>
+                  </div>
+                  <p className="flex items-start gap-1.5 text-[11px] text-stone-500">
+                    <Clock className="mt-px h-3 w-3 shrink-0" /> Itens personalizados levam 2 dias úteis a mais e não podem ser trocados.
+                  </p>
                 </div>
               )}
             </div>
           )}
 
-          <button
-            onClick={() => {
-              onAdd(product, qty, customOn ? { custom: customText.trim() } : {});
-              onClose();
-            }}
-            className="mt-4 flex items-center justify-center gap-2 rounded-full bg-emerald-900 py-4 text-sm font-semibold text-white transition hover:brightness-110"
-          >
-            <ShoppingBag className="h-4 w-4" /> Adicionar ao Carrinho · {formatBRL(unitPrice * qty)}
-          </button>
+          {soldOut ? (
+            <p className="mt-4 rounded-full border border-stone-300 py-4 text-center text-sm font-semibold text-stone-500">
+              Produto esgotado no momento
+            </p>
+          ) : (
+            <button
+              disabled={needsText}
+              onClick={() => {
+                onAdd(product, qty, customOn ? { custom: customText.trim(), customStyle: { font: customFont, color: customColor } } : {});
+                onClose();
+              }}
+              className="mt-4 flex items-center justify-center gap-2 rounded-full bg-emerald-900 py-4 text-sm font-semibold text-white transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <ShoppingBag className="h-4 w-4" />
+              {needsText ? "Digite o nome para continuar" : `Adicionar ao Carrinho · ${formatBRL(unitPrice * qty)}`}
+            </button>
+          )}
+          {custom && wantsCustom && !soldOut && (
+            <button type="button" onClick={() => setWantsCustom(false)} className="mt-2 text-center text-xs font-semibold text-stone-500 hover:text-stone-800">
+              Comprar sem personalização
+            </button>
+          )}
           <button
             onClick={() => onToggleFav(product.id)}
             className="mt-2 flex items-center justify-center gap-2 rounded-full py-2.5 text-xs font-semibold text-stone-600 transition hover:text-rose-600"
@@ -1354,8 +1666,307 @@ function ProductModal({ product, onClose, onAdd, isFav, onToggleFav }) {
   );
 }
 
+/** QR Code do PIX (desenhado em SVG, sempre preto no branco para o banco conseguir ler) */
+function PixQR({ payload, size = 196 }) {
+  const qr = useMemo(() => {
+    if (typeof window.qrcode !== "function") return null;
+    try {
+      const q = window.qrcode(0, "M");
+      q.addData(payload);
+      q.make();
+      const n = q.getModuleCount();
+      let d = "";
+      for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) if (q.isDark(r, c)) d += `M${c} ${r}h1v1h-1z`;
+      return { n, d };
+    } catch {
+      return null;
+    }
+  }, [payload]);
+  if (!qr) {
+    return (
+      <div className="flex items-center justify-center rounded-xl border border-dashed border-[#d6d3d1] bg-white p-4 text-center text-xs text-[#57534e]" style={{ width: size, height: size }}>
+        Não foi possível desenhar o QR Code. Use o código copia e cola abaixo.
+      </div>
+    );
+  }
+  return (
+    <svg viewBox={`-3 -3 ${qr.n + 6} ${qr.n + 6}`} width={size} height={size} shapeRendering="crispEdges" role="img" aria-label="QR Code para pagar com PIX" className="rounded-xl">
+      <rect x="-3" y="-3" width={qr.n + 6} height={qr.n + 6} fill="#ffffff" />
+      <path d={qr.d} fill="#000000" />
+    </svg>
+  );
+}
+
+/** Copia um texto; se o navegador bloquear, seleciona o campo para o cliente copiar */
+const copyText = async (text, notify, fieldId) => {
+  try {
+    await navigator.clipboard.writeText(text);
+    notify("Copiado! Agora cole no app do seu banco.");
+  } catch {
+    const el = fieldId && document.getElementById(fieldId);
+    if (el) { el.focus(); el.select(); }
+    notify("Selecionamos o código. Copie com Ctrl+C ou segurando o dedo.", "error");
+  }
+};
+
+/** Bloco de pagamento PIX mostrado depois que o pedido é feito */
+function PixPayment({ order, notify, title = "Pague com PIX", note }) {
+  const { settings } = useStore();
+  const payload = buildPixPayload({
+    key: settings.pixKey,
+    name: settings.pixName,
+    city: settings.pixCity,
+    amount: order.total,
+    txid: order.id,
+  });
+  return (
+    <div className="palette-light mt-6 w-full shrink-0 overflow-hidden rounded-2xl border border-emerald-200 bg-white text-left text-[#292524]">
+      <div className="flex items-center justify-between gap-3 bg-emerald-900 px-5 py-3 text-white">
+        <p className="flex items-center gap-2 text-sm font-semibold"><QrCode className="h-4 w-4" /> {title}</p>
+        <p className="text-lg font-bold tabular-nums">{formatBRL(order.total)}</p>
+      </div>
+      <div className="space-y-4 p-5">
+        <div className="flex justify-center">
+          <PixQR payload={payload} />
+        </div>
+        <ol className="space-y-1 text-xs text-[#57534e]">
+          <li><b className="text-[#1c1917]">1.</b> Abra o app do seu banco e entre na área PIX.</li>
+          <li><b className="text-[#1c1917]">2.</b> Escolha “Ler QR Code” ou “PIX Copia e Cola”.</li>
+          <li><b className="text-[#1c1917]">3.</b> Confira o valor de {formatBRL(order.total)} e confirme.</li>
+        </ol>
+        <div>
+          <p className="mb-1.5 text-xs font-semibold text-[#44403c]">PIX Copia e Cola</p>
+          <textarea
+            id={`pix-copia-cola-${order.id}`}
+            readOnly
+            rows={3}
+            value={payload}
+            onFocus={(e) => e.target.select()}
+            className="w-full resize-none rounded-xl border border-[#d6d3d1] bg-[#fafaf9] p-3 font-mono text-[11px] leading-relaxed text-[#292524] outline-none"
+          />
+          <button
+            type="button"
+            onClick={() => copyText(payload, notify, `pix-copia-cola-${order.id}`)}
+            className="mt-2 flex w-full items-center justify-center gap-2 rounded-full bg-emerald-900 py-3 text-sm font-semibold text-white transition hover:brightness-110"
+          >
+            <Copy className="h-4 w-4" /> Copiar código PIX
+          </button>
+        </div>
+        <div className="rounded-xl bg-[#f5f5f4] p-3">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-[#78716c]">Ou pague pela chave</p>
+          <div className="mt-1 flex items-center gap-2">
+            <input
+              id={`pix-chave-${order.id}`}
+              readOnly
+              value={settings.pixKey}
+              onFocus={(e) => e.target.select()}
+              className="min-w-0 flex-1 bg-transparent font-mono text-xs text-[#1c1917] outline-none"
+            />
+            <button
+              type="button"
+              onClick={() => copyText(settings.pixKey, notify, `pix-chave-${order.id}`)}
+              className="shrink-0 rounded-full border border-[#d6d3d1] px-3 py-1 text-[11px] font-semibold text-[#44403c] hover:border-[#78716c]"
+            >
+              Copiar chave
+            </button>
+          </div>
+          <p className="mt-1 text-[11px] text-[#78716c]">Recebedor: {pixText(settings.pixName, 25)} · Identificador: {order.id.replace("-", "")}</p>
+        </div>
+        <p className="flex items-start gap-1.5 text-[11px] text-[#78716c]">
+          <Clock className="mt-px h-3 w-3 shrink-0" /> {note || "Assim que o pagamento cair, nossa equipe confirma o pedido e você acompanha o andamento em “Rastrear”."}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+/** Seção de doação: valor livre, pago direto no PIX, sem carrinho e sem frete */
+const DONATION_PRESETS = [10, 20, 50, 100];
+
+function DonationSection({ onDonate, notify }) {
+  const { settings } = useStore();
+  const [preset, setPreset] = useState(20);
+  const [custom, setCustom] = useState("");
+  const [name, setName] = useState("");
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
+  const [donation, setDonation] = useState(null);
+  const cardRef = React.useRef(null);
+  // Leva o QR Code para a tela (no celular ele fica abaixo do texto)
+  useEffect(() => {
+    if (donation && cardRef.current) cardRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [donation]);
+
+  const amount = custom.trim() ? parseFloat(custom.replace(/\./g, "").replace(",", ".")) : preset;
+
+  const submit = (e) => {
+    e.preventDefault();
+    if (!(amount >= 1)) return setError("Digite um valor a partir de R$ 1,00.");
+    if (amount > 10000) return setError("Para valores acima de R$ 10.000, fale com a gente pelo contato.");
+    setError("");
+    const d = onDonate({ amount: round2(amount), name: name.trim(), message: message.trim() });
+    setDonation(d);
+  };
+
+  const reset = () => {
+    setDonation(null);
+    setCustom("");
+    setMessage("");
+  };
+
+  return (
+    <section id="doar" className="scroll-mt-28 border-y border-stone-200 bg-gradient-to-br from-emerald-50 via-page to-amber-50">
+      <div className="mx-auto grid max-w-7xl items-start gap-10 px-4 py-20 sm:px-6 lg:grid-cols-[1fr_1.05fr] lg:px-8">
+        <div className="lg:sticky lg:top-40">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-700">Catálogo · Doação</p>
+          <h2 className="mt-3 font-serif text-4xl text-stone-900 sm:text-5xl">
+            Apoie o projeto <em className="text-emerald-800">Farmaura</em>
+          </h2>
+          <p className="mt-4 max-w-md text-stone-600">
+            Gostou da ideia e quer ajudar a Farmaura a crescer? Você escolhe quanto quer doar e paga direto no PIX.
+            Não precisa comprar nada, não tem frete e não pedimos endereço.
+          </p>
+          <ul className="mt-8 space-y-3 text-sm text-stone-700">
+            {[
+              { icon: Heart, t: "Você escolhe o valor, a partir de R$ 1" },
+              { icon: QrCode, t: "Paga na hora com QR Code ou PIX Copia e Cola" },
+              { icon: Truck, t: "Sem frete e sem taxa extra" },
+              { icon: ShieldCheck, t: "Só pedimos o seu nome se você quiser" },
+            ].map(({ icon: Icon, t }) => (
+              <li key={t} className="flex items-center gap-3">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-surface text-emerald-800 shadow-sm ring-1 ring-stone-200">
+                  <Icon className="h-4 w-4" />
+                </span>
+                {t}
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div ref={cardRef} className="scroll-mt-32 rounded-[2rem] border border-stone-200 bg-surface p-6 shadow-xl shadow-black/5 sm:p-8">
+          {donation ? (
+            <div className="flex flex-col items-center text-center">
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-rose-50">
+                <Heart className="h-8 w-8 fill-rose-500 text-rose-500" />
+              </div>
+              <h3 className="mt-4 font-serif text-3xl text-stone-900">
+                Obrigado{donation.name ? `, ${donation.name.split(" ")[0]}` : ""}!
+              </h3>
+              <p className="mt-2 text-sm text-stone-600">Falta só pagar o PIX de <b>{formatBRL(donation.amount)}</b> no app do seu banco.</p>
+              <PixPayment
+                order={{ id: donation.id, total: donation.amount }}
+                notify={notify}
+                title="Doação via PIX"
+                note="A doação vai direto para a conta da Farmaura. Muito obrigado pelo apoio!"
+              />
+              <button onClick={reset} className="mt-5 text-sm font-semibold text-emerald-800 hover:underline">
+                Fazer outra doação
+              </button>
+            </div>
+          ) : (
+            <form onSubmit={submit} className="space-y-5" noValidate>
+              <div>
+                <p className="text-sm font-semibold text-stone-900">Quanto você quer doar?</p>
+                <div className="mt-3 grid grid-cols-4 gap-2" role="radiogroup" aria-label="Valor sugerido">
+                  {DONATION_PRESETS.map((v) => {
+                    const on = !custom.trim() && preset === v;
+                    return (
+                      <button
+                        key={v}
+                        type="button"
+                        role="radio"
+                        aria-checked={on}
+                        onClick={() => { setPreset(v); setCustom(""); setError(""); }}
+                        className={`rounded-2xl border py-3 text-sm font-bold tabular-nums transition ${
+                          on ? "border-emerald-700 bg-emerald-900 text-white shadow-md" : "border-stone-300 text-stone-800 hover:border-stone-500"
+                        }`}
+                      >
+                        R$ {v}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+              <label className="block">
+                <span className="mb-1.5 block text-xs font-semibold text-stone-700">Ou digite outro valor</span>
+                <div className={`flex items-center rounded-xl border bg-page transition focus-within:ring-2 ${
+                  error ? "border-rose-400 focus-within:ring-rose-500/15" : custom.trim() ? "border-emerald-700 focus-within:ring-emerald-700/15" : "border-stone-300 focus-within:border-emerald-700 focus-within:ring-emerald-700/15"
+                }`}>
+                  <span className="pl-4 text-sm font-semibold text-stone-500">R$</span>
+                  <input
+                    id="doacao-valor"
+                    inputMode="decimal"
+                    value={custom}
+                    onChange={(e) => { setCustom(e.target.value.replace(/[^\d.,]/g, "")); setError(""); }}
+                    placeholder="0,00"
+                    className="w-full bg-transparent px-3 py-3 text-lg font-bold tabular-nums text-stone-900 outline-none placeholder:font-normal placeholder:text-stone-400"
+                  />
+                </div>
+                {error && <span className="mt-1.5 block text-xs font-medium text-rose-600">{error}</span>}
+              </label>
+              <Field label="Seu nome (opcional)" value={name} onChange={setName} maxLength={40} placeholder="Deixe vazio para doar anonimamente" />
+              <label className="block">
+                <span className="mb-1.5 flex justify-between text-xs font-semibold text-stone-700">
+                  Recado (opcional) <span className="font-normal tabular-nums text-stone-500">{message.length}/140</span>
+                </span>
+                <textarea
+                  id="doacao-recado"
+                  rows={2}
+                  maxLength={140}
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  placeholder="Deixe uma mensagem de apoio"
+                  className="w-full rounded-xl border border-stone-300 bg-page px-4 py-3 text-sm outline-none focus:border-emerald-700 focus:ring-2 focus:ring-emerald-700/15"
+                />
+              </label>
+              <div className="rounded-2xl bg-stone-50 p-4 text-sm">
+                <div className="flex justify-between text-stone-600"><span>Doação</span><span className="tabular-nums">{amount >= 1 ? formatBRL(amount) : "—"}</span></div>
+                <div className="flex justify-between text-stone-600"><span>Frete</span><span className="font-semibold text-emerald-700">Sem frete</span></div>
+                <div className="mt-2 flex justify-between border-t border-stone-200 pt-2 text-base font-bold text-stone-900">
+                  <span>Total</span><span className="tabular-nums">{amount >= 1 ? formatBRL(amount) : "—"}</span>
+                </div>
+              </div>
+              <button className="flex w-full items-center justify-center gap-2 rounded-full bg-emerald-900 py-4 text-sm font-semibold text-white shadow-lg shadow-emerald-900/20 transition hover:brightness-110">
+                <Heart className="h-4 w-4" /> {amount >= 1 ? `Doar ${formatBRL(amount)} com PIX` : "Doar com PIX"}
+              </button>
+              <p className="text-center text-[11px] text-stone-500">
+                Recebedor: {pixText(settings.pixName, 25)} · o QR Code aparece na próxima tela
+              </p>
+            </form>
+          )}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/** Prévia da personalização sobre o material do produto */
+function CustomPreview({ custom, text, font, color, small = false }) {
+  const c = custom.colors.find((x) => x.id === color) || custom.colors[0];
+  return (
+    <div
+      className={`relative flex items-center justify-center overflow-hidden rounded-xl shadow-inner ${small ? "h-14" : "h-32"}`}
+      style={{ background: custom.surface }}
+      aria-label={`Prévia: ${text || "Seu nome"}`}
+    >
+      <span className="pointer-events-none absolute inset-2 rounded-lg border border-dashed" style={{ borderColor: custom.stitch }} />
+      <span
+        className={`relative max-w-full truncate px-5 leading-none ${small ? "text-lg" : "text-4xl"} ${text ? "" : "opacity-50"}`}
+        style={{ ...fontById(font).style, color: c.hex, textShadow: custom.shadow }}
+      >
+        {text || "Seu nome"}
+      </span>
+      {!small && (
+        <span className="absolute bottom-2.5 right-3.5 text-[10px] font-semibold uppercase tracking-wider" style={{ color: custom.stitch }}>
+          Prévia · {custom.material}
+        </span>
+      )}
+    </div>
+  );
+}
+
 /** Controle de quantidade reutilizável */
-function QtyControl({ qty, onChange, min = 1 }) {
+function QtyControl({ qty, onChange, min = 1, max = 20 }) {
   return (
     <div className="flex items-center rounded-full border border-stone-300 bg-surface">
       <button
@@ -1368,8 +1979,9 @@ function QtyControl({ qty, onChange, min = 1 }) {
       </button>
       <span className="w-8 text-center text-sm font-semibold">{qty}</span>
       <button
-        onClick={() => onChange(Math.min(20, qty + 1))}
-        className="p-2 text-stone-600 hover:text-stone-900"
+        onClick={() => onChange(Math.min(max, qty + 1))}
+        disabled={qty >= max}
+        className="p-2 text-stone-600 hover:text-stone-900 disabled:opacity-30"
         aria-label="Aumentar quantidade"
       >
         <Plus className="h-3.5 w-3.5" />
@@ -1571,7 +2183,7 @@ function OrderTracker({ orders }) {
   );
 }
 
-const FAQ = [
+const buildFaq = (st) => [
   {
     q: "Como uso o sabonete em pó?",
     a: "Com as mãos molhadas, coloque cerca de meia colher de chá do pó e esfregue até virar espuma. Depois é só aplicar no corpo e enxaguar. Mantenha a embalagem fechada e longe da água.",
@@ -1586,11 +2198,11 @@ const FAQ = [
   },
   {
     q: "Como funciona a personalização com nome?",
-    a: "Eco Bag, Chaveiro Wayfarer, Boné e Toalha Aura Vital aceitam um nome. Abra o produto, marque a opção de personalizar e digite o texto. Itens personalizados levam 2 dias úteis a mais para envio e não podem ser trocados.",
+    a: "Eco Bag, Chaveiro Wayfarer, Boné e Toalha Aura Vital aceitam um nome. Abra o produto, digite o nome e escolha o estilo da letra e a cor da linha. A prévia mostra como vai ficar. Itens personalizados levam 2 dias úteis a mais para envio e não podem ser trocados.",
   },
   {
     q: "Qual o prazo e o valor do frete?",
-    a: `O frete é grátis acima de ${formatBRL(FREE_SHIPPING_THRESHOLD)}. Abaixo disso custa ${formatBRL(SHIPPING_FEE)} para todo o Brasil. O prazo é de 3 a 8 dias úteis depois da confirmação do pagamento.`,
+    a: `O frete é grátis acima de ${formatBRL(st.freeShipping)}. Abaixo disso custa ${formatBRL(st.shippingFee)} para todo o Brasil. O prazo é de 3 a 8 dias úteis depois da confirmação do pagamento.`,
   },
   {
     q: "Posso trocar ou devolver um produto?",
@@ -1599,6 +2211,8 @@ const FAQ = [
 ];
 
 function FaqSection() {
+  const { settings } = useStore();
+  const FAQ = buildFaq(settings);
   const [open, setOpen] = useState(0);
   return (
     <section id="duvidas" className="scroll-mt-28 mx-auto max-w-4xl px-4 py-20 sm:px-6 lg:px-8">
@@ -1635,7 +2249,8 @@ function FaqSection() {
 }
 
 /** Rodapé */
-function Footer({ notify }) {
+function Footer({ notify, onNavigate }) {
+  const { settings } = useStore();
   const [email, setEmail] = useState("");
   const [joined, setJoined] = useState(false);
   const subscribe = (e) => {
@@ -1674,14 +2289,44 @@ function Footer({ notify }) {
           )}
         </div>
       </div>
-      <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-6 px-4 py-10 sm:px-6 md:flex-row lg:px-8">
-        <Logo light />
-        <p className="text-center text-xs">
+      <div className="mx-auto grid max-w-7xl gap-10 px-4 py-12 sm:grid-cols-2 sm:px-6 lg:grid-cols-[1.4fr_1fr_1fr_1.2fr] lg:px-8">
+        <div className="space-y-4">
+          <Logo light />
+          <p className="max-w-xs text-sm leading-relaxed">
+            Dermocosméticos veganos e concentrados, com menos plástico. Wayfarer for Men e Aura Vital.
+          </p>
+          <p className="flex items-center gap-2 text-xs">
+            <ShieldCheck className="h-4 w-4 text-emerald-400" /> Compra 100% segura
+          </p>
+        </div>
+        <nav className="space-y-3 text-sm" aria-label="Loja">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white">Loja</p>
+          {[["catalogo-sabonete", "Sabonete em Pó"], ["catalogo-protetor", "Protetor Solar"], ["catalogo-acessorios", "Acessórios"], ["doar", "Faça uma doação"], ["sobre", "Sobre a Farmaura"]].filter(([id]) => id !== "doar" || settings.donationsEnabled).map(([id, l]) => (
+            <button key={id} onClick={() => onNavigate(id)} className="block transition hover:text-white">{l}</button>
+          ))}
+        </nav>
+        <nav className="space-y-3 text-sm" aria-label="Ajuda">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white">Ajuda</p>
+          {[["rastrear", "Rastrear pedido"], ["duvidas", "Dúvidas frequentes"], ["contato", "Fale conosco"]].map(([id, l]) => (
+            <button key={id} onClick={() => onNavigate(id)} className="block transition hover:text-white">{l}</button>
+          ))}
+        </nav>
+        <div className="space-y-3 text-sm">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white">Contato</p>
+          <p className="flex items-center gap-2"><Mail className="h-4 w-4 shrink-0 text-emerald-400" /> <span className="select-all">farmaurainc@gmail.com</span></p>
+          <p className="flex items-center gap-2"><Phone className="h-4 w-4 shrink-0 text-emerald-400" /> <span className="select-all">(11) 96160-4656</span></p>
+          <p className="flex items-center gap-2"><MapPin className="h-4 w-4 shrink-0 text-emerald-400" /> Rua Tambaú, 10 · São Paulo, SP</p>
+          <div className="flex flex-wrap gap-2 pt-2">
+            {["PIX", "Cartão", "Boleto"].map((m) => (
+              <span key={m} className="rounded-md border border-white/15 px-2 py-1 text-[11px] font-semibold text-stone-300">{m}</span>
+            ))}
+          </div>
+        </div>
+      </div>
+      <div className="border-t border-white/10">
+        <p className="mx-auto max-w-7xl px-4 py-6 pr-20 text-xs sm:px-6 sm:pr-20 lg:px-8">
           © {new Date().getFullYear()} Farmaura Dermocosméticos · Projeto acadêmico (TCC) · Todos os direitos reservados.
         </p>
-        <div className="flex items-center gap-2 text-xs">
-          <ShieldCheck className="h-4 w-4 text-emerald-400" /> Compra 100% segura
-        </div>
       </div>
     </footer>
   );
@@ -1754,21 +2399,28 @@ function CartDrawer({ open, onClose, cart, updateQty, removeItem, onPlaceOrder, 
   const [couponInput, setCouponInput] = useState("");
   const [couponError, setCouponError] = useState("");
 
-  const totals = calcTotals(cart, step === "checkout" ? form.payment : null, coupon, step === "checkout" && form.gift);
+  const store = useStore();
+  const { settings } = store;
+  const totals = calcTotals(cart, step === "checkout" ? form.payment : null, coupon, step === "checkout" && form.gift, store);
+  const blocked = cart.filter((i) => i.issue);
 
   const applyCoupon = (e) => {
     e.preventDefault();
     const code = couponInput.trim().toUpperCase();
     if (!code) return setCouponError("Digite um código.");
-    if (!COUPONS[code]) return setCouponError("Cupom inválido ou expirado.");
+    const c = store.coupons.find((x) => x.code === code);
+    if (!c || !c.active) return setCouponError("Cupom inválido ou expirado.");
+    if (totals.subtotal < (c.minOrder || 0)) {
+      return setCouponError(`Este cupom vale para compras acima de ${formatBRL(c.minOrder)}.`);
+    }
     setCoupon(code);
     setCouponInput("");
     setCouponError("");
-    notify(`Cupom ${code} aplicado: ${COUPONS[code].label}`);
+    notify(`Cupom ${code} aplicado: ${couponLabel(c)}`);
   };
-  const remainingForFreeShipping = Math.max(0, FREE_SHIPPING_THRESHOLD - totals.subtotal);
+  const remainingForFreeShipping = Math.max(0, settings.freeShipping - totals.subtotal);
   /** Sugestões de acessórios que ainda não estão no carrinho */
-  const suggestions = PRODUCTS.filter((p) => p.category === "acessorios" && !cart.some((i) => i.id === p.id))
+  const suggestions = store.products.filter((p) => p.category === "acessorios" && p.stock > 0 && !store.customization[p.id] && !cart.some((i) => i.id === p.id))
     .sort((a, b) => a.price - b.price)
     .slice(0, 3);
 
@@ -1795,6 +2447,11 @@ function CartDrawer({ open, onClose, cart, updateQty, removeItem, onPlaceOrder, 
     // Simula o tempo de processamento do pagamento
     setTimeout(() => {
       const order = onPlaceOrder(form, totals);
+      if (!order) {
+        setSubmitting(false);
+        setStep("cart");
+        return;
+      }
       setPlacedOrder(order);
       setForm(EMPTY_FORM);
       setCoupon(null);
@@ -1865,14 +2522,14 @@ function CartDrawer({ open, onClose, cart, updateQty, removeItem, onPlaceOrder, 
                   <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-stone-200">
                     <div
                       className="h-full rounded-full bg-emerald-700 transition-all duration-500"
-                      style={{ width: `${Math.min(100, (totals.subtotal / FREE_SHIPPING_THRESHOLD) * 100)}%` }}
+                      style={{ width: `${settings.freeShipping ? Math.min(100, (totals.subtotal / settings.freeShipping) * 100) : 100}%` }}
                     />
                   </div>
                 </div>
 
                 <ul className="flex-1 space-y-4 overflow-y-auto px-6 py-5">
                   {cart.map((item) => (
-                    <li key={item.lineId} className="flex gap-4 rounded-2xl border border-stone-200 bg-surface p-3">
+                    <li key={item.lineId} className={`flex gap-4 rounded-2xl border bg-surface p-3 ${item.issue ? "border-rose-300" : "border-stone-200"}`}>
                       <SafeImage src={item.image} alt={item.name} className="h-20 w-20 shrink-0 rounded-xl object-cover" />
                       <div className="flex min-w-0 flex-1 flex-col">
                         <div className="flex items-start justify-between gap-2">
@@ -1882,6 +2539,12 @@ function CartDrawer({ open, onClose, cart, updateQty, removeItem, onPlaceOrder, 
                             {item.custom && (
                               <p className="mt-0.5 flex items-center gap-1 truncate text-[11px] font-semibold text-amber-800">
                                 <PenLine className="h-3 w-3 shrink-0" /> “{item.custom}”
+                                {customStyleText(item) && <span className="font-normal text-stone-500">· {customStyleText(item)}</span>}
+                              </p>
+                            )}
+                            {item.issue && (
+                              <p className="mt-1 flex items-center gap-1 text-[11px] font-semibold text-rose-600">
+                                <AlertTriangle className="h-3 w-3 shrink-0" /> {item.issue}
                               </p>
                             )}
                           </div>
@@ -1890,7 +2553,7 @@ function CartDrawer({ open, onClose, cart, updateQty, removeItem, onPlaceOrder, 
                           </button>
                         </div>
                         <div className="mt-auto flex items-center justify-between pt-2">
-                          <QtyControl qty={item.qty} onChange={(q) => updateQty(item.lineId, q)} />
+                          <QtyControl qty={item.qty} onChange={(q) => updateQty(item.lineId, q)} max={Math.max(1, Math.min(20, item.stock ?? 20))} />
                           <p className="text-sm font-bold text-stone-900">{formatBRL(item.price * item.qty)}</p>
                         </div>
                       </div>
@@ -1928,7 +2591,8 @@ function CartDrawer({ open, onClose, cart, updateQty, removeItem, onPlaceOrder, 
                   {coupon ? (
                     <div className="mb-4 flex items-center justify-between rounded-xl border border-emerald-700/30 bg-emerald-50 px-3 py-2.5 text-xs">
                       <span className="flex items-center gap-2 font-semibold text-emerald-800">
-                        <Tag className="h-3.5 w-3.5" /> {coupon} · {COUPONS[coupon].label}
+                        <Tag className="h-3.5 w-3.5" /> {coupon}
+                        {totals.couponInfo && <span className="font-normal">· {couponLabel(totals.couponInfo)}</span>}
                       </span>
                       <button onClick={() => setCoupon(null)} className="font-semibold text-stone-500 hover:text-rose-600">
                         Remover
@@ -1971,9 +2635,22 @@ function CartDrawer({ open, onClose, cart, updateQty, removeItem, onPlaceOrder, 
                       <span>Total</span><span>{formatBRL(totals.total)}</span>
                     </div>
                   </div>
+                  {coupon && totals.couponIssue && (
+                    <p className="mt-3 rounded-xl bg-amber-50 px-3 py-2 text-xs text-amber-800">
+                      {totals.couponIssue === "min"
+                        ? `O cupom ${coupon} vale acima de ${formatBRL(totals.couponInfo.minOrder)}. Faltam ${formatBRL(totals.couponInfo.minOrder - totals.subtotal)}.`
+                        : `O cupom ${coupon} não está mais disponível.`}
+                    </p>
+                  )}
+                  {blocked.length > 0 && (
+                    <p className="mt-3 rounded-xl bg-rose-50 px-3 py-2 text-xs font-medium text-rose-700">
+                      Ajuste os itens marcados em vermelho para continuar.
+                    </p>
+                  )}
                   <button
                     onClick={() => setStep("checkout")}
-                    className="mt-4 flex w-full items-center justify-center gap-2 rounded-full bg-emerald-900 py-4 text-sm font-semibold text-white transition hover:brightness-110"
+                    disabled={blocked.length > 0}
+                    className="mt-4 flex w-full items-center justify-center gap-2 rounded-full bg-emerald-900 py-4 text-sm font-semibold text-white transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     Ir para o Checkout <ArrowRight className="h-4 w-4" />
                   </button>
@@ -2036,13 +2713,19 @@ function CartDrawer({ open, onClose, cart, updateQty, removeItem, onPlaceOrder, 
                     </div>
                     <div className="flex-1">
                       <p className="text-sm font-semibold text-stone-900">{label}</p>
-                      <p className="text-xs text-stone-500">{hint}</p>
+                      <p className="text-xs text-stone-500">{id === "PIX" ? (settings.pixDiscount ? `${numBR(settings.pixDiscount)}% de desconto · aprovação imediata` : "Aprovação imediata") : hint}</p>
                     </div>
                     <span className={`h-4 w-4 rounded-full border-2 ${form.payment === id ? "border-emerald-800 bg-emerald-800 ring-2 ring-white ring-inset" : "border-stone-300"}`} />
                   </label>
                 ))}
 
                 {/* Campos extras para cartão (simulação — dados não são armazenados) */}
+                {form.payment === "PIX" && (
+                  <p className="flex items-start gap-2 rounded-xl bg-emerald-50 p-3 text-xs text-emerald-800">
+                    <QrCode className="mt-px h-4 w-4 shrink-0" />
+                    Ao confirmar, mostramos o QR Code e o código PIX copia e cola com o valor exato do pedido.
+                  </p>
+                )}
                 {form.payment === "Cartão de Crédito" && (
                   <div className="space-y-3 rounded-2xl border border-stone-200 bg-surface p-4">
                     <Field label="Número do Cartão" inputMode="numeric" value={form.cardNumber} onChange={(v) => set("cardNumber", maskCard(v))} error={errors.cardNumber} placeholder="0000 0000 0000 0000" />
@@ -2069,7 +2752,7 @@ function CartDrawer({ open, onClose, cart, updateQty, removeItem, onPlaceOrder, 
                   </div>
                   <div className="flex-1">
                     <p className="text-sm font-semibold text-stone-900">Embalagem para presente</p>
-                    <p className="text-xs text-stone-500">Caixa kraft, laço e cartão escrito à mão · + {formatBRL(GIFT_FEE)}</p>
+                    <p className="text-xs text-stone-500">Caixa kraft, laço e cartão escrito à mão · + {formatBRL(settings.giftFee)}</p>
                   </div>
                 </label>
                 {form.gift && (
@@ -2113,7 +2796,7 @@ function CartDrawer({ open, onClose, cart, updateQty, removeItem, onPlaceOrder, 
                 )}
                 {totals.pixDiscount > 0 && (
                   <div className="flex justify-between text-emerald-700">
-                    <span>Desconto PIX (5%)</span><span>- {formatBRL(totals.pixDiscount)}</span>
+                    <span>Desconto PIX ({numBR(settings.pixDiscount)}%)</span><span>- {formatBRL(totals.pixDiscount)}</span>
                   </div>
                 )}
                 <div className="flex justify-between pt-2 text-base font-bold text-stone-900">
@@ -2151,15 +2834,20 @@ function CartDrawer({ open, onClose, cart, updateQty, removeItem, onPlaceOrder, 
               <b>{placedOrder.customer.email}</b>.
             </p>
 
-            <div className="mt-6 w-full space-y-3 rounded-2xl border border-stone-200 bg-surface p-5 text-left text-sm">
+            {placedOrder.payment === "PIX" && <PixPayment order={placedOrder} notify={notify} />}
+            <div className="mt-4 w-full shrink-0 space-y-3 rounded-2xl border border-stone-200 bg-surface p-5 text-left text-sm">
               {placedOrder.items.map((i) => (
                 <div key={i.lineId || i.id} className="flex justify-between gap-3 text-stone-700">
-                  <span>{i.qty}× {i.name}{i.custom ? ` · “${i.custom}”` : ""}</span><span className="shrink-0">{formatBRL(i.price * i.qty)}</span>
+                  <span>
+                    {i.qty}× {i.name}{i.custom ? ` · “${i.custom}”` : ""}
+                    {customStyleText(i) && <span className="block text-xs text-stone-500">{customStyleText(i)}</span>}
+                  </span>
+                  <span className="shrink-0">{formatBRL(i.price * i.qty)}</span>
                 </div>
               ))}
               {placedOrder.gift && (
                 <div className="flex justify-between text-stone-700">
-                  <span>Embalagem para presente</span><span>{formatBRL(GIFT_FEE)}</span>
+                  <span>Embalagem para presente</span><span>{formatBRL(placedOrder.giftFee ?? settings.giftFee)}</span>
                 </div>
               )}
               <div className="flex justify-between border-t border-stone-200 pt-3 font-bold text-stone-900">
@@ -2167,14 +2855,6 @@ function CartDrawer({ open, onClose, cart, updateQty, removeItem, onPlaceOrder, 
               </div>
             </div>
 
-            {placedOrder.payment === "PIX" && (
-              <div className="palette-light mt-4 w-full rounded-2xl bg-emerald-950 p-5 text-left text-emerald-50">
-                <p className="flex items-center gap-2 text-sm font-semibold"><QrCode className="h-4 w-4" /> Código PIX (simulado)</p>
-                <p className="mt-2 break-all rounded-lg bg-white/10 p-3 font-mono text-[11px]">
-                  00020126580014BR.GOV.BCB.PIX0136farmaura-{placedOrder.id.toLowerCase()}5204000053039865802BR
-                </p>
-              </div>
-            )}
             {placedOrder.payment === "Boleto" && (
               <p className="mt-4 w-full rounded-2xl bg-amber-50 p-4 text-left text-xs text-amber-800">
                 O boleto (simulado) foi enviado ao seu e-mail e vence em 3 dias úteis.
@@ -2244,8 +2924,7 @@ function StatusSelect({ value, onChange }) {
   );
 }
 
-/** Senha do Painel Admin (demonstração: a verificação acontece no navegador) */
-const ADMIN_PASSWORD = "farmaura2026";
+/** Sessão do Painel Admin (dura até fechar a aba) */
 const ADMIN_SESSION_KEY = "farmaura_admin_session";
 const loadAdminSession = () => {
   try { return window.sessionStorage.getItem(ADMIN_SESSION_KEY) === "ok"; } catch { return false; }
@@ -2253,10 +2932,80 @@ const loadAdminSession = () => {
 
 const CATEGORY_LABELS = { sabonete: "Sabonete em Pó", protetor: "Protetor Solar", acessorios: "Acessórios" };
 const PAYMENT_GROUP = (p) => (p.startsWith("Cartão") ? "Cartão de Crédito" : p);
-const orderGiftFee = (o) => (o.gift ? GIFT_FEE : 0);
+const orderGiftFee = (o) => (o.gift ? (o.giftFee ?? DEFAULT_SETTINGS.giftFee) : 0);
+
+/** Converte "12,90" ou "12.90" em número (NaN se inválido) */
+const parseNum = (v) => {
+  const n = parseFloat(String(v).trim().replace(/\./g, (m, i, s) => (s.includes(",") ? "" : m)).replace(",", "."));
+  return Number.isFinite(n) ? n : NaN;
+};
+const numText = (n) => (n === null || n === undefined || n === "" ? "" : String(n).replace(".", ","));
+
+/* ---------- Componentes de formulário do painel ---------- */
+
+/** Interruptor liga/desliga */
+function Switch({ checked, onChange, label, id }) {
+  return (
+    <button
+      id={id}
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      aria-label={label}
+      onClick={() => onChange(!checked)}
+      className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition ${checked ? "bg-emerald-700" : "bg-stone-300"}`}
+    >
+      <span className={`inline-block h-5 w-5 rounded-full bg-white shadow transition ${checked ? "translate-x-5" : "translate-x-0.5"}`} />
+    </button>
+  );
+}
+
+/** Campo numérico com prefixo (R$) ou sufixo (%, un.) */
+function NumField({ id, label, value, onChange, prefix, suffix, error, hint, placeholder }) {
+  return (
+    <label className="block">
+      <span className="mb-1.5 block text-xs font-semibold text-stone-700">{label}</span>
+      <div className={`flex items-center rounded-xl border bg-page transition focus-within:ring-2 ${
+        error ? "border-rose-400 focus-within:ring-rose-500/15" : "border-stone-300 focus-within:border-emerald-700 focus-within:ring-emerald-700/15"
+      }`}>
+        {prefix && <span className="pl-3 text-sm text-stone-500">{prefix}</span>}
+        <input
+          id={id}
+          inputMode="decimal"
+          value={value}
+          placeholder={placeholder}
+          onChange={(e) => onChange(e.target.value.replace(/[^\d.,]/g, ""))}
+          className="w-full min-w-0 bg-transparent px-3 py-2.5 text-sm tabular-nums outline-none"
+        />
+        {suffix && <span className="pr-3 text-sm text-stone-500">{suffix}</span>}
+      </div>
+      {error ? <span className="mt-1 block text-xs font-medium text-rose-600">{error}</span>
+        : hint ? <span className="mt-1 block text-[11px] text-stone-500">{hint}</span> : null}
+    </label>
+  );
+}
+
+/** Confirmação em linha (os diálogos do navegador não funcionam aqui) */
+function ConfirmInline({ question, confirmLabel = "Confirmar", onConfirm, onCancel }) {
+  return (
+    <span className="inline-flex flex-wrap items-center gap-2 rounded-full border border-rose-300 bg-rose-50 py-1 pl-3 pr-1 text-xs font-semibold text-rose-700">
+      {question}
+      <button type="button" onClick={onConfirm} className="rounded-full bg-rose-600 px-3 py-1 text-white">{confirmLabel}</button>
+      <button type="button" onClick={onCancel} className="rounded-full px-2 py-1">Cancelar</button>
+    </span>
+  );
+}
+
+/** Indicador de estoque */
+function StockBadge({ stock, low }) {
+  if (stock <= 0) return <span className="rounded-full bg-rose-100 px-2 py-0.5 text-[11px] font-bold text-rose-700">Esgotado</span>;
+  if (stock <= low) return <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-bold tabular-nums text-amber-800">{stock} un. · baixo</span>;
+  return <span className="rounded-full bg-stone-100 px-2 py-0.5 text-[11px] font-semibold tabular-nums text-stone-700">{stock} un.</span>;
+}
 
 /** Tela de login do Painel Admin */
 function AdminLogin({ onLogin, onBack }) {
+  const { settings } = useStore();
   const [password, setPassword] = useState("");
   const [show, setShow] = useState(false);
   const [error, setError] = useState("");
@@ -2264,7 +3013,7 @@ function AdminLogin({ onLogin, onBack }) {
 
   const submit = (e) => {
     e.preventDefault();
-    if (password === ADMIN_PASSWORD) {
+    if (password === settings.adminPassword) {
       setError("");
       onLogin();
       return;
@@ -2323,7 +3072,7 @@ function AdminLogin({ onLogin, onBack }) {
   );
 }
 
-/** Botão de copiar texto (com fallback quando a área de transferência é bloqueada) */
+/** Botão de copiar texto (com aviso quando a área de transferência é bloqueada) */
 function CopyButton({ text, label = "Copiar", notify }) {
   const copy = async () => {
     try {
@@ -2334,27 +3083,33 @@ function CopyButton({ text, label = "Copiar", notify }) {
     }
   };
   return (
-    <button onClick={copy} className="inline-flex items-center gap-1 rounded-full border border-stone-300 px-2.5 py-1 text-[11px] font-semibold text-stone-600 transition hover:border-stone-500 hover:text-stone-900">
+    <button type="button" onClick={copy} className="inline-flex items-center gap-1 rounded-full border border-stone-300 px-2.5 py-1 text-[11px] font-semibold text-stone-600 transition hover:border-stone-500 hover:text-stone-900">
       <Copy className="h-3 w-3" /> {label}
     </button>
   );
 }
 
 /** Modal com todos os detalhes do pedido */
-function OrderDetail({ order, onClose, onUpdateStatus, onDelete, notify }) {
+function OrderDetail({ order, onClose, onUpdateStatus, onDelete, onUpdateOrder, notify }) {
+  const { allProducts } = useStore();
   const [confirmDelete, setConfirmDelete] = useState(false);
-  if (!order) return null;
+  const [note, setNote] = useState(order.note || "");
   const steps = Object.keys(ORDER_STATUS);
   const current = steps.indexOf(order.status);
   const next = steps[current + 1];
   const address = `${order.address.street}, ${order.address.number} — ${order.address.district}, ${order.address.city}/${order.address.state} · CEP ${order.address.zip}`;
   const giftFee = orderGiftFee(order);
+  const noteChanged = note.trim() !== (order.note || "");
+  useEffect(() => {
+    const onKey = (e) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center sm:p-4" role="dialog" aria-modal="true" aria-label={`Pedido ${order.id}`}>
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
       <div className="relative max-h-[92vh] w-full max-w-3xl overflow-y-auto rounded-t-[2rem] bg-page shadow-2xl sm:rounded-[2rem]">
-        {/* Cabeçalho */}
         <div className="sticky top-0 z-10 flex items-start justify-between gap-4 border-b border-stone-200 bg-page/95 px-6 py-5 backdrop-blur">
           <div>
             <p className="font-mono text-lg font-bold text-emerald-800">{order.id}</p>
@@ -2369,9 +3124,9 @@ function OrderDetail({ order, onClose, onUpdateStatus, onDelete, notify }) {
         </div>
 
         <div className="space-y-6 p-6">
-          {/* Linha do tempo de status */}
+          {/* Andamento */}
           <div className="rounded-2xl border border-stone-200 bg-surface p-5">
-            <div className="flex items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center justify-between gap-3">
               <p className="text-sm font-semibold text-stone-900">Andamento</p>
               {next && (
                 <button
@@ -2384,12 +3139,7 @@ function OrderDetail({ order, onClose, onUpdateStatus, onDelete, notify }) {
             </div>
             <div className="mt-5 grid grid-cols-4 gap-2">
               {steps.map((st, idx) => (
-                <button
-                  key={st}
-                  onClick={() => onUpdateStatus(order.id, st)}
-                  className="group flex flex-col items-center gap-2 text-center"
-                  aria-label={`Definir status ${st}`}
-                >
+                <button key={st} onClick={() => onUpdateStatus(order.id, st)} className="group flex flex-col items-center gap-2 text-center" aria-label={`Definir status ${st}`}>
                   <span className={`h-1.5 w-full rounded-full transition ${idx <= current ? "bg-emerald-700" : "bg-stone-200 group-hover:bg-stone-300"}`} />
                   <span className={`text-[11px] font-semibold leading-tight ${idx <= current ? "text-emerald-800" : "text-stone-400 group-hover:text-stone-600"}`}>{st}</span>
                 </button>
@@ -2397,9 +3147,19 @@ function OrderDetail({ order, onClose, onUpdateStatus, onDelete, notify }) {
             </div>
           </div>
 
+          {order.payment === "PIX" && order.status === "Pendente" && (
+            <div className="flex items-start gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900">
+              <QrCode className="mt-0.5 h-5 w-5 shrink-0" />
+              <p>
+                Confira no extrato do banco um PIX de <b>{formatBRL(order.total)}</b> com o identificador <b className="font-mono">{order.id.replace("-", "")}</b>.
+                Se o pagamento caiu, marque como Em Processamento.
+              </p>
+            </div>
+          )}
+
           {/* Cartão de presente */}
           {order.gift && (
-            <div className="relative overflow-hidden rounded-2xl border border-rose-200 bg-rose-50 p-5">
+            <div className="rounded-2xl border border-rose-200 bg-rose-50 p-5">
               <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-rose-700">
                 <Gift className="h-4 w-4" /> Embalagem para presente · escrever no cartão
               </p>
@@ -2436,7 +3196,7 @@ function OrderDetail({ order, onClose, onUpdateStatus, onDelete, notify }) {
             <p className="border-b border-stone-200 px-5 py-3 text-xs font-bold uppercase tracking-wider text-stone-500">Itens</p>
             <ul className="divide-y divide-stone-100">
               {order.items.map((i) => {
-                const p = PRODUCTS.find((x) => x.id === i.id);
+                const p = allProducts.find((x) => x.id === i.id);
                 return (
                   <li key={i.lineId || i.id} className="flex items-center gap-4 px-5 py-3">
                     {p && <SafeImage src={p.image} alt={i.name} className="h-12 w-12 shrink-0 rounded-lg object-cover" />}
@@ -2444,8 +3204,9 @@ function OrderDetail({ order, onClose, onUpdateStatus, onDelete, notify }) {
                       <p className="text-sm font-semibold text-stone-900">{i.qty}× {i.name}</p>
                       <p className="text-xs text-stone-500">{i.variant}</p>
                       {i.custom && (
-                        <p className="mt-1 inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-semibold text-amber-800">
-                          <PenLine className="h-3 w-3" /> {CUSTOMIZATION[i.id] ? CUSTOMIZATION[i.id].label.replace("um nome", "o nome") : "Personalizar"}: “{i.custom}”
+                        <p className="mt-1 inline-flex flex-wrap items-center gap-1 rounded-lg bg-amber-100 px-2 py-1 text-[11px] font-semibold text-amber-800">
+                          <PenLine className="h-3 w-3" /> Personalizar com “{i.custom}”
+                          {customStyleText(i) && <span className="font-normal">· {customStyleText(i)}</span>}
                         </p>
                       )}
                     </div>
@@ -2467,14 +3228,36 @@ function OrderDetail({ order, onClose, onUpdateStatus, onDelete, notify }) {
             </div>
           </div>
 
-          {/* Excluir */}
+          {/* Nota interna */}
+          <div className="rounded-2xl border border-stone-200 bg-surface p-5">
+            <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-stone-500">
+              <StickyNote className="h-4 w-4" /> Nota interna
+            </p>
+            <p className="mt-1 text-xs text-stone-500">Só a equipe vê. Use para código de rastreio, combinados com o cliente etc.</p>
+            <textarea
+              id={`nota-${order.id}`}
+              rows={3}
+              value={note}
+              maxLength={300}
+              onChange={(e) => setNote(e.target.value)}
+              placeholder="Ex.: Enviado pelos Correios, rastreio BR123456789BR"
+              className="mt-3 w-full rounded-xl border border-stone-300 bg-page px-4 py-3 text-sm outline-none focus:border-emerald-700 focus:ring-2 focus:ring-emerald-700/15"
+            />
+            <div className="mt-2 flex justify-end">
+              <button
+                type="button"
+                disabled={!noteChanged}
+                onClick={() => { onUpdateOrder(order.id, { note: note.trim() }); notify("Nota salva"); }}
+                className="rounded-full bg-emerald-900 px-4 py-2 text-xs font-semibold text-white transition hover:brightness-110 disabled:opacity-40"
+              >
+                Salvar nota
+              </button>
+            </div>
+          </div>
+
           <div className="flex justify-end">
             {confirmDelete ? (
-              <span className="inline-flex items-center gap-2 rounded-full border border-rose-300 bg-rose-50 py-1 pl-3 pr-1 text-xs font-semibold text-rose-700">
-                Excluir este pedido?
-                <button onClick={() => onDelete(order.id)} className="rounded-full bg-rose-600 px-3 py-1 text-white">Excluir</button>
-                <button onClick={() => setConfirmDelete(false)} className="rounded-full px-2 py-1">Cancelar</button>
-              </span>
+              <ConfirmInline question="Excluir este pedido?" confirmLabel="Excluir" onConfirm={() => onDelete(order.id)} onCancel={() => setConfirmDelete(false)} />
             ) : (
               <button onClick={() => setConfirmDelete(true)} className="inline-flex items-center gap-1.5 text-xs font-semibold text-stone-500 hover:text-rose-600">
                 <Trash2 className="h-3.5 w-3.5" /> Excluir pedido
@@ -2487,7 +3270,7 @@ function OrderDetail({ order, onClose, onUpdateStatus, onDelete, notify }) {
   );
 }
 
-/** Gráfico de barras simples: faturamento por dia */
+/** Gráfico de barras: faturamento por dia */
 function RevenueChart({ days }) {
   const max = Math.max(1, ...days.map((d) => d.value));
   const nice = Math.ceil(max / 100) * 100;
@@ -2523,15 +3306,615 @@ function RevenueChart({ days }) {
   );
 }
 
-function AdminDashboard({ orders, onUpdateStatus, onReset, onDelete, onLogout, notify }) {
-  const [tab, setTab] = useState("visao");
+/** Editor de produto: preço, promoção, estoque, selo, visibilidade e personalização */
+function ProductEditor({ product, onClose, onSave, onSaveCustom, onReset, notify }) {
+  const { customizationAll, data } = useStore();
+  const base = CUSTOMIZATION[product.id] ? customizationAll[product.id] : null;
+  const [f, setF] = useState({
+    name: product.name,
+    tagline: product.tagline,
+    price: numText(product.price),
+    oldPrice: numText(product.oldPrice),
+    stock: String(product.stock),
+    badge: product.badge,
+    bestSeller: !!product.bestSeller,
+    active: product.active,
+    customEnabled: base ? base.enabled : false,
+    customFee: base ? numText(base.fee) : "",
+    customMax: base ? String(base.max) : "",
+  });
+  const [errors, setErrors] = useState({});
   const [confirmReset, setConfirmReset] = useState(false);
+  const set = (k, v) => { setF((s) => ({ ...s, [k]: v })); setErrors((e) => ({ ...e, [k]: undefined })); };
+  const edited = !!data.products[product.id] || !!data.customization[product.id];
+  useEffect(() => {
+    const onKey = (e) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  const price = parseNum(f.price);
+  const oldPrice = f.oldPrice.trim() ? parseNum(f.oldPrice) : null;
+  const off = oldPrice && price && oldPrice > price ? Math.round((1 - price / oldPrice) * 100) : 0;
+
+  const save = (e) => {
+    e.preventDefault();
+    const er = {};
+    const stock = parseInt(f.stock, 10);
+    if (!f.name.trim()) er.name = "Digite o nome do produto.";
+    if (!(price > 0)) er.price = "Digite um preço maior que zero.";
+    if (oldPrice !== null && !(oldPrice > price)) er.oldPrice = "O preço antigo precisa ser maior que o preço atual.";
+    if (!Number.isInteger(stock) || stock < 0) er.stock = "Digite um número inteiro (0 ou mais).";
+    let fee = 0, max = 0;
+    if (base) {
+      fee = parseNum(f.customFee);
+      max = parseInt(f.customMax, 10);
+      if (!(fee >= 0)) er.customFee = "Digite uma taxa válida.";
+      if (!(max >= 3 && max <= 24)) er.customMax = "Use entre 3 e 24 caracteres.";
+    }
+    setErrors(er);
+    if (Object.keys(er).length) return;
+    onSave(product.id, {
+      name: f.name.trim(),
+      tagline: f.tagline.trim(),
+      price: round2(price),
+      oldPrice: oldPrice === null ? null : round2(oldPrice),
+      stock,
+      badge: f.badge.trim() || product.badge,
+      bestSeller: f.bestSeller,
+      active: f.active,
+    });
+    if (base) onSaveCustom(product.id, { enabled: f.customEnabled, fee: round2(fee), max });
+    notify(`${f.name.trim()} atualizado`);
+    onClose();
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center sm:p-4" role="dialog" aria-modal="true" aria-label={`Editar ${product.name}`}>
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      <form onSubmit={save} className="relative max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-t-[2rem] bg-page shadow-2xl sm:rounded-[2rem]" noValidate>
+        <div className="sticky top-0 z-10 flex items-center gap-4 border-b border-stone-200 bg-page/95 px-6 py-4 backdrop-blur">
+          <SafeImage src={product.image} alt={product.name} className="h-12 w-12 shrink-0 rounded-xl object-cover" />
+          <div className="min-w-0 flex-1">
+            <p className="text-xs font-semibold uppercase tracking-wider text-emerald-700">Editar produto</p>
+            <p className="truncate font-serif text-xl text-stone-900">{product.name}</p>
+          </div>
+          <button type="button" onClick={onClose} className="rounded-full p-2 text-stone-600 hover:bg-stone-200" aria-label="Fechar">
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        <div className="space-y-6 p-6">
+          {/* Visibilidade */}
+          <div className="flex items-center justify-between gap-4 rounded-2xl border border-stone-200 bg-surface p-4">
+            <div>
+              <p className="text-sm font-semibold text-stone-900">Mostrar na loja</p>
+              <p className="text-xs text-stone-500">Desligado, o produto some do catálogo, mas continua nos pedidos antigos.</p>
+            </div>
+            <Switch id="edit-ativo" checked={f.active} onChange={(v) => set("active", v)} label="Mostrar na loja" />
+          </div>
+
+          <fieldset className="grid gap-3 sm:grid-cols-2">
+            <legend className="mb-2 text-xs font-bold uppercase tracking-wider text-emerald-800">Informações</legend>
+            <Field label="Nome" value={f.name} onChange={(v) => set("name", v)} error={errors.name} maxLength={40} />
+            <Field label="Selo do card" value={f.badge} onChange={(v) => set("badge", v)} maxLength={18} placeholder="Ex.: Lançamento" />
+            <Field label="Frase curta" value={f.tagline} onChange={(v) => set("tagline", v)} maxLength={80} className="sm:col-span-2" />
+            <label className="flex cursor-pointer items-center gap-3 text-sm text-stone-700 sm:col-span-2">
+              <input id="edit-mais-vendido" type="checkbox" checked={f.bestSeller} onChange={(e) => set("bestSeller", e.target.checked)} className="h-4 w-4 accent-emerald-700" />
+              Destacar o selo em verde (mais vendido)
+            </label>
+          </fieldset>
+
+          <fieldset className="grid gap-3 sm:grid-cols-3">
+            <legend className="mb-2 text-xs font-bold uppercase tracking-wider text-emerald-800">Preço e estoque</legend>
+            <NumField id="edit-preco" label="Preço" prefix="R$" value={f.price} onChange={(v) => set("price", v)} error={errors.price} />
+            <NumField
+              id="edit-preco-antigo"
+              label="Preço antigo (promoção)"
+              prefix="R$"
+              value={f.oldPrice}
+              onChange={(v) => set("oldPrice", v)}
+              error={errors.oldPrice}
+              placeholder="Sem promoção"
+              hint={off ? `Mostra -${off}% no card` : "Deixe vazio para tirar a promoção"}
+            />
+            <div>
+              <NumField id="edit-estoque" label="Estoque" suffix="un." value={f.stock} onChange={(v) => set("stock", v.replace(/\D/g, ""))} error={errors.stock} />
+              <div className="mt-1.5 flex gap-1.5">
+                {[10, 50].map((n) => (
+                  <button key={n} type="button" onClick={() => set("stock", String((parseInt(f.stock, 10) || 0) + n))} className="rounded-full border border-stone-300 px-2.5 py-0.5 text-[11px] font-semibold text-stone-600 hover:border-stone-500">
+                    +{n}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </fieldset>
+
+          {base && (
+            <fieldset className="space-y-3 rounded-2xl border border-amber-200 bg-amber-50/60 p-4">
+              <legend className="sr-only">Personalização</legend>
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <p className="flex items-center gap-2 text-sm font-semibold text-stone-900"><PenLine className="h-4 w-4 text-amber-700" /> Personalização com nome</p>
+                  <p className="text-xs text-stone-500">{base.label}</p>
+                </div>
+                <Switch id="edit-personalizacao" checked={f.customEnabled} onChange={(v) => set("customEnabled", v)} label="Permitir personalização" />
+              </div>
+              {f.customEnabled && (
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <NumField id="edit-taxa" label="Taxa da personalização" prefix="R$" value={f.customFee} onChange={(v) => set("customFee", v)} error={errors.customFee} />
+                  <NumField id="edit-max" label="Limite de caracteres" suffix="letras" value={f.customMax} onChange={(v) => set("customMax", v.replace(/\D/g, ""))} error={errors.customMax} />
+                </div>
+              )}
+            </fieldset>
+          )}
+        </div>
+
+        <div className="sticky bottom-0 flex flex-wrap items-center justify-between gap-3 border-t border-stone-200 bg-page/95 px-6 py-4 backdrop-blur">
+          <div>
+            {edited && (confirmReset ? (
+              <ConfirmInline
+                question="Voltar aos valores originais?"
+                confirmLabel="Restaurar"
+                onConfirm={() => { onReset(product.id); notify(`${product.name} voltou ao padrão`); onClose(); }}
+                onCancel={() => setConfirmReset(false)}
+              />
+            ) : (
+              <button type="button" onClick={() => setConfirmReset(true)} className="inline-flex items-center gap-1.5 text-xs font-semibold text-stone-500 hover:text-stone-800">
+                <RotateCcw className="h-3.5 w-3.5" /> Restaurar padrão
+              </button>
+            ))}
+          </div>
+          <div className="flex gap-2">
+            <button type="button" onClick={onClose} className="rounded-full border border-stone-300 px-5 py-2.5 text-sm font-semibold text-stone-700 hover:border-stone-500">Cancelar</button>
+            <button className="rounded-full bg-emerald-900 px-6 py-2.5 text-sm font-semibold text-white transition hover:brightness-110">Salvar alterações</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  );
+}
+
+/** Aba de cupons: criar, editar, ativar/desativar e excluir */
+const EMPTY_COUPON = { code: "", type: "percent", value: "", minOrder: "", label: "", active: true };
+
+function CouponsPanel({ onSave, onDelete, notify, orders }) {
+  const { coupons } = useStore();
+  const [form, setForm] = useState(EMPTY_COUPON);
+  const [editing, setEditing] = useState(null);
+  const [errors, setErrors] = useState({});
+  const [confirmDel, setConfirmDel] = useState(null);
+  const set = (k, v) => { setForm((s) => ({ ...s, [k]: v })); setErrors((e) => ({ ...e, [k]: undefined })); };
+
+  const startEdit = (c) => {
+    setEditing(c.code);
+    setErrors({});
+    setForm({ code: c.code, type: c.type, value: numText(c.value), minOrder: c.minOrder ? numText(c.minOrder) : "", label: c.label || "", active: c.active });
+  };
+  const cancel = () => { setEditing(null); setForm(EMPTY_COUPON); setErrors({}); };
+
+  const submit = (e) => {
+    e.preventDefault();
+    const code = form.code.trim().toUpperCase();
+    const value = parseNum(form.value);
+    const minOrder = form.minOrder.trim() ? parseNum(form.minOrder) : 0;
+    const er = {};
+    if (!/^[A-Z0-9]{3,15}$/.test(code)) er.code = "Use de 3 a 15 letras ou números, sem espaços.";
+    else if (coupons.some((c) => c.code === code && c.code !== editing)) er.code = "Já existe um cupom com esse código.";
+    if (!(value > 0)) er.value = "Digite um valor maior que zero.";
+    else if (form.type === "percent" && value > 90) er.value = "O desconto máximo é 90%.";
+    if (!(minOrder >= 0)) er.minOrder = "Digite um valor válido.";
+    setErrors(er);
+    if (Object.keys(er).length) return;
+    const old = coupons.find((c) => c.code === editing);
+    onSave({ code, type: form.type, value: round2(value), minOrder: round2(minOrder), label: form.label.trim(), active: form.active, uses: old ? old.uses : 0 }, editing);
+    notify(editing ? `Cupom ${code} atualizado` : `Cupom ${code} criado`);
+    cancel();
+  };
+
+  const revenueBy = (code) => orders.filter((o) => o.coupon === code).reduce((a, o) => a + o.total, 0);
+
+  return (
+    <div className="mt-6 grid items-start gap-6 lg:grid-cols-[380px_1fr]">
+      <form onSubmit={submit} className="space-y-4 rounded-3xl border border-stone-200 bg-surface p-6 lg:sticky lg:top-40" noValidate>
+        <div>
+          <h2 className="text-lg font-semibold text-stone-900">{editing ? `Editar ${editing}` : "Novo cupom"}</h2>
+          <p className="text-xs text-stone-500">O cliente digita o código no carrinho.</p>
+        </div>
+        <Field label="Código" value={form.code} onChange={(v) => set("code", v.toUpperCase().replace(/\s/g, ""))} error={errors.code} placeholder="Ex.: NATAL25" maxLength={15} />
+        <div>
+          <span className="mb-1.5 block text-xs font-semibold text-stone-700">Tipo de desconto</span>
+          <div className="grid grid-cols-2 gap-1 rounded-xl bg-stone-100 p-1">
+            {[{ id: "percent", label: "Porcentagem (%)" }, { id: "fixed", label: "Valor fixo (R$)" }].map((t) => (
+              <button
+                key={t.id}
+                type="button"
+                onClick={() => set("type", t.id)}
+                className={`rounded-lg py-2 text-xs font-semibold transition ${form.type === t.id ? "bg-surface text-emerald-800 shadow-sm" : "text-stone-500"}`}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <NumField
+            id="cupom-valor"
+            label="Desconto"
+            prefix={form.type === "fixed" ? "R$" : undefined}
+            suffix={form.type === "percent" ? "%" : undefined}
+            value={form.value}
+            onChange={(v) => set("value", v)}
+            error={errors.value}
+          />
+          <NumField id="cupom-minimo" label="Pedido mínimo" prefix="R$" value={form.minOrder} onChange={(v) => set("minOrder", v)} error={errors.minOrder} placeholder="Sem mínimo" />
+        </div>
+        <Field label="Descrição para o cliente (opcional)" value={form.label} onChange={(v) => set("label", v)} maxLength={40} placeholder="Ex.: Presente de Natal" />
+        <div className="flex items-center justify-between rounded-xl border border-stone-200 px-4 py-3">
+          <span className="text-sm font-medium text-stone-700">Cupom ativo</span>
+          <Switch id="cupom-ativo" checked={form.active} onChange={(v) => set("active", v)} label="Cupom ativo" />
+        </div>
+        <div className="flex gap-2">
+          {editing && <button type="button" onClick={cancel} className="flex-1 rounded-full border border-stone-300 py-3 text-sm font-semibold text-stone-700">Cancelar</button>}
+          <button className="flex flex-1 items-center justify-center gap-2 rounded-full bg-emerald-900 py-3 text-sm font-semibold text-white transition hover:brightness-110">
+            {editing ? "Salvar cupom" : <><Plus className="h-4 w-4" /> Criar cupom</>}
+          </button>
+        </div>
+      </form>
+
+      <div className="space-y-3">
+        {coupons.length === 0 && (
+          <div className="rounded-3xl border border-dashed border-stone-300 p-12 text-center text-sm text-stone-500">
+            <Tag className="mx-auto mb-3 h-8 w-8 text-stone-300" />
+            Nenhum cupom ainda. Crie o primeiro no formulário.
+          </div>
+        )}
+        {coupons.map((c) => (
+          <div key={c.code} className={`rounded-2xl border bg-surface p-5 transition ${editing === c.code ? "border-emerald-700 ring-2 ring-emerald-700/15" : "border-stone-200"} ${c.active ? "" : "opacity-70"}`}>
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${c.active ? "bg-emerald-900 text-white" : "bg-stone-200 text-stone-500"}`}>
+                  <Tag className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="font-mono text-lg font-bold tracking-wider text-stone-900">{c.code}</p>
+                  <p className="text-xs text-stone-500">{couponLabel(c)}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className={`text-xs font-semibold ${c.active ? "text-emerald-700" : "text-stone-500"}`}>{c.active ? "Ativo" : "Pausado"}</span>
+                <Switch id={`cupom-${c.code}`} checked={c.active} onChange={(v) => { onSave({ ...c, active: v }, c.code); notify(`${c.code} ${v ? "ativado" : "pausado"}`); }} label={`Ativar ${c.code}`} />
+              </div>
+            </div>
+            <div className="mt-4 grid grid-cols-2 gap-2 text-center sm:grid-cols-4">
+              {[
+                { l: "Desconto", v: couponValueText(c) },
+                { l: "Pedido mínimo", v: c.minOrder ? formatBRL(c.minOrder) : "Nenhum" },
+                { l: "Usos", v: c.uses || 0 },
+                { l: "Vendas com ele", v: formatBRL(revenueBy(c.code)) },
+              ].map((s) => (
+                <div key={s.l} className="rounded-xl bg-stone-50 px-2 py-2">
+                  <p className="text-sm font-bold tabular-nums text-stone-900">{s.v}</p>
+                  <p className="text-[10px] uppercase tracking-wider text-stone-500">{s.l}</p>
+                </div>
+              ))}
+            </div>
+            <div className="mt-4 flex flex-wrap items-center justify-end gap-3">
+              {confirmDel === c.code ? (
+                <ConfirmInline
+                  question={`Excluir ${c.code}?`}
+                  confirmLabel="Excluir"
+                  onConfirm={() => { onDelete(c.code); setConfirmDel(null); if (editing === c.code) cancel(); notify(`Cupom ${c.code} excluído`); }}
+                  onCancel={() => setConfirmDel(null)}
+                />
+              ) : (
+                <>
+                  <button onClick={() => setConfirmDel(c.code)} className="inline-flex items-center gap-1 text-xs font-semibold text-stone-500 hover:text-rose-600">
+                    <Trash2 className="h-3.5 w-3.5" /> Excluir
+                  </button>
+                  <button onClick={() => startEdit(c)} className="inline-flex items-center gap-1 rounded-full border border-stone-300 px-3 py-1.5 text-xs font-semibold text-stone-700 hover:border-stone-500">
+                    <PenLine className="h-3.5 w-3.5" /> Editar
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/** Aba de configurações da loja */
+function SettingsPanel({ onSave, onResetStore, onResetOrders, notify }) {
+  const { settings } = useStore();
+  const [f, setF] = useState({
+    freeShipping: numText(settings.freeShipping),
+    shippingFee: numText(settings.shippingFee),
+    pixDiscount: numText(settings.pixDiscount),
+    giftFee: numText(settings.giftFee),
+    lowStock: String(settings.lowStock),
+    announcement: settings.announcement,
+    pixKey: settings.pixKey,
+    pixName: settings.pixName,
+    pixCity: settings.pixCity,
+    donationsEnabled: settings.donationsEnabled,
+  });
+  const [pw, setPw] = useState({ current: "", next: "", confirm: "" });
+  const [errors, setErrors] = useState({});
+  const [pwErrors, setPwErrors] = useState({});
+  const [confirm, setConfirm] = useState(null);
+  const set = (k, v) => { setF((s) => ({ ...s, [k]: v })); setErrors((e) => ({ ...e, [k]: undefined })); };
+  const setP = (k, v) => { setPw((s) => ({ ...s, [k]: v })); setPwErrors((e) => ({ ...e, [k]: undefined })); };
+
+  const preview = f.announcement.trim() || autoAnnouncement({
+    freeShipping: parseNum(f.freeShipping) || 0,
+    pixDiscount: parseNum(f.pixDiscount) || 0,
+  });
+
+  const saveRules = (e) => {
+    e.preventDefault();
+    const v = {
+      freeShipping: parseNum(f.freeShipping),
+      shippingFee: parseNum(f.shippingFee),
+      pixDiscount: parseNum(f.pixDiscount),
+      giftFee: parseNum(f.giftFee),
+      lowStock: parseInt(f.lowStock, 10),
+    };
+    const er = {};
+    if (!(v.freeShipping >= 0)) er.freeShipping = "Digite um valor válido.";
+    if (!(v.shippingFee >= 0)) er.shippingFee = "Digite um valor válido.";
+    if (!(v.pixDiscount >= 0 && v.pixDiscount <= 50)) er.pixDiscount = "Use entre 0 e 50%.";
+    if (!(v.giftFee >= 0)) er.giftFee = "Digite um valor válido.";
+    if (!(v.lowStock >= 0)) er.lowStock = "Digite um número inteiro.";
+    if (!f.pixKey.trim()) er.pixKey = "Digite a chave PIX que vai receber os pagamentos.";
+    else if (/\s/.test(f.pixKey.trim())) er.pixKey = "A chave PIX não pode ter espaços.";
+    if (!pixText(f.pixName, 25)) er.pixName = "Digite o nome do recebedor.";
+    if (!pixText(f.pixCity, 15)) er.pixCity = "Digite a cidade.";
+    setErrors(er);
+    if (Object.keys(er).length) return;
+    onSave({
+      freeShipping: round2(v.freeShipping),
+      shippingFee: round2(v.shippingFee),
+      pixDiscount: round2(v.pixDiscount),
+      giftFee: round2(v.giftFee),
+      lowStock: v.lowStock,
+      announcement: f.announcement.trim(),
+      pixKey: f.pixKey.trim(),
+      pixName: pixText(f.pixName, 25),
+      pixCity: pixText(f.pixCity, 15),
+      donationsEnabled: f.donationsEnabled,
+    });
+    notify("Configurações salvas. A loja já está usando os novos valores.");
+  };
+
+  const savePassword = (e) => {
+    e.preventDefault();
+    const er = {};
+    if (pw.current !== settings.adminPassword) er.current = "A senha atual está errada.";
+    if (pw.next.length < 6) er.next = "Use pelo menos 6 caracteres.";
+    if (pw.next !== pw.confirm) er.confirm = "As senhas não são iguais.";
+    setPwErrors(er);
+    if (Object.keys(er).length) return;
+    onSave({ adminPassword: pw.next });
+    setPw({ current: "", next: "", confirm: "" });
+    notify("Senha do painel alterada");
+  };
+
+  return (
+    <div className="mt-6 grid items-start gap-6 lg:grid-cols-2">
+      <form onSubmit={saveRules} className="space-y-6 rounded-3xl border border-stone-200 bg-surface p-6" noValidate>
+        <div>
+          <h2 className="text-lg font-semibold text-stone-900">Regras da loja</h2>
+          <p className="text-xs text-stone-500">Valem para o carrinho, o checkout e os textos do site.</p>
+        </div>
+        <fieldset className="grid gap-3 sm:grid-cols-2">
+          <legend className="mb-2 text-xs font-bold uppercase tracking-wider text-emerald-800">Frete</legend>
+          <NumField id="cfg-frete-gratis" label="Frete grátis a partir de" prefix="R$" value={f.freeShipping} onChange={(v) => set("freeShipping", v)} error={errors.freeShipping} />
+          <NumField id="cfg-frete" label="Valor do frete" prefix="R$" value={f.shippingFee} onChange={(v) => set("shippingFee", v)} error={errors.shippingFee} />
+        </fieldset>
+        <fieldset className="grid gap-3 sm:grid-cols-2">
+          <legend className="mb-2 text-xs font-bold uppercase tracking-wider text-emerald-800">Pagamento e extras</legend>
+          <NumField id="cfg-pix" label="Desconto no PIX" suffix="%" value={f.pixDiscount} onChange={(v) => set("pixDiscount", v)} error={errors.pixDiscount} />
+          <NumField id="cfg-presente" label="Embalagem para presente" prefix="R$" value={f.giftFee} onChange={(v) => set("giftFee", v)} error={errors.giftFee} />
+          <NumField id="cfg-estoque" label="Alerta de estoque baixo" suffix="un." value={f.lowStock} onChange={(v) => set("lowStock", v.replace(/\D/g, ""))} error={errors.lowStock} hint="Avisa no painel e mostra “últimas unidades” na loja" />
+        </fieldset>
+        <fieldset className="grid gap-3 sm:grid-cols-2">
+          <legend className="mb-2 text-xs font-bold uppercase tracking-wider text-emerald-800">Recebimento via PIX</legend>
+          <Field label="Chave PIX" value={f.pixKey} onChange={(v) => set("pixKey", v)} error={errors.pixKey} maxLength={77} className="sm:col-span-2" />
+          <Field label="Nome do recebedor" value={f.pixName} onChange={(v) => set("pixName", v)} error={errors.pixName} maxLength={25} />
+          <Field label="Cidade" value={f.pixCity} onChange={(v) => set("pixCity", v)} error={errors.pixCity} maxLength={15} />
+          <div className="flex items-center justify-between gap-4 rounded-xl border border-stone-200 px-4 py-3 sm:col-span-2">
+            <div>
+              <p className="text-sm font-medium text-stone-700">Mostrar a seção “Doar” na loja</p>
+              <p className="text-[11px] text-stone-500">Doações usam a mesma chave PIX, sem frete.</p>
+            </div>
+            <Switch id="cfg-doacoes" checked={f.donationsEnabled} onChange={(v) => set("donationsEnabled", v)} label="Mostrar a seção Doar" />
+          </div>
+          <p className="text-[11px] text-stone-500 sm:col-span-2">
+            O cliente que escolhe PIX recebe um QR Code e o código copia e cola com o valor do pedido. Confira no extrato do banco antes de mudar o pedido para “Em Processamento”.
+          </p>
+        </fieldset>
+        <fieldset>
+          <legend className="mb-2 text-xs font-bold uppercase tracking-wider text-emerald-800">Aviso no topo do site</legend>
+          <Field label="Texto do aviso" value={f.announcement} onChange={(v) => set("announcement", v)} maxLength={90} placeholder="Vazio = texto automático com frete e PIX" />
+          <div className="palette-light mt-3 rounded-xl bg-emerald-950 px-4 py-2 text-center text-xs text-emerald-50">
+            <Truck className="mr-1.5 inline h-3.5 w-3.5" /> {preview}
+          </div>
+        </fieldset>
+        <button className="w-full rounded-full bg-emerald-900 py-3.5 text-sm font-semibold text-white transition hover:brightness-110">Salvar regras</button>
+      </form>
+
+      <div className="space-y-6">
+        <form onSubmit={savePassword} className="space-y-3 rounded-3xl border border-stone-200 bg-surface p-6" noValidate>
+          <div>
+            <h2 className="flex items-center gap-2 text-lg font-semibold text-stone-900"><Lock className="h-5 w-5 text-emerald-700" /> Senha do painel</h2>
+            <p className="text-xs text-stone-500">A nova senha vale a partir do próximo login neste navegador.</p>
+          </div>
+          <Field label="Senha atual" type="password" value={pw.current} onChange={(v) => setP("current", v)} error={pwErrors.current} />
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Field label="Nova senha" type="password" value={pw.next} onChange={(v) => setP("next", v)} error={pwErrors.next} />
+            <Field label="Repita a nova senha" type="password" value={pw.confirm} onChange={(v) => setP("confirm", v)} error={pwErrors.confirm} />
+          </div>
+          <button className="w-full rounded-full bg-ink py-3 text-sm font-semibold text-ink-fg transition hover:opacity-90">Alterar senha</button>
+        </form>
+
+        <div className="space-y-4 rounded-3xl border border-rose-200 bg-surface p-6">
+          <div>
+            <h2 className="text-lg font-semibold text-stone-900">Dados de demonstração</h2>
+            <p className="text-xs text-stone-500">Útil para reapresentar o projeto do zero.</p>
+          </div>
+          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-stone-100 pt-4">
+            <div>
+              <p className="text-sm font-semibold text-stone-900">Restaurar pedidos de exemplo</p>
+              <p className="text-xs text-stone-500">Apaga os pedidos atuais e volta aos {MOCK_ORDERS.length} de exemplo.</p>
+            </div>
+            {confirm === "orders" ? (
+              <ConfirmInline question="Tem certeza?" confirmLabel="Restaurar" onConfirm={() => { onResetOrders(); setConfirm(null); }} onCancel={() => setConfirm(null)} />
+            ) : (
+              <button onClick={() => setConfirm("orders")} className="rounded-full border border-stone-300 px-4 py-2 text-xs font-semibold text-stone-700 hover:border-stone-500">Restaurar pedidos</button>
+            )}
+          </div>
+          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-stone-100 pt-4">
+            <div>
+              <p className="text-sm font-semibold text-stone-900">Restaurar a loja</p>
+              <p className="text-xs text-stone-500">Preços, estoque, cupons, regras e senha voltam ao padrão.</p>
+            </div>
+            {confirm === "store" ? (
+              <ConfirmInline question="Desfazer todas as alterações?" confirmLabel="Restaurar" onConfirm={() => { onResetStore(); setConfirm(null); }} onCancel={() => setConfirm(null)} />
+            ) : (
+              <button onClick={() => setConfirm("store")} className="rounded-full border border-rose-300 px-4 py-2 text-xs font-semibold text-rose-700 hover:bg-rose-50">Restaurar loja</button>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** Gera o CSV dos pedidos (separado por ponto e vírgula, como o Excel em português espera) */
+const ordersToCSV = (orders) => {
+  const esc = (v) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+  const head = ["Pedido", "Data", "Cliente", "E-mail", "Telefone", "Cidade", "Itens", "Pagamento", "Cupom", "Presente", "Total", "Status"];
+  const rows = orders.map((o) => [
+    o.id,
+    formatDateTime(o.createdAt),
+    o.customer.name,
+    o.customer.email,
+    o.customer.phone,
+    `${o.address.city}/${o.address.state}`,
+    o.items.map((i) => `${i.qty}x ${i.name}${i.custom ? ` (${i.custom})` : ""}`).join(" | "),
+    o.payment,
+    o.coupon || "",
+    o.gift ? (o.gift.message || "sim") : "",
+    String(o.total.toFixed(2)).replace(".", ","),
+    o.status,
+  ]);
+  return [head, ...rows].map((r) => r.map(esc).join(";")).join("\n");
+};
+
+function DonationsPanel({ donations, onUpdate, onDelete, notify }) {
+  const [filter, setFilter] = useState("Todas");
+  const [confirmDel, setConfirmDel] = useState(null);
+  const received = donations.filter((d) => d.status === "Recebida");
+  const waiting = donations.filter((d) => d.status === "Aguardando");
+  const list = [...donations]
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    .filter((d) => filter === "Todas" || d.status === filter);
+  return (
+    <div className="mt-6 space-y-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <KpiCard icon={Heart} label="Doações recebidas" value={formatBRL(received.reduce((a, d) => a + d.amount, 0))} sub={`${received.length} confirmadas`} tone="bg-rose-50 text-rose-700" />
+        <KpiCard icon={Clock} label="Aguardando conferência" value={formatBRL(waiting.reduce((a, d) => a + d.amount, 0))} sub={`${waiting.length} para conferir no extrato`} tone="bg-amber-50 text-amber-700" />
+        <KpiCard icon={Users} label="Apoiadores" value={new Set(donations.map((d) => (d.name || "anônimo").toLowerCase())).size} sub="Nomes diferentes (anônimos contam como 1)" tone="bg-emerald-50 text-emerald-800" />
+      </div>
+      <section className="overflow-hidden rounded-3xl border border-stone-200 bg-surface">
+        <div className="flex flex-col gap-3 border-b border-stone-200 p-5 md:flex-row md:items-center md:justify-between">
+          <div>
+            <h2 className="text-lg font-semibold text-stone-900">Doações</h2>
+            <p className="text-xs text-stone-500">Confira no extrato o PIX com o identificador da doação (ex.: DO1001) e marque como recebida.</p>
+          </div>
+          <div className="flex gap-1 rounded-xl bg-stone-100 p-1">
+            {["Todas", "Aguardando", "Recebida"].map((f) => (
+              <button
+                key={f}
+                onClick={() => setFilter(f)}
+                className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${filter === f ? "bg-surface text-emerald-800 shadow-sm" : "text-stone-500"}`}
+              >
+                {f === "Recebida" ? "Recebidas" : f}
+              </button>
+            ))}
+          </div>
+        </div>
+        {list.length === 0 ? (
+          <div className="p-12 text-center text-sm text-stone-500">
+            <Heart className="mx-auto mb-3 h-8 w-8 text-stone-300" />
+            {donations.length === 0 ? "Nenhuma doação ainda. Elas aparecem aqui quando alguém usa a seção “Doar” da loja." : "Nenhuma doação com esse filtro."}
+          </div>
+        ) : (
+          <ul className="divide-y divide-stone-100">
+            {list.map((d) => (
+              <li key={d.id} className="flex flex-col gap-3 p-5 sm:flex-row sm:items-center">
+                <div className="flex min-w-0 flex-1 items-start gap-3">
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-rose-50 text-rose-600">
+                    <Heart className="h-4 w-4" />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="font-semibold text-stone-900">
+                      {d.name || "Anônimo"} <span className="ml-1 font-mono text-xs font-bold text-emerald-800">{d.id.replace("-", "")}</span>
+                    </p>
+                    <p className="text-xs text-stone-500">{formatDateTime(d.createdAt)}</p>
+                    {d.message && <p className="mt-1 font-serif text-sm italic text-stone-700">“{d.message}”</p>}
+                  </div>
+                </div>
+                <div className="flex flex-wrap items-center gap-3 sm:justify-end">
+                  <p className="text-lg font-bold tabular-nums text-stone-900">{formatBRL(d.amount)}</p>
+                  {d.status === "Aguardando" ? (
+                    <button
+                      onClick={() => { onUpdate(d.id, { status: "Recebida" }); notify(`Doação ${d.id} marcada como recebida`); }}
+                      className="inline-flex items-center gap-1.5 rounded-full bg-emerald-900 px-3 py-1.5 text-xs font-semibold text-white hover:brightness-110"
+                    >
+                      <CheckCircle2 className="h-3.5 w-3.5" /> Marcar recebida
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => onUpdate(d.id, { status: "Aguardando" })}
+                      className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold ring-1 ${DONATION_STATUS.Recebida.color}`}
+                      title="Voltar para aguardando"
+                    >
+                      <span className={`h-1.5 w-1.5 rounded-full ${DONATION_STATUS.Recebida.dot}`} /> Recebida
+                    </button>
+                  )}
+                  {confirmDel === d.id ? (
+                    <ConfirmInline question="Excluir?" confirmLabel="Excluir" onConfirm={() => { onDelete(d.id); setConfirmDel(null); notify(`Doação ${d.id} excluída`); }} onCancel={() => setConfirmDel(null)} />
+                  ) : (
+                    <button onClick={() => setConfirmDel(d.id)} className="rounded-full p-2 text-stone-400 hover:text-rose-600" aria-label={`Excluir doação ${d.id}`}>
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  )}
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+    </div>
+  );
+}
+
+function AdminDashboard({ orders, donations, onUpdateStatus, onUpdateOrder, onDelete, onLogout, notify, actions }) {
+  const store = useStore();
+  const { allProducts, settings, coupons } = store;
+  const [tab, setTab] = useState("visao");
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("Todos");
   const [paymentFilter, setPaymentFilter] = useState("Todos");
   const [onlyGifts, setOnlyGifts] = useState(false);
   const [openId, setOpenId] = useState(null);
+  const [editId, setEditId] = useState(null);
+  const [productQuery, setProductQuery] = useState("");
   const openOrder = orders.find((o) => o.id === openId) || null;
+  const editProduct = allProducts.find((p) => p.id === editId) || null;
 
   /** Indicadores gerais */
   const kpis = useMemo(() => {
@@ -2541,9 +3924,11 @@ function AdminDashboard({ orders, onUpdateStatus, onReset, onDelete, onLogout, n
     const units = orders.reduce((a, o) => a + o.items.reduce((s, i) => s + i.qty, 0), 0);
     const gifts = orders.filter((o) => o.gift).length;
     const customs = orders.reduce((a, o) => a + o.items.filter((i) => i.custom).reduce((s, i) => s + i.qty, 0), 0);
-    const coupons = orders.filter((o) => o.coupon).length;
-    return { sales: orders.length, revenue, pending, customers, units, gifts, customs, coupons, ticket: orders.length ? revenue / orders.length : 0 };
+    const couponOrders = orders.filter((o) => o.coupon).length;
+    return { sales: orders.length, revenue, pending, customers, units, gifts, customs, couponOrders, ticket: orders.length ? revenue / orders.length : 0 };
   }, [orders]);
+
+  const lowStock = allProducts.filter((p) => p.active && p.stock <= settings.lowStock).sort((a, b) => a.stock - b.stock);
 
   /** Faturamento dos últimos 7 dias */
   const days = useMemo(() => {
@@ -2564,9 +3949,9 @@ function AdminDashboard({ orders, onUpdateStatus, onReset, onDelete, onLogout, n
     return out;
   }, [orders]);
 
-  /** Vendas por produto e por categoria */
+  /** Vendas por produto e por linha */
   const productStats = useMemo(() => {
-    return PRODUCTS.map((p) => {
+    return allProducts.map((p) => {
       let units = 0, value = 0, customs = 0;
       orders.forEach((o) => o.items.filter((i) => i.id === p.id).forEach((i) => {
         units += i.qty;
@@ -2574,14 +3959,19 @@ function AdminDashboard({ orders, onUpdateStatus, onReset, onDelete, onLogout, n
         if (i.custom) customs += i.qty;
       }));
       return { ...p, units, value, customs };
-    }).sort((a, b) => b.value - a.value);
-  }, [orders]);
-  const byCategory = useMemo(() => Object.keys(CATEGORY_LABELS).map((c) => ({
+    });
+  }, [orders, allProducts]);
+  const byCategory = Object.keys(CATEGORY_LABELS).map((c) => ({
     id: c,
     label: CATEGORY_LABELS[c],
     value: productStats.filter((p) => p.category === c).reduce((a, p) => a + p.value, 0),
-  })), [productStats]);
+  }));
   const maxCategory = Math.max(1, ...byCategory.map((c) => c.value));
+  const maxProduct = Math.max(1, ...productStats.map((p) => p.value));
+  const visibleProducts = productStats.filter((p) => {
+    const q = normalize(productQuery.trim());
+    return !q || normalize(`${p.name} ${p.variant} ${CATEGORY_LABELS[p.category]}`).includes(q);
+  });
 
   /** Clientes agregados por e-mail */
   const customers = useMemo(() => {
@@ -2607,18 +3997,31 @@ function AdminDashboard({ orders, onUpdateStatus, onReset, onDelete, onLogout, n
   }, [orders, query, statusFilter, paymentFilter, onlyGifts]);
 
   const attention = orders
-    .filter((o) => o.status === "Pendente" || o.status === "Em Processamento" || (o.gift && o.status !== "Entregue" && o.status !== "Enviado"))
+    .filter((o) => o.status === "Pendente" || o.status === "Em Processamento")
     .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
     .slice(0, 5);
 
+  const activeCoupons = coupons.filter((c) => c.active).length;
   const TABS = [
     { id: "visao", label: "Visão Geral", icon: BarChart },
     { id: "pedidos", label: "Pedidos", icon: Package, count: kpis.pending },
-    { id: "produtos", label: "Produtos", icon: Store },
+    { id: "produtos", label: "Produtos", icon: Store, count: lowStock.length, warn: true },
+    { id: "cupons", label: "Cupons", icon: Tag },
+    { id: "doacoes", label: "Doações", icon: Heart, count: donations.filter((d) => d.status === "Aguardando").length, warn: true },
     { id: "clientes", label: "Clientes", icon: Users },
+    { id: "config", label: "Configurações", icon: Settings },
   ];
 
   const goOrders = (status) => { setStatusFilter(status); setOnlyGifts(false); setTab("pedidos"); };
+
+  const copyCSV = async () => {
+    try {
+      await navigator.clipboard.writeText(ordersToCSV(filtered));
+      notify(`${filtered.length} pedidos copiados. Cole numa planilha.`);
+    } catch {
+      notify("O navegador bloqueou a cópia. Tente de novo pelo navegador comum.", "error");
+    }
+  };
 
   return (
     <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
@@ -2628,7 +4031,8 @@ function AdminDashboard({ orders, onUpdateStatus, onReset, onDelete, onLogout, n
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-700">Painel Administrativo</p>
           <h1 className="mt-2 font-serif text-3xl text-stone-900 sm:text-4xl">Olá, equipe Farmaura</h1>
           <p className="mt-1 text-sm text-stone-500">
-            {kpis.pending > 0 ? `${kpis.pending} ${kpis.pending === 1 ? "pedido espera" : "pedidos esperam"} processamento.` : "Nenhum pedido pendente agora."}
+            {kpis.pending > 0 ? `${kpis.pending} ${kpis.pending === 1 ? "pedido espera" : "pedidos esperam"} processamento` : "Nenhum pedido pendente agora"}
+            {lowStock.length > 0 && ` · ${lowStock.length} ${lowStock.length === 1 ? "produto" : "produtos"} com estoque baixo`}.
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -2639,45 +4043,32 @@ function AdminDashboard({ orders, onUpdateStatus, onReset, onDelete, onLogout, n
             </span>
             Ao vivo
           </span>
-          {confirmReset ? (
-            <span className="inline-flex items-center gap-2 rounded-full border border-rose-300 bg-rose-50 py-1 pl-3 pr-1 text-xs font-semibold text-rose-700">
-              Apagar pedidos e voltar ao exemplo?
-              <button onClick={() => { onReset(); setConfirmReset(false); }} className="rounded-full bg-rose-600 px-3 py-1 text-white">Sim</button>
-              <button onClick={() => setConfirmReset(false)} className="rounded-full px-2 py-1 text-rose-700">Não</button>
-            </span>
-          ) : (
-            <button
-              onClick={() => setConfirmReset(true)}
-              className="inline-flex items-center gap-1.5 rounded-full border border-stone-300 px-3 py-1.5 text-xs font-semibold text-stone-600 transition hover:border-stone-500 hover:text-stone-900"
-            >
-              <RotateCcw className="h-3.5 w-3.5" /> Restaurar exemplo
-            </button>
-          )}
-          <button
-            onClick={onLogout}
-            className="inline-flex items-center gap-1.5 rounded-full bg-ink px-3 py-1.5 text-xs font-semibold text-ink-fg transition hover:opacity-90"
-          >
+          <button onClick={onLogout} className="inline-flex items-center gap-1.5 rounded-full bg-ink px-3 py-1.5 text-xs font-semibold text-ink-fg transition hover:opacity-90">
             <LogOut className="h-3.5 w-3.5" /> Sair
           </button>
         </div>
       </div>
 
       {/* Abas */}
-      <div className="mt-8 flex gap-1 overflow-x-auto rounded-2xl border border-stone-200 bg-surface p-1">
-        {TABS.map(({ id, label, icon: Icon, count }) => (
-          <button
-            key={id}
-            onClick={() => setTab(id)}
-            className={`flex flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-xl px-4 py-2.5 text-sm font-semibold transition ${
-              tab === id ? "bg-emerald-900 text-white shadow-sm" : "text-stone-600 hover:bg-stone-100"
-            }`}
-          >
-            <Icon className="h-4 w-4" /> {label}
-            {count > 0 && (
-              <span className={`rounded-full px-1.5 text-[10px] font-bold tabular-nums ${tab === id ? "bg-white/20 text-white" : "bg-rose-100 text-rose-700"}`}>{count}</span>
-            )}
-          </button>
-        ))}
+      <div className="sticky z-30 mt-8 -mx-1 overflow-x-auto px-1 pb-1" style={{ top: "calc(env(safe-area-inset-top, 0px) + 6.5rem)" }}>
+        <div className="flex min-w-max gap-1 rounded-2xl border border-stone-200 bg-surface/95 p-1 shadow-sm backdrop-blur">
+          {TABS.map(({ id, label, icon: Icon, count, warn }) => (
+            <button
+              key={id}
+              onClick={() => setTab(id)}
+              className={`flex flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-xl px-4 py-2.5 text-sm font-semibold transition ${
+                tab === id ? "bg-emerald-900 text-white shadow-sm" : "text-stone-600 hover:bg-stone-100"
+              }`}
+            >
+              <Icon className="h-4 w-4" /> {label}
+              {count > 0 && (
+                <span className={`rounded-full px-1.5 text-[10px] font-bold tabular-nums ${
+                  tab === id ? "bg-white/20 text-white" : warn ? "bg-amber-100 text-amber-800" : "bg-rose-100 text-rose-700"
+                }`}>{count}</span>
+              )}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* ---------------- VISÃO GERAL ---------------- */}
@@ -2690,19 +4081,20 @@ function AdminDashboard({ orders, onUpdateStatus, onReset, onDelete, onLogout, n
             <KpiCard icon={Users} label="Clientes" value={kpis.customers} sub="Únicos, por e-mail" tone="bg-sky-50 text-sky-700" />
           </div>
 
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
             {[
-              { icon: Gift, label: "Para presente", value: kpis.gifts, tone: "text-rose-700" },
-              { icon: PenLine, label: "Itens personalizados", value: kpis.customs, tone: "text-amber-700" },
-              { icon: Tag, label: "Pedidos com cupom", value: kpis.coupons, tone: "text-emerald-700" },
-            ].map(({ icon: Icon, label, value, tone }) => (
-              <div key={label} className="flex items-center gap-3 rounded-2xl border border-stone-200 bg-surface px-4 py-3">
+              { icon: Gift, label: "Pedidos para presente", value: kpis.gifts, tone: "text-rose-700", go: () => { setOnlyGifts(true); setStatusFilter("Todos"); setTab("pedidos"); } },
+              { icon: PenLine, label: "Itens personalizados", value: kpis.customs, tone: "text-amber-700", go: () => setTab("pedidos") },
+              { icon: Tag, label: `Pedidos com cupom · ${activeCoupons} ativos`, value: kpis.couponOrders, tone: "text-emerald-700", go: () => setTab("cupons") },
+              { icon: AlertTriangle, label: "Produtos com estoque baixo", value: lowStock.length, tone: lowStock.length ? "text-amber-700" : "text-stone-400", go: () => setTab("produtos") },
+            ].map(({ icon: Icon, label, value, tone, go }) => (
+              <button key={label} onClick={go} className="flex items-center gap-3 rounded-2xl border border-stone-200 bg-surface px-4 py-3 text-left transition hover:border-stone-400">
                 <Icon className={`h-5 w-5 shrink-0 ${tone}`} />
                 <div className="min-w-0">
                   <p className="text-lg font-bold tabular-nums text-stone-900">{value}</p>
                   <p className="truncate text-[11px] text-stone-500">{label}</p>
                 </div>
-              </div>
+              </button>
             ))}
           </div>
 
@@ -2732,11 +4124,7 @@ function AdminDashboard({ orders, onUpdateStatus, onReset, onDelete, onLogout, n
               <p className="mt-6 text-sm font-semibold text-stone-900">Pedidos por status</p>
               <div className="mt-3 grid grid-cols-2 gap-2">
                 {Object.keys(ORDER_STATUS).map((s) => (
-                  <button
-                    key={s}
-                    onClick={() => goOrders(s)}
-                    className="flex items-center justify-between rounded-xl border border-stone-200 p-2.5 text-left transition hover:border-stone-400"
-                  >
+                  <button key={s} onClick={() => goOrders(s)} className="flex items-center justify-between rounded-xl border border-stone-200 p-2.5 text-left transition hover:border-stone-400">
                     <StatusBadge status={s} />
                     <span className="text-base font-bold tabular-nums text-stone-900">{orders.filter((o) => o.status === s).length}</span>
                   </button>
@@ -2745,33 +4133,52 @@ function AdminDashboard({ orders, onUpdateStatus, onReset, onDelete, onLogout, n
             </div>
           </div>
 
-          <div className="rounded-3xl border border-stone-200 bg-surface">
-            <div className="flex items-center justify-between border-b border-stone-200 px-6 py-4">
-              <p className="text-sm font-semibold text-stone-900">Precisa de atenção</p>
-              <button onClick={() => goOrders("Todos")} className="text-xs font-semibold text-emerald-800 hover:underline">Ver todos os pedidos</button>
+          <div className="grid gap-4 lg:grid-cols-2">
+            <div className="rounded-3xl border border-stone-200 bg-surface">
+              <div className="flex items-center justify-between border-b border-stone-200 px-6 py-4">
+                <p className="text-sm font-semibold text-stone-900">Pedidos que precisam de ação</p>
+                <button onClick={() => goOrders("Todos")} className="text-xs font-semibold text-emerald-800 hover:underline">Ver todos</button>
+              </div>
+              {attention.length === 0 ? (
+                <p className="px-6 py-10 text-center text-sm text-stone-500">Tudo em dia. Nenhum pedido aguardando.</p>
+              ) : (
+                <ul className="divide-y divide-stone-100">
+                  {attention.map((o) => (
+                    <li key={o.id}>
+                      <button onClick={() => setOpenId(o.id)} className="flex w-full flex-wrap items-center gap-x-3 gap-y-1 px-6 py-3.5 text-left transition hover:bg-stone-50">
+                        <span className="font-mono text-xs font-bold text-emerald-800">{o.id}</span>
+                        <span className="min-w-0 flex-1 truncate text-sm font-medium text-stone-900">{o.customer.name}</span>
+                        {o.gift && <Gift className="h-4 w-4 text-rose-600" aria-label="Presente" />}
+                        {o.items.some((i) => i.custom) && <PenLine className="h-4 w-4 text-amber-700" aria-label="Personalizado" />}
+                        <StatusBadge status={o.status} />
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
-            {attention.length === 0 ? (
-              <p className="px-6 py-10 text-center text-sm text-stone-500">Tudo em dia. Nenhum pedido aguardando ação.</p>
-            ) : (
-              <ul className="divide-y divide-stone-100">
-                {attention.map((o) => (
-                  <li key={o.id}>
-                    <button onClick={() => setOpenId(o.id)} className="flex w-full flex-wrap items-center gap-x-4 gap-y-1 px-6 py-3.5 text-left transition hover:bg-stone-50">
-                      <span className="font-mono text-xs font-bold text-emerald-800">{o.id}</span>
-                      <span className="flex-1 text-sm font-medium text-stone-900">{o.customer.name}</span>
-                      {o.gift && (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-rose-50 px-2 py-0.5 text-[11px] font-semibold text-rose-700"><Gift className="h-3 w-3" /> Presente</span>
-                      )}
-                      {o.items.some((i) => i.custom) && (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-semibold text-amber-800"><PenLine className="h-3 w-3" /> Personalizado</span>
-                      )}
-                      <StatusBadge status={o.status} />
-                      <ChevronRight className="h-4 w-4 text-stone-400" />
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
+            <div className="rounded-3xl border border-stone-200 bg-surface">
+              <div className="flex items-center justify-between border-b border-stone-200 px-6 py-4">
+                <p className="text-sm font-semibold text-stone-900">Estoque baixo</p>
+                <span className="text-xs text-stone-500">Alerta em {settings.lowStock} un. ou menos</span>
+              </div>
+              {lowStock.length === 0 ? (
+                <p className="px-6 py-10 text-center text-sm text-stone-500">Todos os produtos têm estoque suficiente.</p>
+              ) : (
+                <ul className="divide-y divide-stone-100">
+                  {lowStock.map((p) => (
+                    <li key={p.id}>
+                      <button onClick={() => setEditId(p.id)} className="flex w-full items-center gap-3 px-6 py-3 text-left transition hover:bg-stone-50">
+                        <SafeImage src={p.image} alt={p.name} className="h-10 w-10 shrink-0 rounded-lg object-cover" />
+                        <span className="min-w-0 flex-1 truncate text-sm font-medium text-stone-900">{p.name}</span>
+                        <StockBadge stock={p.stock} low={settings.lowStock} />
+                        <span className="text-xs font-semibold text-emerald-800">Repor</span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
           </div>
         </div>
       )}
@@ -2792,7 +4199,7 @@ function AdminDashboard({ orders, onUpdateStatus, onReset, onDelete, onLogout, n
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder="Nome, e-mail ou nº do pedido"
-                  className="w-full rounded-xl border border-stone-300 bg-page py-2.5 pl-9 pr-3 text-sm outline-none focus:border-emerald-700 focus:ring-2 focus:ring-emerald-700/15 sm:w-64"
+                  className="w-full rounded-xl border border-stone-300 bg-page py-2.5 pl-9 pr-3 text-sm outline-none focus:border-emerald-700 focus:ring-2 focus:ring-emerald-700/15 sm:w-60"
                 />
               </div>
               <select id="admin-status" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="rounded-xl border border-stone-300 bg-page px-3 py-2.5 text-sm outline-none focus:border-emerald-700" aria-label="Filtrar por status">
@@ -2812,6 +4219,9 @@ function AdminDashboard({ orders, onUpdateStatus, onReset, onDelete, onLogout, n
               >
                 <Gift className="h-4 w-4" /> Presentes
               </button>
+              <button onClick={copyCSV} className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-stone-300 px-3 py-2.5 text-sm font-semibold text-stone-700 transition hover:border-stone-500">
+                <Copy className="h-4 w-4" /> Copiar planilha
+              </button>
             </div>
           </div>
 
@@ -2822,7 +4232,6 @@ function AdminDashboard({ orders, onUpdateStatus, onReset, onDelete, onLogout, n
             </div>
           ) : (
             <>
-              {/* Tabela (desktop) */}
               <div className="hidden overflow-x-auto lg:block">
                 <table className="w-full text-left text-sm">
                   <thead className="bg-stone-50 text-[11px] uppercase tracking-wider text-stone-500">
@@ -2841,6 +4250,7 @@ function AdminDashboard({ orders, onUpdateStatus, onReset, onDelete, onLogout, n
                         <td className="px-5 py-4">
                           <p className="font-mono text-xs font-bold text-emerald-800">{o.id}</p>
                           <p className="mt-1 whitespace-nowrap text-xs text-stone-500">{formatDateTime(o.createdAt)}</p>
+                          {o.note && <p className="mt-1 inline-flex items-center gap-1 text-[11px] text-stone-500"><StickyNote className="h-3 w-3" /> com nota</p>}
                         </td>
                         <td className="px-5 py-4">
                           <p className="font-semibold text-stone-900">{o.customer.name}</p>
@@ -2863,6 +4273,7 @@ function AdminDashboard({ orders, onUpdateStatus, onReset, onDelete, onLogout, n
                         <td className="px-5 py-4 text-right">
                           <p className="font-bold tabular-nums text-stone-900">{formatBRL(o.total)}</p>
                           <p className="text-xs text-stone-500">{PAYMENT_GROUP(o.payment)}</p>
+                          {o.coupon && <p className="mt-1 font-mono text-[10px] font-bold text-emerald-700">{o.coupon}</p>}
                         </td>
                         <td className="w-44 px-5 py-4" onClick={(e) => e.stopPropagation()}>
                           <StatusSelect value={o.status} onChange={(s) => onUpdateStatus(o.id, s)} />
@@ -2874,7 +4285,6 @@ function AdminDashboard({ orders, onUpdateStatus, onReset, onDelete, onLogout, n
                 </table>
               </div>
 
-              {/* Cards (mobile e tablet) */}
               <ul className="divide-y divide-stone-100 lg:hidden">
                 {filtered.map((o) => (
                   <li key={o.id} className="space-y-3 p-5">
@@ -2912,49 +4322,82 @@ function AdminDashboard({ orders, onUpdateStatus, onReset, onDelete, onLogout, n
       {/* ---------------- PRODUTOS ---------------- */}
       {tab === "produtos" && (
         <section className="mt-6 overflow-hidden rounded-3xl border border-stone-200 bg-surface">
-          <div className="border-b border-stone-200 p-5">
-            <h2 className="text-lg font-semibold text-stone-900">Desempenho dos Produtos</h2>
-            <p className="text-xs text-stone-500">{PRODUCTS.length} produtos no catálogo · ordenados por faturamento</p>
+          <div className="flex flex-col gap-3 border-b border-stone-200 p-5 md:flex-row md:items-center md:justify-between">
+            <div>
+              <h2 className="text-lg font-semibold text-stone-900">Produtos e estoque</h2>
+              <p className="text-xs text-stone-500">
+                {allProducts.filter((p) => p.active).length} na loja · {allProducts.filter((p) => !p.active).length} ocultos · clique em Editar para mudar preço, promoção, estoque e personalização
+              </p>
+            </div>
+            <div className="relative">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-stone-400" />
+              <input
+                id="admin-busca-produto"
+                value={productQuery}
+                onChange={(e) => setProductQuery(e.target.value)}
+                placeholder="Buscar produto"
+                className="w-full rounded-xl border border-stone-300 bg-page py-2.5 pl-9 pr-3 text-sm outline-none focus:border-emerald-700 md:w-60"
+              />
+            </div>
           </div>
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[640px] text-left text-sm">
+            <table className="w-full min-w-[860px] text-left text-sm">
               <thead className="bg-stone-50 text-[11px] uppercase tracking-wider text-stone-500">
                 <tr>
                   <th className="px-5 py-3 font-semibold">Produto</th>
-                  <th className="px-5 py-3 font-semibold">Linha</th>
                   <th className="px-5 py-3 text-right font-semibold">Preço</th>
-                  <th className="px-5 py-3 text-right font-semibold">Unidades</th>
+                  <th className="px-5 py-3 font-semibold">Estoque</th>
+                  <th className="px-5 py-3 text-right font-semibold">Vendidos</th>
                   <th className="px-5 py-3 font-semibold">Faturamento</th>
+                  <th className="px-5 py-3 font-semibold">Na loja</th>
+                  <th className="px-5 py-3" />
                 </tr>
               </thead>
               <tbody className="divide-y divide-stone-100">
-                {productStats.map((p) => (
-                  <tr key={p.id}>
+                {visibleProducts.map((p) => (
+                  <tr key={p.id} className={p.active ? "" : "bg-stone-50/60"}>
                     <td className="px-5 py-3">
                       <div className="flex items-center gap-3">
-                        <SafeImage src={p.image} alt={p.name} className="h-11 w-11 shrink-0 rounded-lg object-cover" />
+                        <SafeImage src={p.image} alt={p.name} className={`h-11 w-11 shrink-0 rounded-lg object-cover ${p.active ? "" : "opacity-40 grayscale"}`} />
                         <div className="min-w-0">
                           <p className="font-semibold text-stone-900">{p.name}</p>
-                          <p className="truncate text-xs text-stone-500">{p.variant}</p>
+                          <p className="flex flex-wrap items-center gap-1.5 text-xs text-stone-500">
+                            {CATEGORY_LABELS[p.category]}
+                            {store.customization[p.id] && <span className="rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-800">Personalizável</span>}
+                            {!p.active && <span className="rounded-full bg-stone-200 px-1.5 py-0.5 text-[10px] font-semibold text-stone-600">Oculto</span>}
+                          </p>
                         </div>
                       </div>
                     </td>
-                    <td className="px-5 py-3 text-xs text-stone-600">
-                      {CATEGORY_LABELS[p.category]}
-                      {CUSTOMIZATION[p.id] && <span className="ml-1.5 rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-800">Personalizável</span>}
+                    <td className="px-5 py-3 text-right tabular-nums">
+                      {p.oldPrice && <p className="text-[11px] text-stone-400 line-through">{formatBRL(p.oldPrice)}</p>}
+                      <p className="font-semibold text-stone-900">{formatBRL(p.price)}</p>
                     </td>
-                    <td className="px-5 py-3 text-right tabular-nums text-stone-700">{formatBRL(p.price)}</td>
+                    <td className="px-5 py-3"><StockBadge stock={p.stock} low={settings.lowStock} /></td>
                     <td className="px-5 py-3 text-right tabular-nums text-stone-700">
                       {p.units}
                       {p.customs > 0 && <span className="block text-[10px] text-amber-800">{p.customs} personalizad{p.customs === 1 ? "o" : "os"}</span>}
                     </td>
-                    <td className="w-56 px-5 py-3">
+                    <td className="w-48 px-5 py-3">
                       <div className="flex items-center gap-2">
                         <div className="h-2 flex-1 overflow-hidden rounded-full bg-stone-100">
-                          <div className="h-full rounded-full bg-emerald-700" style={{ width: `${(p.value / Math.max(1, productStats[0].value)) * 100}%` }} />
+                          <div className="h-full rounded-full bg-emerald-700" style={{ width: `${(p.value / maxProduct) * 100}%` }} />
                         </div>
-                        <span className="w-24 text-right text-xs font-semibold tabular-nums text-stone-900">{formatBRL(p.value)}</span>
+                        <span className="w-20 text-right text-xs font-semibold tabular-nums text-stone-900">{formatBRL(p.value)}</span>
                       </div>
+                    </td>
+                    <td className="px-5 py-3">
+                      <Switch
+                        id={`ativo-${p.id}`}
+                        checked={p.active}
+                        onChange={(v) => { actions.saveProduct(p.id, { active: v }); notify(`${p.name} ${v ? "voltou para a loja" : "foi ocultado da loja"}`); }}
+                        label={`Mostrar ${p.name} na loja`}
+                      />
+                    </td>
+                    <td className="px-5 py-3 text-right">
+                      <button onClick={() => setEditId(p.id)} className="inline-flex items-center gap-1.5 rounded-full border border-stone-300 px-3 py-1.5 text-xs font-semibold text-stone-700 transition hover:border-emerald-700 hover:text-emerald-800">
+                        <PenLine className="h-3.5 w-3.5" /> Editar
+                      </button>
                     </td>
                   </tr>
                 ))}
@@ -2963,6 +4406,9 @@ function AdminDashboard({ orders, onUpdateStatus, onReset, onDelete, onLogout, n
           </div>
         </section>
       )}
+
+      {/* ---------------- CUPONS ---------------- */}
+      {tab === "cupons" && <CouponsPanel onSave={actions.saveCoupon} onDelete={actions.deleteCoupon} notify={notify} orders={orders} />}
 
       {/* ---------------- CLIENTES ---------------- */}
       {tab === "clientes" && (
@@ -2992,6 +4438,7 @@ function AdminDashboard({ orders, onUpdateStatus, onReset, onDelete, onLogout, n
                           {c.name.split(" ").map((n) => n[0]).slice(0, 2).join("").toUpperCase()}
                         </span>
                         <span className="font-semibold text-stone-900">{c.name}</span>
+                        {c.orders > 1 && <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-800">Recorrente</span>}
                       </div>
                     </td>
                     <td className="px-5 py-3 text-xs text-stone-600">
@@ -3010,13 +4457,35 @@ function AdminDashboard({ orders, onUpdateStatus, onReset, onDelete, onLogout, n
         </section>
       )}
 
+      {/* ---------------- DOAÇÕES ---------------- */}
+      {tab === "doacoes" && (
+        <DonationsPanel donations={donations} onUpdate={actions.updateDonation} onDelete={actions.deleteDonation} notify={notify} />
+      )}
+
+      {/* ---------------- CONFIGURAÇÕES ---------------- */}
+      {tab === "config" && (
+        <SettingsPanel onSave={actions.saveSettings} onResetStore={actions.resetStore} onResetOrders={actions.resetOrders} notify={notify} />
+      )}
+
       {openOrder && (
         <OrderDetail
           key={openOrder.id}
           order={openOrder}
           onClose={() => setOpenId(null)}
           onUpdateStatus={onUpdateStatus}
+          onUpdateOrder={onUpdateOrder}
           onDelete={(id) => { onDelete(id); setOpenId(null); }}
+          notify={notify}
+        />
+      )}
+      {editProduct && (
+        <ProductEditor
+          key={editProduct.id}
+          product={editProduct}
+          onClose={() => setEditId(null)}
+          onSave={actions.saveProduct}
+          onSaveCustom={actions.saveCustomization}
+          onReset={actions.resetProduct}
           notify={notify}
         />
       )}
@@ -3058,6 +4527,8 @@ function App() {
   const [view, setView] = useState("store"); // "store" | "admin"
   const [cart, setCart] = useState(loadCart);
   const [favs, setFavs] = useState(loadFavs);
+  const [storeData, setStoreData] = useState(loadStore);
+  const store = useMemo(() => buildStore(storeData), [storeData]);
   const [adminAuthed, setAdminAuthed] = useState(loadAdminSession);
   const [theme, setTheme] = useState(loadTheme);
   const [activeSection, setActiveSection] = useState("inicio");
@@ -3066,16 +4537,26 @@ function App() {
   const [cartOpen, setCartOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [orders, setOrders] = useState(loadOrders);
+  const [donations, setDonations] = useState(loadDonations);
   const [toast, setToast] = useState(null);
 
   // Persiste os pedidos e o carrinho sempre que mudarem (quando o ambiente permitir)
   useEffect(() => saveOrders(orders), [orders]);
   useEffect(() => saveCart(cart), [cart]);
+  useEffect(() => saveStore(storeData), [storeData]);
+  useEffect(() => saveDonations(donations), [donations]);
+
+  /** Registra uma doação (o pagamento é feito pelo PIX gerado na tela) */
+  const addDonation = ({ amount, name, message }) => {
+    const d = { id: nextDonationId(donations), createdAt: new Date().toISOString(), amount, name, message, status: "Aguardando" };
+    setDonations((prev) => [d, ...prev]);
+    return d;
+  };
   useEffect(() => {
     try { window.localStorage.setItem(FAVS_KEY, JSON.stringify(favs)); } catch { /* ignora */ }
   }, [favs]);
   const toggleFav = (id) => {
-    const p = PRODUCTS.find((x) => x.id === id);
+    const p = store.allProducts.find((x) => x.id === id);
     setFavs((prev) => {
       const has = prev.includes(id);
       notify(has ? `${p.name} saiu dos favoritos` : `${p.name} foi para os favoritos`);
@@ -3097,7 +4578,7 @@ function App() {
 
   // Destaca no menu a seção visível e mostra o botão "voltar ao topo"
   useEffect(() => {
-    const ids = ["inicio", "catalogo-sabonete", "catalogo-protetor", "catalogo-acessorios", "sobre", "rastrear", "duvidas", "contato"];
+    const ids = ["inicio", "catalogo-sabonete", "catalogo-protetor", "catalogo-acessorios", "doar", "sobre", "rastrear", "duvidas", "contato"];
     const onScroll = () => {
       setShowTop(window.scrollY > 700);
       let current = "inicio";
@@ -3141,23 +4622,59 @@ function App() {
 
   /* ---------- Ações do carrinho ---------- */
   const addToCart = (product, qty = 1, opts = {}) => {
-    const custom = opts.custom && CUSTOMIZATION[product.id] ? opts.custom : null;
-    const lineId = custom ? `${product.id}::${custom.toLowerCase()}` : product.id;
-    const price = round2(product.price + (custom ? CUSTOMIZATION[product.id].fee : 0));
+    const p = store.allProducts.find((x) => x.id === product.id) || product;
+    const cfg = store.customization[p.id];
+    const custom = opts.custom && cfg ? opts.custom : null;
+    const customStyle = custom ? opts.customStyle || null : null;
+    if (!p.active || p.stock <= 0) return notify(`${p.name} está esgotado`, "error");
+    const inCart = cart.filter((i) => i.id === p.id).reduce((a, i) => a + i.qty, 0);
+    const room = p.stock - inCart;
+    if (room <= 0) return notify(`Você já tem as ${p.stock} unidades disponíveis no carrinho`, "error");
+    const add = Math.min(qty, room);
+    const lineId = custom
+      ? [p.id, custom.toLowerCase(), customStyle ? customStyle.font : "", customStyle ? customStyle.color : ""].join("::")
+      : p.id;
+    const price = round2(p.price + (custom ? cfg.fee : 0));
     setCart((prev) => {
       const existing = prev.find((i) => i.lineId === lineId);
       if (existing) {
-        return prev.map((i) => (i.lineId === lineId ? { ...i, qty: Math.min(20, i.qty + qty) } : i));
+        return prev.map((i) => (i.lineId === lineId ? { ...i, qty: Math.min(20, i.qty + add) } : i));
       }
-      return [...prev, { lineId, id: product.id, name: product.name, variant: product.variant, price, image: product.image, qty, custom }];
+      return [...prev, { lineId, id: p.id, name: p.name, variant: p.variant, price, image: p.image, qty: add, custom, customStyle }];
     });
-    notify(`${product.name} adicionado`, "success", opts.silent ? null : "Ver carrinho");
+    if (add < qty) notify(`Só restavam ${room} unidades. Adicionamos ${add} ao carrinho.`, "error", "Ver carrinho");
+    else notify(`${p.name} adicionado`, "success", opts.silent ? null : "Ver carrinho");
     setCartBump(true);
     setTimeout(() => setCartBump(false), 450);
   };
   const updateQty = (lineId, qty) => setCart((prev) => prev.map((i) => (i.lineId === lineId ? { ...i, qty } : i)));
   const removeItem = (lineId) => setCart((prev) => prev.filter((i) => i.lineId !== lineId));
-  const cartCount = cart.reduce((acc, i) => acc + i.qty, 0);
+
+  /** Carrinho com preço, nome e estoque atuais (o admin pode mudar enquanto o cliente compra) */
+  const liveCart = useMemo(() => {
+    const perProduct = {};
+    cart.forEach((i) => { perProduct[i.id] = (perProduct[i.id] || 0) + i.qty; });
+    return cart.map((i) => {
+      const p = store.allProducts.find((x) => x.id === i.id);
+      if (!p) return { ...i, stock: 0, issue: "Produto indisponível. Remova do carrinho." };
+      const cfg = i.custom ? store.customizationAll[i.id] : null;
+      let issue = null;
+      if (!p.active) issue = "Saiu da loja. Remova do carrinho.";
+      else if (p.stock <= 0) issue = "Esgotado. Remova do carrinho.";
+      else if (perProduct[i.id] > p.stock) issue = `Só ${p.stock} ${p.stock === 1 ? "unidade disponível" : "unidades disponíveis"}.`;
+      else if (i.custom && !store.customization[i.id]) issue = "Personalização indisponível. Remova e adicione sem nome.";
+      return {
+        ...i,
+        name: p.name,
+        variant: p.variant,
+        image: p.image,
+        price: round2(p.price + (cfg ? cfg.fee : 0)),
+        stock: p.stock,
+        issue,
+      };
+    });
+  }, [cart, store]);
+  const cartCount = liveCart.reduce((acc, i) => acc + i.qty, 0);
 
   /**
    * Finaliza o pedido:
@@ -3166,6 +4683,10 @@ function App() {
    *  - limpa o carrinho
    */
   const placeOrder = (form, totals) => {
+    if (liveCart.some((i) => i.issue)) {
+      notify("Alguns itens mudaram de estoque. Confira o carrinho.", "error");
+      return null;
+    }
     const order = {
       id: nextOrderId(orders),
       createdAt: new Date().toISOString(),
@@ -3174,7 +4695,8 @@ function App() {
         street: form.street.trim(), number: form.number.trim(), district: form.district.trim(),
         city: form.city.trim(), state: form.state, zip: form.zip,
       },
-      items: cart.map(({ lineId, id, name, variant, price, qty, custom }) => ({ lineId, id, name, variant, price, qty, custom })),
+      items: liveCart.map(({ lineId, id, name, variant, price, qty, custom, customStyle }) => ({ lineId, id, name, variant, price, qty, custom, customStyle })),
+      giftFee: totals.giftFee,
       subtotal: totals.subtotal, shipping: totals.shipping, discount: totals.discount, total: totals.total,
       gift: form.gift ? { message: form.giftMessage.trim() } : null,
       coupon: totals.coupon,
@@ -3186,6 +4708,17 @@ function App() {
       status: "Pendente",
     };
     setOrders((prev) => [order, ...prev]);
+    // Baixa o estoque e conta o uso do cupom
+    setStoreData((d) => {
+      const products = { ...d.products };
+      liveCart.forEach((i) => {
+        const current = store.allProducts.find((p) => p.id === i.id);
+        const prevStock = products[i.id] && products[i.id].stock !== undefined ? products[i.id].stock : current.stock;
+        products[i.id] = { ...(products[i.id] || {}), stock: Math.max(0, prevStock - i.qty) };
+      });
+      const coupons = totals.coupon ? d.coupons.map((c) => (c.code === totals.coupon ? { ...c, uses: (c.uses || 0) + 1 } : c)) : d.coupons;
+      return { ...d, products, coupons };
+    });
     setCart([]);
     notify(`Pedido ${order.id} realizado com sucesso!`);
     return order;
@@ -3208,6 +4741,39 @@ function App() {
     notify(`Pedido ${id} excluído`);
   };
 
+  const updateOrder = (id, patch) => setOrders((prev) => prev.map((o) => (o.id === id ? { ...o, ...patch } : o)));
+
+  /** Ações do painel sobre a loja (preços, estoque, cupons, regras) */
+  const adminActions = {
+    saveProduct: (id, patch) =>
+      setStoreData((d) => ({ ...d, products: { ...d.products, [id]: { ...(d.products[id] || {}), ...patch } } })),
+    resetProduct: (id) =>
+      setStoreData((d) => {
+        const products = { ...d.products };
+        const customization = { ...d.customization };
+        delete products[id];
+        delete customization[id];
+        return { ...d, products, customization };
+      }),
+    saveCustomization: (id, patch) =>
+      setStoreData((d) => ({ ...d, customization: { ...d.customization, [id]: { ...(d.customization[id] || {}), ...patch } } })),
+    saveCoupon: (coupon, originalCode) =>
+      setStoreData((d) => {
+        const exists = originalCode && d.coupons.some((c) => c.code === originalCode);
+        const coupons = exists ? d.coupons.map((c) => (c.code === originalCode ? coupon : c)) : [coupon, ...d.coupons];
+        return { ...d, coupons };
+      }),
+    deleteCoupon: (code) => setStoreData((d) => ({ ...d, coupons: d.coupons.filter((c) => c.code !== code) })),
+    saveSettings: (patch) => setStoreData((d) => ({ ...d, settings: { ...d.settings, ...patch } })),
+    resetStore: () => {
+      setStoreData(DEFAULT_STORE);
+      notify("Loja restaurada para os valores originais");
+    },
+    resetOrders: () => resetOrders(),
+    updateDonation: (id, patch) => setDonations((prev) => prev.map((d) => (d.id === id ? { ...d, ...patch } : d))),
+    deleteDonation: (id) => setDonations((prev) => prev.filter((d) => d.id !== id)),
+  };
+
   const resetOrders = () => {
     setOrders(MOCK_ORDERS);
     notify("Pedidos de exemplo restaurados");
@@ -3228,7 +4794,10 @@ function App() {
     }, 50);
   };
 
+  const liveSelected = selectedProduct ? store.allProducts.find((p) => p.id === selectedProduct.id) : null;
+
   return (
+    <StoreContext.Provider value={store}>
     <div className="min-h-screen bg-page font-sans text-stone-800 antialiased transition-colors duration-300">
       <Header
         view={view}
@@ -3250,21 +4819,24 @@ function App() {
           <Hero onShop={() => navigateTo("catalogo-sabonete")} onAbout={() => navigateTo("sobre")} />
           <BenefitsStrip />
           <ProductsSection onOpen={setSelectedProduct} onAdd={addToCart} favs={favs} onToggleFav={toggleFav} />
+          {store.settings.donationsEnabled && <DonationSection onDonate={addDonation} notify={notify} />}
           <AboutSection />
           <OrderTracker orders={orders} />
           <FaqSection />
           <ContactSection notify={notify} />
-          <Footer notify={notify} />
+          <Footer notify={notify} onNavigate={navigateTo} />
         </>
       ) : (
         adminAuthed ? (
           <AdminDashboard
             orders={orders}
+            donations={donations}
             onUpdateStatus={updateOrderStatus}
-            onReset={resetOrders}
+            onUpdateOrder={updateOrder}
             onDelete={deleteOrder}
             onLogout={logoutAdmin}
             notify={notify}
+            actions={adminActions}
           />
         ) : (
           <AdminLogin onLogin={loginAdmin} onBack={() => setView("store")} />
@@ -3272,13 +4844,13 @@ function App() {
       )}
 
       {/* Modal de detalhes — key reinicia aba/quantidade a cada produto aberto */}
-      {selectedProduct && (
+      {liveSelected && (
         <ProductModal
-          key={selectedProduct.id}
-          product={selectedProduct}
+          key={liveSelected.id}
+          product={liveSelected}
           onClose={() => setSelectedProduct(null)}
           onAdd={addToCart}
-          isFav={favs.includes(selectedProduct.id)}
+          isFav={favs.includes(liveSelected.id)}
           onToggleFav={toggleFav}
         />
       )}
@@ -3286,7 +4858,7 @@ function App() {
       <CartDrawer
         open={cartOpen}
         onClose={() => setCartOpen(false)}
-        cart={cart}
+        cart={liveCart}
         updateQty={updateQty}
         removeItem={removeItem}
         onPlaceOrder={placeOrder}
@@ -3308,6 +4880,7 @@ function App() {
 
       <Toast toast={toast} onAction={() => { setToast(null); setCartOpen(true); }} />
     </div>
+    </StoreContext.Provider>
   );
 }
 
