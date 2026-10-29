@@ -689,6 +689,20 @@ const firebaseAdapter = (fs, firestore) => {
   };
 };
 
+/** Código fixo deste aparelho (usado quando o login do Firebase não está ligado) */
+const deviceId = () => {
+  try {
+    let id = window.localStorage.getItem("farmaura_device_id");
+    if (!id) {
+      id = "dev-" + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+      window.localStorage.setItem("farmaura_device_id", id);
+    }
+    return id;
+  } catch {
+    return "dev-" + Math.random().toString(36).slice(2, 10);
+  }
+};
+
 /** Carrega o Firebase, entra como visitante anônimo e avisa a cada troca de usuário */
 const connectFirebase = async (onUser) => {
   const [appM, authM, fsM] = await Promise.all(
@@ -697,7 +711,7 @@ const connectFirebase = async (onUser) => {
   const app = appM.initializeApp(FIREBASE_CONFIG);
   const auth = authM.getAuth(app);
   const db = firebaseAdapter(fsM, fsM.getFirestore(app));
-  const info = (u) => ({ uid: u.uid, email: u.email || null, isAnonymous: !!u.isAnonymous });
+  const info = (u) => ({ uid: u.uid, email: u.email || null, isAnonymous: !!u.isAnonymous, noAuth: false });
   const api = {
     /** Cria a conta. O visitante anônimo vira a conta, então os pedidos já feitos continuam dele. */
     signUp: async (email, password) => {
@@ -715,7 +729,12 @@ const connectFirebase = async (onUser) => {
   };
   authM.onAuthStateChanged(auth, (user) => {
     if (!user) {
-      authM.signInAnonymously(auth).catch((e) => onUser(null, e, { db, api }));
+      authM.signInAnonymously(auth).catch((e) => {
+        // Login anônimo desligado no console: o site funciona mesmo assim (regras abertas),
+        // usando um código salvo neste aparelho no lugar da conta.
+        console.warn("[banco] Firebase sem login anônimo:", e && e.code);
+        onUser({ uid: deviceId(), email: null, isAnonymous: true, noAuth: true }, null, { db, api });
+      });
       return;
     }
     onUser(info(user), null, { db, api });
@@ -2114,7 +2133,7 @@ function AccountPanel({ open, onClose, profile, onSave, orders, donations, notif
   const [saving, setSaving] = useState(false);
   // Firebase: conta com e-mail e senha para entrar de qualquer aparelho
   const fb = cloud.provider === "firebase" && cloud.status === "online";
-  const needsPassword = fb && cloud.isAnonymous;
+  const needsPassword = fb && cloud.isAnonymous && !cloud.noAuth;
   const [mode, setMode] = useState("cadastro"); // "cadastro" | "entrar"
   const [pw, setPw] = useState({ password: "", confirm: "" });
   const [login, setLogin] = useState({ email: "", password: "" });
@@ -2234,7 +2253,9 @@ function AccountPanel({ open, onClose, profile, onSave, orders, donations, notif
           <p className={`flex items-start gap-2 rounded-xl px-3 py-2.5 text-xs ${cloud.status === "online" ? "bg-emerald-50 text-emerald-800" : "bg-stone-100 text-stone-600"}`}>
             <Database className="mt-px h-4 w-4 shrink-0" />
             {cloud.status === "online"
-              ? "Seus dados ficam salvos no banco de dados da Farmaura, ligados à sua conta. Você vê seus pedidos de qualquer aparelho."
+              ? cloud.noAuth
+                ? "Seus dados ficam salvos no banco de dados da Farmaura, ligados a este aparelho."
+                : "Seus dados ficam salvos no banco de dados da Farmaura, ligados à sua conta. Você vê seus pedidos de qualquer aparelho."
               : cloud.status === "connecting"
                 ? "Conectando ao banco de dados…"
                 : "Seus dados ficam salvos só neste navegador."}
@@ -2390,7 +2411,7 @@ function AccountPanel({ open, onClose, profile, onSave, orders, donations, notif
                 )}
               </div>
 
-              {fb && !cloud.isAnonymous && (
+              {fb && !cloud.isAnonymous && cloud.auth && (
                 <button
                   onClick={async () => { await cloud.auth.signOut(); notify("Você saiu da sua conta"); onClose(); }}
                   className="flex w-full items-center justify-center gap-2 rounded-full border border-stone-300 py-3 text-sm font-semibold text-stone-700 hover:border-stone-500"
@@ -3597,7 +3618,7 @@ function StockBadge({ stock, low }) {
 /** Tela de login do Painel Admin */
 function AdminLogin({ onLogin, onBack }) {
   const cloud = useCloud();
-  if (cloud.provider === "firebase") return <FirebaseAdminLogin onLogin={onLogin} onBack={onBack} />;
+  if (cloud.provider === "firebase" && !cloud.noAuth) return <FirebaseAdminLogin onLogin={onLogin} onBack={onBack} />;
   return <PasswordAdminLogin onLogin={onLogin} onBack={onBack} />;
 }
 
@@ -4390,7 +4411,7 @@ function SettingsPanel({ onSave, onResetStore, onResetOrders, notify }) {
       </form>
 
       <div className="space-y-6">
-        {cloud.provider === "firebase" ? (
+        {cloud.provider === "firebase" && !cloud.noAuth ? (
           <div className="space-y-2 rounded-3xl border border-stone-200 bg-surface p-6">
             <h2 className="flex items-center gap-2 text-lg font-semibold text-stone-900"><Lock className="h-5 w-5 text-emerald-700" /> Acesso da equipe</h2>
             <p className="text-sm text-stone-600">
@@ -5297,8 +5318,10 @@ function App() {
           return;
         }
         setCloud({
-          status: "online", provider: "firebase", db: ctx.db, auth: ctx.api,
-          uid: u.uid, email: u.email, isAnonymous: u.isAnonymous, isAdmin: isTeamEmail(u.email),
+          status: "online", provider: "firebase", db: ctx.db, auth: u.noAuth ? null : ctx.api, noAuth: !!u.noAuth,
+          uid: u.uid, email: u.email, isAnonymous: u.isAnonymous,
+          // sem login no Firebase, a equipe entra com a senha do painel
+          isAdmin: u.noAuth ? loadAdminSession() : isTeamEmail(u.email),
         });
       }).catch((e) => {
         console.warn("[banco] Firebase não carregou:", e && e.message);
@@ -5722,12 +5745,14 @@ function App() {
   };
 
   const loginAdmin = () => {
+    if (cloud.noAuth) setCloud((c) => ({ ...c, isAdmin: true }));
     setAdminAuthed(true);
     try { window.sessionStorage.setItem(ADMIN_SESSION_KEY, "ok"); } catch { /* ignora */ }
     notify("Bem-vindo ao Painel Admin");
   };
   const logoutAdmin = () => {
     if (cloud.provider === "firebase" && cloud.auth) cloud.auth.signOut();
+    if (cloud.noAuth) setCloud((c) => ({ ...c, isAdmin: false }));
     setAdminAuthed(false);
     try { window.sessionStorage.removeItem(ADMIN_SESSION_KEY); } catch { /* ignora */ }
     setView("store");
@@ -5862,7 +5887,7 @@ function App() {
     <StoreContext.Provider value={store}>
     <CloudContext.Provider value={{
       status: cloud.status, provider: cloud.provider || null, isAdmin: !!cloud.isAdmin, uid: cloud.uid || null,
-      email: cloud.email || null, isAnonymous: !!cloud.isAnonymous, auth: cloud.auth || null,
+      email: cloud.email || null, isAnonymous: !!cloud.isAnonymous, auth: cloud.auth || null, noAuth: !!cloud.noAuth,
     }}>
     <div className="min-h-screen bg-page font-sans text-stone-800 antialiased transition-colors duration-300">
       <Header
@@ -5895,7 +5920,7 @@ function App() {
           <Footer notify={notify} onNavigate={navigateTo} onSubscribe={subscribeNewsletter} />
         </>
       ) : (
-        (cloud.provider === "firebase" ? cloud.status === "online" && cloud.isAdmin : adminAuthed) ? (
+        (cloud.provider === "firebase" && !cloud.noAuth ? cloud.status === "online" && cloud.isAdmin : adminAuthed) ? (
           <AdminDashboard
             orders={ordersView}
             donations={donationsView}
