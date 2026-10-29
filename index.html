@@ -121,6 +121,9 @@ const Settings = __icon('<path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.
 const AlertTriangle = __icon('<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/>');
 const Instagram = __icon('<rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/>');
 const Type = __icon('<polyline points="4 7 4 4 20 4 20 7"/><line x1="9" x2="15" y1="20" y2="20"/><line x1="12" x2="12" y1="4" y2="20"/>');
+const User = __icon('<path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>');
+const Database = __icon('<ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5V19A9 3 0 0 0 21 19V5"/><path d="M3 12A9 3 0 0 0 21 12"/>');
+const Inbox = __icon('<polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/>');
 const Eye = __icon('<path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/>');
 
 /* ============================================================================
@@ -614,6 +617,145 @@ const buildStore = (data) => {
 const StoreContext = React.createContext(null);
 const useStore = () => React.useContext(StoreContext);
 
+/* ============================================================================
+ * BANCO DE DADOS
+ * No link do site no Claude, os dados vão para o banco de dados do próprio
+ * site (capability "db"), e todo mundo que abre o site vê a mesma loja:
+ *   loja/config        -> preços, estoque, cupons e regras (só a equipe altera)
+ *   clientes/<pessoa>  -> cadastro de cada cliente
+ *   pedidos/<pessoa>   -> pedidos de cada cliente     { lista: [...] }
+ *   doacoes/<pessoa>   -> doações de cada pessoa      { lista: [...] }
+ *   mensagens/<pessoa> -> contato e newsletter        { lista: [...], newsletter }
+ * Cada pessoa lê e grava só o próprio documento; a equipe (dono e Editores)
+ * lê e altera tudo. Fora do Claude (arquivo baixado, GitHub Pages), tudo
+ * continua salvo no navegador (localStorage).
+ * ========================================================================== */
+const CLOUD_COLLECTIONS = ["clientes", "pedidos", "doacoes", "mensagens"];
+
+/* ----------------------------------------------------------------------------
+ * FIREBASE — usado quando o site está publicado fora do Claude
+ * (GitHub Pages, Netlify...). A apiKey do Firebase pode ficar no código:
+ * quem protege os dados são as regras do Firestore (arquivo firestore.rules).
+ * -------------------------------------------------------------------------- */
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyA1_L5-MRL-hZgx4_KF2zqM0mEuBWinRdA",
+  authDomain: "tcc-sabao.firebaseapp.com",
+  projectId: "tcc-sabao",
+  storageBucket: "tcc-sabao.firebasestorage.app",
+  messagingSenderId: "947728312700",
+  appId: "1:947728312700:web:45edd73fd5b2be87445cf9",
+  measurementId: "G-DJW0YS7PYM",
+};
+const FIREBASE_SDK = "https://www.gstatic.com/firebasejs/13.1.0";
+/** E-mails da equipe que entram no Painel Admin (precisam ser os mesmos do firestore.rules) */
+const FIREBASE_ADMINS = ["farmaurainc@gmail.com"];
+const isTeamEmail = (email) => !!email && FIREBASE_ADMINS.includes(String(email).toLowerCase());
+
+/** Mensagens de erro do Firebase em português */
+const FIREBASE_ERRORS = {
+  "auth/email-already-in-use": "Esse e-mail já tem cadastro. Use “Entrar”.",
+  "auth/credential-already-in-use": "Esse e-mail já tem cadastro. Use “Entrar”.",
+  "auth/invalid-email": "Digite um e-mail válido.",
+  "auth/weak-password": "A senha precisa ter pelo menos 6 caracteres.",
+  "auth/wrong-password": "E-mail ou senha incorretos.",
+  "auth/user-not-found": "E-mail ou senha incorretos.",
+  "auth/invalid-credential": "E-mail ou senha incorretos.",
+  "auth/invalid-login-credentials": "E-mail ou senha incorretos.",
+  "auth/too-many-requests": "Muitas tentativas. Espere alguns minutos e tente de novo.",
+  "auth/network-request-failed": "Sem conexão com a internet.",
+  "auth/operation-not-allowed": "O login por e-mail ainda não foi ligado no Firebase.",
+  "auth/unauthorized-domain": "Este endereço do site ainda não foi autorizado no Firebase.",
+};
+const authMessage = (e) => FIREBASE_ERRORS[e && e.code] || "Não foi possível concluir agora. Tente de novo.";
+
+/** Faz o Firestore se comportar como o banco do Claude (mesmos métodos que o site já usa) */
+const firebaseAdapter = (fs, firestore) => {
+  const wrap = (snap) => ({ id: snap.id, exists: snap.exists(), data: () => snap.data() });
+  return {
+    doc: (path) => {
+      const ref = fs.doc(firestore, path);
+      return {
+        get: async () => wrap(await fs.getDoc(ref)),
+        // O Firestore recusa campos "undefined": a ida e volta em JSON tira esses campos
+        set: (data) => fs.setDoc(ref, JSON.parse(JSON.stringify(data))),
+        delete: () => fs.deleteDoc(ref),
+        onSnapshot: (next, error) => fs.onSnapshot(ref, (snap) => next(wrap(snap)), error),
+      };
+    },
+    collection: (path) => ({
+      onSnapshot: (next, error) =>
+        fs.onSnapshot(fs.collection(firestore, path), (qs) => next({ docs: qs.docs.map(wrap), size: qs.size, empty: qs.empty }), error),
+    }),
+  };
+};
+
+/** Carrega o Firebase, entra como visitante anônimo e avisa a cada troca de usuário */
+const connectFirebase = async (onUser) => {
+  const [appM, authM, fsM] = await Promise.all(
+    ["firebase-app", "firebase-auth", "firebase-firestore"].map((m) => import(`${FIREBASE_SDK}/${m}.js`))
+  );
+  const app = appM.initializeApp(FIREBASE_CONFIG);
+  const auth = authM.getAuth(app);
+  const db = firebaseAdapter(fsM, fsM.getFirestore(app));
+  const info = (u) => ({ uid: u.uid, email: u.email || null, isAnonymous: !!u.isAnonymous });
+  const api = {
+    /** Cria a conta. O visitante anônimo vira a conta, então os pedidos já feitos continuam dele. */
+    signUp: async (email, password) => {
+      const current = auth.currentUser;
+      if (current && current.isAnonymous) {
+        await authM.linkWithCredential(current, authM.EmailAuthProvider.credential(email, password));
+      } else {
+        await authM.createUserWithEmailAndPassword(auth, email, password);
+      }
+      if (auth.currentUser) onUser(info(auth.currentUser), null, { db, api });
+    },
+    signIn: (email, password) => authM.signInWithEmailAndPassword(auth, email, password),
+    signOut: () => authM.signOut(auth),
+    resetPassword: (email) => authM.sendPasswordResetEmail(auth, email),
+  };
+  authM.onAuthStateChanged(auth, (user) => {
+    if (!user) {
+      authM.signInAnonymously(auth).catch((e) => onUser(null, e, { db, api }));
+      return;
+    }
+    onUser(info(user), null, { db, api });
+  });
+};
+const CloudContext = React.createContext({ status: "local", isAdmin: false, uid: null });
+const useCloud = () => React.useContext(CloudContext);
+/** Código curto e único (ex.: FA-K3J9QX) para não repetir entre aparelhos */
+const cloudId = (prefix) => `${prefix}-${Date.now().toString(36).toUpperCase().slice(-5)}${Math.floor(Math.random() * 36).toString(36).toUpperCase()}`;
+/** Lê o documento da pessoa, altera e grava de novo (uma escrita por vez) */
+const writeUserDoc = async (db, col, uid, fn) => {
+  const ref = db.doc(`${col}/${uid}`);
+  const snap = await ref.get();
+  const cur = snap.exists ? snap.data() : {};
+  const next = fn({ ...cur, lista: Array.isArray(cur.lista) ? cur.lista : [] });
+  await ref.set({ ...next, atualizadoEm: new Date().toISOString() });
+  return next;
+};
+/** Garante o formato da loja vinda do banco */
+const normalizeStore = (raw) => ({
+  settings: { ...DEFAULT_SETTINGS, ...((raw && raw.settings) || {}) },
+  coupons: raw && Array.isArray(raw.coupons) ? raw.coupons : DEFAULT_COUPONS,
+  products: (raw && raw.products) || {},
+  customization: (raw && raw.customization) || {},
+});
+/** Cadastro e mensagens no modo local */
+const PROFILE_KEY = "farmaura_profile_v1";
+const MESSAGES_KEY = "farmaura_messages_v1";
+const loadJSON = (key, fallback) => {
+  try {
+    const v = JSON.parse(window.localStorage.getItem(key) || "null");
+    return v ?? fallback;
+  } catch {
+    return fallback;
+  }
+};
+const saveJSON = (key, value) => {
+  try { window.localStorage.setItem(key, JSON.stringify(value)); } catch { /* sem armazenamento */ }
+};
+
 /** Textos de cupom */
 const couponValueText = (c) => (c.type === "percent" ? `${numBR(c.value)}%` : formatBRL(c.value));
 const couponLabel = (c) =>
@@ -888,7 +1030,7 @@ function Logo({ light = false }) {
       <div className={`flex h-9 w-9 items-center justify-center rounded-full ${light ? "bg-white/10" : "bg-emerald-900"}`}>
         <Leaf className={`h-5 w-5 ${light ? "text-emerald-300" : "text-white"}`} />
       </div>
-      <span className={`font-serif text-2xl tracking-tight ${light ? "text-white" : "text-stone-900"}`}>
+      <span className={`font-serif text-2xl tracking-tight ${light ? "text-white" : "text-stone-900 max-[389px]:sr-only"}`}>
         Farm<span className="italic text-emerald-700">aura</span>
       </span>
     </div>
@@ -896,7 +1038,7 @@ function Logo({ light = false }) {
 }
 
 /** Cabeçalho com navegação, carrinho e alternância Loja/Admin */
-function Header({ view, setView, cartCount, onOpenCart, onNavigate, theme, onToggleTheme, activeSection, cartBump }) {
+function Header({ view, setView, cartCount, onOpenCart, onNavigate, theme, onToggleTheme, activeSection, cartBump, onOpenAccount, hasProfile }) {
   const { settings } = useStore();
   const [mobileOpen, setMobileOpen] = useState(false);
   const links = [
@@ -951,14 +1093,14 @@ function Header({ view, setView, cartCount, onOpenCart, onNavigate, theme, onTog
           </nav>
         )}
 
-        <div className="flex items-center gap-2 sm:gap-3">
+        <div className="flex items-center gap-0.5 sm:gap-3">
           {/* Alternância Modo Loja / Painel Admin */}
           <div className="flex rounded-full bg-stone-200/70 p-1 text-xs font-semibold">
             <button
               onClick={() => setView("store")}
               aria-label="Modo Loja"
               title="Modo Loja"
-              className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 transition ${
+              className={`flex items-center gap-1.5 rounded-full px-2.5 py-1.5 sm:px-3 transition ${
                 view === "store" ? "bg-surface text-emerald-800 shadow-sm" : "text-stone-500 hover:text-stone-800"
               }`}
             >
@@ -969,7 +1111,7 @@ function Header({ view, setView, cartCount, onOpenCart, onNavigate, theme, onTog
               onClick={() => setView("admin")}
               aria-label="Painel Admin"
               title="Painel Admin"
-              className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 transition ${
+              className={`flex items-center gap-1.5 rounded-full px-2.5 py-1.5 sm:px-3 transition ${
                 view === "admin" ? "bg-ink text-ink-fg shadow-sm" : "text-stone-500 hover:text-stone-800"
               }`}
             >
@@ -981,17 +1123,28 @@ function Header({ view, setView, cartCount, onOpenCart, onNavigate, theme, onTog
           {/* Alternância de tema claro / escuro */}
           <button
             onClick={onToggleTheme}
-            className="rounded-full p-2.5 text-stone-800 transition hover:bg-stone-200/70"
+            className="rounded-full p-2 sm:p-2.5 text-stone-800 transition hover:bg-stone-200/70"
             aria-label={theme === "dark" ? "Ativar modo claro" : "Ativar modo escuro"}
             title={theme === "dark" ? "Modo claro" : "Modo escuro"}
           >
             {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
           </button>
 
+          {/* Minha conta / cadastro */}
+          <button
+            onClick={onOpenAccount}
+            className="relative rounded-full p-2 sm:p-2.5 text-stone-800 transition hover:bg-stone-200/70"
+            aria-label={hasProfile ? "Minha conta" : "Criar cadastro"}
+            title={hasProfile ? "Minha conta" : "Criar cadastro"}
+          >
+            <User className="h-5 w-5" />
+            {hasProfile && <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-emerald-600 ring-2 ring-page" />}
+          </button>
+
           {/* Carrinho com contador dinâmico */}
           <button
             onClick={onOpenCart}
-            className={`relative rounded-full p-2.5 text-stone-800 transition hover:bg-stone-200/70 ${cartBump ? "cart-bump" : ""}`}
+            className={`relative rounded-full p-2 sm:p-2.5 text-stone-800 transition hover:bg-stone-200/70 ${cartBump ? "cart-bump" : ""}`}
             aria-label={`Abrir carrinho (${cartCount} itens)`}
           >
             <ShoppingBag className="h-5 w-5" />
@@ -1006,7 +1159,7 @@ function Header({ view, setView, cartCount, onOpenCart, onNavigate, theme, onTog
           {view === "store" && (
             <button
               onClick={() => setMobileOpen((o) => !o)}
-              className="rounded-full p-2.5 text-stone-800 hover:bg-stone-200/70 xl:hidden"
+              className="rounded-full p-2 sm:p-2.5 text-stone-800 hover:bg-stone-200/70 xl:hidden"
               aria-label="Abrir menu"
             >
               {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -1799,13 +1952,13 @@ function DonationSection({ onDonate, notify }) {
 
   const amount = custom.trim() ? parseFloat(custom.replace(/\./g, "").replace(",", ".")) : preset;
 
-  const submit = (e) => {
+  const submit = async (e) => {
     e.preventDefault();
     if (!(amount >= 1)) return setError("Digite um valor a partir de R$ 1,00.");
     if (amount > 10000) return setError("Para valores acima de R$ 10.000, fale com a gente pelo contato.");
     setError("");
-    const d = onDonate({ amount: round2(amount), name: name.trim(), message: message.trim() });
-    setDonation(d);
+    const d = await onDonate({ amount: round2(amount), name: name.trim(), message: message.trim() });
+    if (d) setDonation(d);
   };
 
   const reset = () => {
@@ -1940,6 +2093,420 @@ function DonationSection({ onDonate, notify }) {
   );
 }
 
+/** Cadastro do cliente e área "Minha conta" */
+const EMPTY_PROFILE = {
+  name: "", email: "", phone: "", zip: "", street: "", number: "", district: "", city: "", state: "", newsletter: true,
+};
+const validateProfile = (p) => {
+  const e = {};
+  if (p.name.trim().split(/\s+/).length < 2) e.name = "Digite nome e sobrenome.";
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(p.email.trim())) e.email = "Digite um e-mail válido.";
+  if (onlyDigits(p.phone).length < 10) e.phone = "Digite o telefone com DDD.";
+  if (p.zip && onlyDigits(p.zip).length !== 8) e.zip = "O CEP tem 8 números.";
+  return e;
+};
+
+function AccountPanel({ open, onClose, profile, onSave, orders, donations, notify }) {
+  const cloud = useCloud();
+  const [editing, setEditing] = useState(false);
+  const [form, setForm] = useState(EMPTY_PROFILE);
+  const [errors, setErrors] = useState({});
+  const [saving, setSaving] = useState(false);
+  // Firebase: conta com e-mail e senha para entrar de qualquer aparelho
+  const fb = cloud.provider === "firebase" && cloud.status === "online";
+  const needsPassword = fb && cloud.isAnonymous;
+  const [mode, setMode] = useState("cadastro"); // "cadastro" | "entrar"
+  const [pw, setPw] = useState({ password: "", confirm: "" });
+  const [login, setLogin] = useState({ email: "", password: "" });
+  const [authError, setAuthError] = useState("");
+
+  const doLogin = async (e) => {
+    e.preventDefault();
+    setAuthError("");
+    setSaving(true);
+    try {
+      await cloud.auth.signIn(login.email.trim(), login.password);
+      setLogin({ email: "", password: "" });
+      setMode("cadastro");
+      notify("Você entrou na sua conta");
+    } catch (err) {
+      setAuthError(authMessage(err));
+    }
+    setSaving(false);
+  };
+  const forgot = async () => {
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(login.email.trim())) return setAuthError("Digite seu e-mail acima para receber o link.");
+    try {
+      await cloud.auth.resetPassword(login.email.trim());
+      notify("Enviamos um link para criar uma nova senha no seu e-mail.");
+    } catch (err) {
+      setAuthError(authMessage(err));
+    }
+  };
+  /** Visitante que já tem cadastro (feito no checkout) cria a senha da conta */
+  const createPassword = async (e) => {
+    e.preventDefault();
+    if (pw.password.length < 6) return setAuthError("A senha precisa ter pelo menos 6 caracteres.");
+    if (pw.password !== pw.confirm) return setAuthError("As senhas não são iguais.");
+    setSaving(true);
+    try {
+      await cloud.auth.signUp(profile.email, pw.password);
+      setPw({ password: "", confirm: "" });
+      setAuthError("");
+      notify("Senha criada! Agora você entra na sua conta de qualquer aparelho.");
+    } catch (err) {
+      setAuthError(authMessage(err));
+    }
+    setSaving(false);
+  };
+
+  useEffect(() => {
+    if (!open) return;
+    setEditing(!profile);
+    setAuthError("");
+    setErrors({});
+    setForm(profile ? { ...EMPTY_PROFILE, ...profile, ...(profile.address || {}) } : EMPTY_PROFILE);
+  }, [open, profile]);
+
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open, onClose]);
+
+  const set = (k, v) => { setForm((f) => ({ ...f, [k]: v })); setErrors((e) => ({ ...e, [k]: undefined })); };
+
+  const submit = async (e) => {
+    e.preventDefault();
+    const er = validateProfile(form);
+    if (needsPassword && !profile) {
+      if (pw.password.length < 6) er.password = "A senha precisa ter pelo menos 6 caracteres.";
+      else if (pw.password !== pw.confirm) er.confirm = "As senhas não são iguais.";
+    }
+    setErrors(er);
+    if (Object.keys(er).length) return;
+    setSaving(true);
+    if (needsPassword && !profile) {
+      try {
+        await cloud.auth.signUp(form.email.trim().toLowerCase(), pw.password);
+        setPw({ password: "", confirm: "" });
+      } catch (err) {
+        setSaving(false);
+        setAuthError(authMessage(err));
+        return;
+      }
+    }
+    const ok = await onSave({
+      name: form.name.trim(),
+      email: form.email.trim().toLowerCase(),
+      phone: form.phone,
+      newsletter: !!form.newsletter,
+      address: {
+        zip: form.zip, street: form.street.trim(), number: form.number.trim(),
+        district: form.district.trim(), city: form.city.trim(), state: form.state,
+      },
+    });
+    setSaving(false);
+    if (ok) {
+      setEditing(false);
+      notify(profile ? "Cadastro atualizado" : "Cadastro feito! Seus dados já aparecem no checkout.");
+    }
+  };
+
+  if (!open) return null;
+  const first = profile ? profile.name.split(" ")[0] : "";
+  const myOrders = [...orders].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  const myDonations = [...donations].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+  return (
+    <div className="fixed inset-0 z-50" role="dialog" aria-modal="true" aria-label="Minha conta">
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
+      <aside className="absolute right-0 top-0 flex h-full w-full max-w-md flex-col bg-page shadow-2xl">
+        <div className="flex items-center justify-between border-b border-stone-200 px-6 py-5">
+          <h2 className="font-serif text-2xl text-stone-900">{profile ? `Olá, ${first}` : "Criar cadastro"}</h2>
+          <button onClick={onClose} className="rounded-full p-2 hover:bg-stone-200" aria-label="Fechar">
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        <div className="flex-1 space-y-6 overflow-y-auto px-6 py-6">
+          <p className={`flex items-start gap-2 rounded-xl px-3 py-2.5 text-xs ${cloud.status === "online" ? "bg-emerald-50 text-emerald-800" : "bg-stone-100 text-stone-600"}`}>
+            <Database className="mt-px h-4 w-4 shrink-0" />
+            {cloud.status === "online"
+              ? "Seus dados ficam salvos no banco de dados da Farmaura, ligados à sua conta. Você vê seus pedidos de qualquer aparelho."
+              : cloud.status === "connecting"
+                ? "Conectando ao banco de dados…"
+                : "Seus dados ficam salvos só neste navegador."}
+          </p>
+
+          {needsPassword && !profile && (
+            <div className="grid grid-cols-2 gap-1 rounded-xl bg-stone-100 p-1" role="tablist">
+              {[{ id: "cadastro", label: "Criar conta" }, { id: "entrar", label: "Já tenho conta" }].map((t) => (
+                <button
+                  key={t.id}
+                  role="tab"
+                  aria-selected={mode === t.id}
+                  onClick={() => { setMode(t.id); setAuthError(""); }}
+                  className={`rounded-lg py-2 text-sm font-semibold transition ${mode === t.id ? "bg-surface text-emerald-800 shadow-sm" : "text-stone-500"}`}
+                >
+                  {t.label}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {needsPassword && !profile && mode === "entrar" ? (
+            <form onSubmit={doLogin} className="space-y-4" noValidate>
+              <Field label="E-mail" type="email" value={login.email} onChange={(v) => { setLogin((l) => ({ ...l, email: v })); setAuthError(""); }} placeholder="maria@email.com" />
+              <Field label="Senha" type="password" value={login.password} onChange={(v) => { setLogin((l) => ({ ...l, password: v })); setAuthError(""); }} />
+              {authError && <p className="text-xs font-medium text-rose-600">{authError}</p>}
+              <button disabled={saving} className="w-full rounded-full bg-emerald-900 py-3.5 text-sm font-semibold text-white transition hover:brightness-110 disabled:opacity-60">
+                {saving ? "Entrando…" : "Entrar"}
+              </button>
+              <button type="button" onClick={forgot} className="w-full text-center text-xs font-semibold text-stone-500 hover:text-stone-800">
+                Esqueci minha senha
+              </button>
+            </form>
+          ) : editing || !profile ? (
+            <form onSubmit={submit} className="space-y-4" noValidate>
+              {!profile && (
+                <p className="text-sm text-stone-600">Cadastre-se uma vez e seus dados entram sozinhos no checkout.</p>
+              )}
+              <Field label="Nome completo" value={form.name} onChange={(v) => set("name", v)} error={errors.name} placeholder="Maria da Silva" maxLength={60} />
+              <Field label="E-mail" type="email" value={form.email} onChange={(v) => set("email", v)} error={errors.email} placeholder="maria@email.com" />
+              <Field label="Telefone / WhatsApp" inputMode="tel" value={form.phone} onChange={(v) => set("phone", maskPhone(v))} error={errors.phone} placeholder="(11) 99999-9999" />
+              <fieldset className="space-y-3">
+                <legend className="mb-2 text-xs font-bold uppercase tracking-wider text-emerald-800">Endereço (opcional)</legend>
+                <Field label="CEP" inputMode="numeric" value={form.zip} onChange={(v) => set("zip", maskCEP(v))} error={errors.zip} placeholder="00000-000" />
+                <div className="grid grid-cols-3 gap-3">
+                  <Field className="col-span-2" label="Rua" value={form.street} onChange={(v) => set("street", v)} placeholder="Rua das Flores" />
+                  <Field label="Número" value={form.number} onChange={(v) => set("number", v)} placeholder="123" />
+                </div>
+                <Field label="Bairro" value={form.district} onChange={(v) => set("district", v)} placeholder="Centro" />
+                <div className="grid grid-cols-3 gap-3">
+                  <Field className="col-span-2" label="Cidade" value={form.city} onChange={(v) => set("city", v)} placeholder="São Paulo" />
+                  <label className="block">
+                    <span className="mb-1.5 block text-xs font-semibold text-stone-700">Estado</span>
+                    <select
+                      id="conta-uf"
+                      value={form.state}
+                      onChange={(e) => set("state", e.target.value)}
+                      className="w-full rounded-xl border border-stone-300 bg-page px-3 py-3 text-sm outline-none focus:border-emerald-700 focus:ring-2 focus:ring-emerald-700/15"
+                    >
+                      <option value="">UF</option>
+                      {BRAZIL_STATES.map((s) => <option key={s} value={s}>{s}</option>)}
+                    </select>
+                  </label>
+                </div>
+              </fieldset>
+              {needsPassword && !profile && (
+                <fieldset className="grid grid-cols-2 gap-3">
+                  <legend className="mb-2 text-xs font-bold uppercase tracking-wider text-emerald-800">Senha da conta</legend>
+                  <Field label="Senha" type="password" value={pw.password} onChange={(v) => { setPw((p) => ({ ...p, password: v })); setErrors((x) => ({ ...x, password: undefined })); }} error={errors.password} />
+                  <Field label="Repita a senha" type="password" value={pw.confirm} onChange={(v) => { setPw((p) => ({ ...p, confirm: v })); setErrors((x) => ({ ...x, confirm: undefined })); }} error={errors.confirm} />
+                </fieldset>
+              )}
+              {authError && <p className="text-xs font-medium text-rose-600">{authError}</p>}
+              <label className="flex cursor-pointer items-center gap-3 text-sm text-stone-700">
+                <input id="conta-novidades" type="checkbox" checked={!!form.newsletter} onChange={(e) => set("newsletter", e.target.checked)} className="h-4 w-4 accent-emerald-700" />
+                Quero receber novidades e cupons por e-mail
+              </label>
+              <div className="flex gap-2">
+                {profile && (
+                  <button type="button" onClick={() => setEditing(false)} className="flex-1 rounded-full border border-stone-300 py-3.5 text-sm font-semibold text-stone-700">
+                    Cancelar
+                  </button>
+                )}
+                <button disabled={saving} className="flex flex-1 items-center justify-center gap-2 rounded-full bg-emerald-900 py-3.5 text-sm font-semibold text-white transition hover:brightness-110 disabled:opacity-60">
+                  {saving ? "Salvando…" : profile ? "Salvar alterações" : "Criar cadastro"}
+                </button>
+              </div>
+            </form>
+          ) : (
+            <>
+              <div className="rounded-2xl border border-stone-200 bg-surface p-5">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <span className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 text-sm font-bold text-emerald-800">
+                      {profile.name.split(" ").map((n) => n[0]).slice(0, 2).join("").toUpperCase()}
+                    </span>
+                    <div>
+                      <p className="font-semibold text-stone-900">{profile.name}</p>
+                      <p className="text-xs text-stone-500">Cliente desde {new Date(profile.createdAt).toLocaleDateString("pt-BR")}</p>
+                    </div>
+                  </div>
+                  <button onClick={() => setEditing(true)} className="inline-flex items-center gap-1 rounded-full border border-stone-300 px-3 py-1.5 text-xs font-semibold text-stone-700 hover:border-stone-500">
+                    <PenLine className="h-3.5 w-3.5" /> Editar
+                  </button>
+                </div>
+                <div className="mt-4 space-y-1.5 text-sm text-stone-700">
+                  <p className="flex items-center gap-2"><Mail className="h-4 w-4 text-stone-400" /> {profile.email}</p>
+                  <p className="flex items-center gap-2"><Phone className="h-4 w-4 text-stone-400" /> {profile.phone}</p>
+                  {profile.address && profile.address.street && (
+                    <p className="flex items-start gap-2">
+                      <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-stone-400" />
+                      {profile.address.street}, {profile.address.number} · {profile.address.city}/{profile.address.state}
+                    </p>
+                  )}
+                  {profile.newsletter && <p className="text-xs text-emerald-700">Inscrito para receber novidades</p>}
+                </div>
+              </div>
+
+              {needsPassword && (
+                <form onSubmit={createPassword} className="space-y-3 rounded-2xl border border-amber-200 bg-amber-50/70 p-4" noValidate>
+                  <p className="text-sm font-semibold text-stone-900">Crie uma senha para entrar de outro aparelho</p>
+                  <div className="grid grid-cols-2 gap-3">
+                    <Field label="Senha" type="password" value={pw.password} onChange={(v) => { setPw((p) => ({ ...p, password: v })); setAuthError(""); }} />
+                    <Field label="Repita a senha" type="password" value={pw.confirm} onChange={(v) => { setPw((p) => ({ ...p, confirm: v })); setAuthError(""); }} />
+                  </div>
+                  {authError && <p className="text-xs font-medium text-rose-600">{authError}</p>}
+                  <button disabled={saving} className="w-full rounded-full bg-emerald-900 py-3 text-sm font-semibold text-white transition hover:brightness-110 disabled:opacity-60">
+                    Criar senha
+                  </button>
+                </form>
+              )}
+
+              <div>
+                <p className="mb-3 text-xs font-bold uppercase tracking-wider text-stone-500">Meus pedidos</p>
+                {myOrders.length === 0 ? (
+                  <p className="rounded-2xl border border-dashed border-stone-300 p-6 text-center text-sm text-stone-500">Você ainda não fez nenhum pedido.</p>
+                ) : (
+                  <ul className="space-y-2">
+                    {myOrders.map((o) => (
+                      <li key={o.id} className="rounded-2xl border border-stone-200 bg-surface p-4">
+                        <div className="flex items-center justify-between gap-3">
+                          <p className="font-mono text-xs font-bold text-emerald-800">{o.id}</p>
+                          <StatusBadge status={o.status} />
+                        </div>
+                        <p className="mt-2 text-xs text-stone-600">{o.items.map((i) => `${i.qty}× ${i.name}`).join(", ")}</p>
+                        <p className="mt-2 flex justify-between text-sm">
+                          <span className="text-stone-500">{formatDateTime(o.createdAt)}</span>
+                          <b className="tabular-nums text-stone-900">{formatBRL(o.total)}</b>
+                        </p>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+
+              {fb && !cloud.isAnonymous && (
+                <button
+                  onClick={async () => { await cloud.auth.signOut(); notify("Você saiu da sua conta"); onClose(); }}
+                  className="flex w-full items-center justify-center gap-2 rounded-full border border-stone-300 py-3 text-sm font-semibold text-stone-700 hover:border-stone-500"
+                >
+                  <LogOut className="h-4 w-4" /> Sair da conta
+                </button>
+              )}
+
+              {myDonations.length > 0 && (
+                <div>
+                  <p className="mb-3 text-xs font-bold uppercase tracking-wider text-stone-500">Minhas doações</p>
+                  <ul className="space-y-2">
+                    {myDonations.map((d) => (
+                      <li key={d.id} className="flex items-center justify-between rounded-2xl border border-stone-200 bg-surface p-4 text-sm">
+                        <span className="flex items-center gap-2 text-stone-700"><Heart className="h-4 w-4 text-rose-500" /> {formatDateTime(d.createdAt)}</span>
+                        <b className="tabular-nums text-stone-900">{formatBRL(d.amount)}</b>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      </aside>
+    </div>
+  );
+}
+
+/** Painel: mensagens do formulário de contato e inscritos na newsletter */
+function MessagesPanel({ messages, newsletter, onUpdate, onDelete, notify }) {
+  const [confirmDel, setConfirmDel] = useState(null);
+  const list = [...messages].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  const subs = [...newsletter].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  const copyEmails = async () => {
+    const text = [...new Set(subs.map((s) => s.email))].join(", ");
+    try {
+      await navigator.clipboard.writeText(text);
+      notify(`${subs.length} e-mails copiados`);
+    } catch {
+      notify("O navegador bloqueou a cópia.", "error");
+    }
+  };
+  return (
+    <div className="mt-6 grid items-start gap-6 lg:grid-cols-[1fr_360px]">
+      <section className="overflow-hidden rounded-3xl border border-stone-200 bg-surface">
+        <div className="border-b border-stone-200 p-5">
+          <h2 className="text-lg font-semibold text-stone-900">Mensagens do contato</h2>
+          <p className="text-xs text-stone-500">{list.filter((m) => !m.read).length} não lidas · {list.length} no total</p>
+        </div>
+        {list.length === 0 ? (
+          <div className="p-12 text-center text-sm text-stone-500">
+            <Inbox className="mx-auto mb-3 h-8 w-8 text-stone-300" />
+            Nenhuma mensagem ainda. Elas chegam pelo formulário “Fale com a gente”.
+          </div>
+        ) : (
+          <ul className="divide-y divide-stone-100">
+            {list.map((m) => (
+              <li key={m.id} className={`p-5 ${m.read ? "" : "bg-emerald-50/50"}`}>
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="flex items-center gap-2 font-semibold text-stone-900">
+                      {!m.read && <span className="h-2 w-2 rounded-full bg-emerald-600" aria-label="Não lida" />}
+                      {m.name}
+                    </p>
+                    <p className="select-all text-xs text-stone-500">{m.email} · {formatDateTime(m.createdAt)}</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button onClick={() => onUpdate(m, { read: !m.read })} className="rounded-full border border-stone-300 px-3 py-1 text-xs font-semibold text-stone-700 hover:border-stone-500">
+                      {m.read ? "Marcar como não lida" : "Marcar como lida"}
+                    </button>
+                    {confirmDel === m.id ? (
+                      <ConfirmInline question="Excluir?" confirmLabel="Excluir" onConfirm={() => { onDelete(m); setConfirmDel(null); }} onCancel={() => setConfirmDel(null)} />
+                    ) : (
+                      <button onClick={() => setConfirmDel(m.id)} className="rounded-full p-1.5 text-stone-400 hover:text-rose-600" aria-label="Excluir mensagem">
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+                <p className="mt-3 whitespace-pre-line text-sm leading-relaxed text-stone-700">{m.message}</p>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      <section className="overflow-hidden rounded-3xl border border-stone-200 bg-surface">
+        <div className="flex items-center justify-between gap-3 border-b border-stone-200 p-5">
+          <div>
+            <h2 className="text-lg font-semibold text-stone-900">Newsletter</h2>
+            <p className="text-xs text-stone-500">{subs.length} inscritos</p>
+          </div>
+          {subs.length > 0 && (
+            <button onClick={copyEmails} className="inline-flex items-center gap-1.5 rounded-full border border-stone-300 px-3 py-1.5 text-xs font-semibold text-stone-700 hover:border-stone-500">
+              <Copy className="h-3.5 w-3.5" /> Copiar e-mails
+            </button>
+          )}
+        </div>
+        {subs.length === 0 ? (
+          <p className="p-8 text-center text-sm text-stone-500">Ninguém se inscreveu ainda.</p>
+        ) : (
+          <ul className="divide-y divide-stone-100">
+            {subs.map((s, i) => (
+              <li key={`${s.email}-${i}`} className="flex items-center justify-between gap-3 px-5 py-3 text-sm">
+                <span className="min-w-0 truncate select-all text-stone-800">{s.email}</span>
+                <span className="shrink-0 text-xs text-stone-500">{new Date(s.createdAt).toLocaleDateString("pt-BR")}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+    </div>
+  );
+}
+
 /** Prévia da personalização sobre o material do produto */
 function CustomPreview({ custom, text, font, color, small = false }) {
   const c = custom.colors.find((x) => x.id === color) || custom.colors[0];
@@ -2028,13 +2595,22 @@ function AboutSection() {
 }
 
 /** Seção de Contato (formulário simulado) */
-function ContactSection({ notify }) {
+function ContactSection({ notify, onSend, profile }) {
   const [form, setForm] = useState({ name: "", email: "", message: "" });
-  const submit = (e) => {
+  const [sending, setSending] = useState(false);
+  useEffect(() => {
+    if (profile) setForm((f) => (f.name || f.email ? f : { ...f, name: profile.name, email: profile.email }));
+  }, [profile]);
+  const submit = async (e) => {
     e.preventDefault();
-    if (!form.name || !form.email || !form.message) return notify("Preencha todos os campos do contato.", "error");
+    if (!form.name.trim() || !form.email.trim() || !form.message.trim()) return notify("Preencha todos os campos do contato.", "error");
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) return notify("Digite um e-mail válido.", "error");
+    setSending(true);
+    const ok = await onSend({ name: form.name.trim(), email: form.email.trim(), message: form.message.trim() });
+    setSending(false);
+    if (!ok) return;
     notify("Mensagem enviada! Responderemos em até 24h.");
-    setForm({ name: "", email: "", message: "" });
+    setForm((f) => ({ ...f, message: "" }));
   };
   return (
     <section id="contato" className="scroll-mt-28 mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
@@ -2073,8 +2649,8 @@ function ContactSection({ notify }) {
               placeholder="Como podemos ajudar?"
             />
           </label>
-          <button className="w-full rounded-full bg-ink py-3.5 text-sm font-semibold text-ink-fg transition hover:opacity-90">
-            Enviar Mensagem
+          <button disabled={sending} className="w-full rounded-full bg-ink py-3.5 text-sm font-semibold text-ink-fg transition hover:opacity-90 disabled:opacity-60">
+            {sending ? "Enviando…" : "Enviar Mensagem"}
           </button>
         </form>
       </div>
@@ -2084,6 +2660,7 @@ function ContactSection({ notify }) {
 
 /** Rastreamento de pedido pelo número + e-mail */
 function OrderTracker({ orders }) {
+  const cloud = useCloud();
   const [code, setCode] = useState("");
   const [email, setEmail] = useState("");
   const [result, setResult] = useState(null);
@@ -2122,7 +2699,9 @@ function OrderTracker({ orders }) {
             </button>
             {error && <p className="text-sm font-medium text-rose-600">{error}</p>}
             <p className="text-xs text-stone-500">
-              Para testar: <b className="font-mono">FA-10422</b> com <b>rafael.lima@email.com</b>.
+              {cloud.status === "online"
+                ? "Você encontra o número do pedido na tela de confirmação e em “Minha conta”."
+                : <>Para testar: <b className="font-mono">FA-10422</b> com <b>rafael.lima@email.com</b>.</>}
             </p>
           </form>
         </div>
@@ -2249,13 +2828,15 @@ function FaqSection() {
 }
 
 /** Rodapé */
-function Footer({ notify, onNavigate }) {
+function Footer({ notify, onNavigate, onSubscribe }) {
   const { settings } = useStore();
   const [email, setEmail] = useState("");
   const [joined, setJoined] = useState(false);
-  const subscribe = (e) => {
+  const subscribe = async (e) => {
     e.preventDefault();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return notify("Digite um e-mail válido.", "error");
+    const ok = await onSubscribe(email.trim().toLowerCase());
+    if (!ok) return;
     setJoined(true);
     setEmail("");
     notify("Inscrição registrada na lista da Farmaura");
@@ -2389,7 +2970,7 @@ const validateCheckout = (f) => {
   return e;
 };
 
-function CartDrawer({ open, onClose, cart, updateQty, removeItem, onPlaceOrder, notify, onAdd }) {
+function CartDrawer({ open, onClose, cart, updateQty, removeItem, onPlaceOrder, notify, onAdd, profile }) {
   const [step, setStep] = useState("cart");
   const [form, setForm] = useState(EMPTY_FORM);
   const [errors, setErrors] = useState({});
@@ -2437,6 +3018,19 @@ function CartDrawer({ open, onClose, cart, updateQty, removeItem, onPlaceOrder, 
     if (errors[field]) setErrors((e) => ({ ...e, [field]: undefined }));
   };
 
+  // Quem tem cadastro já entra no checkout com os dados preenchidos
+  useEffect(() => {
+    if (step !== "checkout" || !profile) return;
+    setForm((f) => {
+      if (f.name || f.email) return f;
+      const a = profile.address || {};
+      return {
+        ...f, name: profile.name, email: profile.email, phone: profile.phone,
+        zip: a.zip || "", street: a.street || "", number: a.number || "", district: a.district || "", city: a.city || "", state: a.state || "",
+      };
+    });
+  }, [step, profile]);
+
   const handleSubmit = (e) => {
     e.preventDefault();
     const found = validateCheckout(form);
@@ -2446,18 +3040,15 @@ function CartDrawer({ open, onClose, cart, updateQty, removeItem, onPlaceOrder, 
     setSubmitting(true);
     // Simula o tempo de processamento do pagamento
     setTimeout(() => {
-      const order = onPlaceOrder(form, totals);
-      if (!order) {
+      Promise.resolve(onPlaceOrder(form, totals)).then((order) => {
         setSubmitting(false);
-        setStep("cart");
-        return;
-      }
-      setPlacedOrder(order);
-      setForm(EMPTY_FORM);
-      setCoupon(null);
-      setStep("success");
-      setSubmitting(false);
-    }, 900);
+        if (!order) return;
+        setPlacedOrder(order);
+        setForm(EMPTY_FORM);
+        setCoupon(null);
+        setStep("success");
+      });
+    }, 600);
   };
 
   return (
@@ -3005,6 +3596,58 @@ function StockBadge({ stock, low }) {
 
 /** Tela de login do Painel Admin */
 function AdminLogin({ onLogin, onBack }) {
+  const cloud = useCloud();
+  if (cloud.provider === "firebase") return <FirebaseAdminLogin onLogin={onLogin} onBack={onBack} />;
+  return <PasswordAdminLogin onLogin={onLogin} onBack={onBack} />;
+}
+
+/** Entrada da equipe com a conta do Firebase (e-mail e senha) */
+function FirebaseAdminLogin({ onLogin, onBack }) {
+  const cloud = useCloud();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
+  const submit = async (e) => {
+    e.preventDefault();
+    if (!isTeamEmail(email.trim())) return setError("Esse e-mail não faz parte da equipe Farmaura.");
+    if (!cloud.auth) return setError("Conectando ao banco de dados… tente em alguns segundos.");
+    setBusy(true);
+    try {
+      await cloud.auth.signIn(email.trim(), password);
+      setError("");
+      onLogin();
+    } catch (err) {
+      setError(authMessage(err));
+    }
+    setBusy(false);
+  };
+  return (
+    <main className="flex min-h-[calc(100vh-120px)] items-center justify-center px-4 py-16">
+      <div className="w-full max-w-sm rounded-[2rem] border border-stone-200 bg-surface p-8 shadow-xl shadow-black/5">
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-900 text-white">
+          <Lock className="h-6 w-6" />
+        </div>
+        <h1 className="mt-5 text-center font-serif text-3xl text-stone-900">Painel Admin</h1>
+        <p className="mt-2 text-center text-sm text-stone-500">Entre com o e-mail e a senha da equipe cadastrados no Firebase.</p>
+        <form onSubmit={submit} className="mt-8 space-y-3" noValidate>
+          <Field label="E-mail da equipe" type="email" value={email} onChange={(v) => { setEmail(v); setError(""); }} placeholder="farmaurainc@gmail.com" />
+          <Field label="Senha" type="password" value={password} onChange={(v) => { setPassword(v); setError(""); }} />
+          {error && <p className="text-xs font-medium text-rose-600">{error}</p>}
+          <button disabled={busy} className="flex w-full items-center justify-center gap-2 rounded-full bg-emerald-900 py-3.5 text-sm font-semibold text-white transition hover:brightness-110 disabled:opacity-60">
+            <Lock className="h-4 w-4" /> {busy ? "Entrando…" : "Entrar"}
+          </button>
+        </form>
+        <button onClick={onBack} className="mt-4 flex w-full items-center justify-center gap-1.5 text-xs font-semibold text-stone-500 hover:text-stone-800">
+          <ArrowLeft className="h-3.5 w-3.5" /> Voltar para a loja
+        </button>
+      </div>
+    </main>
+  );
+}
+
+/** Entrada com a senha do painel (link do Claude e modo local) */
+function PasswordAdminLogin({ onLogin, onBack }) {
   const { settings } = useStore();
   const [password, setPassword] = useState("");
   const [show, setShow] = useState(false);
@@ -3627,6 +4270,7 @@ function CouponsPanel({ onSave, onDelete, notify, orders }) {
 
 /** Aba de configurações da loja */
 function SettingsPanel({ onSave, onResetStore, onResetOrders, notify }) {
+  const cloud = useCloud();
   const { settings } = useStore();
   const [f, setF] = useState({
     freeShipping: numText(settings.freeShipping),
@@ -3746,6 +4390,16 @@ function SettingsPanel({ onSave, onResetStore, onResetOrders, notify }) {
       </form>
 
       <div className="space-y-6">
+        {cloud.provider === "firebase" ? (
+          <div className="space-y-2 rounded-3xl border border-stone-200 bg-surface p-6">
+            <h2 className="flex items-center gap-2 text-lg font-semibold text-stone-900"><Lock className="h-5 w-5 text-emerald-700" /> Acesso da equipe</h2>
+            <p className="text-sm text-stone-600">
+              No site publicado, a equipe entra com a conta do Firebase. Para trocar a senha ou incluir alguém,
+              use o console do Firebase (Authentication) e a lista de e-mails da equipe no código e nas regras.
+            </p>
+            <p className="text-xs text-stone-500">Equipe hoje: {FIREBASE_ADMINS.join(", ")}</p>
+          </div>
+        ) : (
         <form onSubmit={savePassword} className="space-y-3 rounded-3xl border border-stone-200 bg-surface p-6" noValidate>
           <div>
             <h2 className="flex items-center gap-2 text-lg font-semibold text-stone-900"><Lock className="h-5 w-5 text-emerald-700" /> Senha do painel</h2>
@@ -3758,13 +4412,14 @@ function SettingsPanel({ onSave, onResetStore, onResetOrders, notify }) {
           </div>
           <button className="w-full rounded-full bg-ink py-3 text-sm font-semibold text-ink-fg transition hover:opacity-90">Alterar senha</button>
         </form>
+        )}
 
         <div className="space-y-4 rounded-3xl border border-rose-200 bg-surface p-6">
           <div>
             <h2 className="text-lg font-semibold text-stone-900">Dados de demonstração</h2>
             <p className="text-xs text-stone-500">Útil para reapresentar o projeto do zero.</p>
           </div>
-          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-stone-100 pt-4">
+          {cloud.status !== "online" && <div className="flex flex-wrap items-center justify-between gap-3 border-t border-stone-100 pt-4">
             <div>
               <p className="text-sm font-semibold text-stone-900">Restaurar pedidos de exemplo</p>
               <p className="text-xs text-stone-500">Apaga os pedidos atuais e volta aos {MOCK_ORDERS.length} de exemplo.</p>
@@ -3774,7 +4429,7 @@ function SettingsPanel({ onSave, onResetStore, onResetOrders, notify }) {
             ) : (
               <button onClick={() => setConfirm("orders")} className="rounded-full border border-stone-300 px-4 py-2 text-xs font-semibold text-stone-700 hover:border-stone-500">Restaurar pedidos</button>
             )}
-          </div>
+          </div>}
           <div className="flex flex-wrap items-center justify-between gap-3 border-t border-stone-100 pt-4">
             <div>
               <p className="text-sm font-semibold text-stone-900">Restaurar a loja</p>
@@ -3902,7 +4557,8 @@ function DonationsPanel({ donations, onUpdate, onDelete, notify }) {
   );
 }
 
-function AdminDashboard({ orders, donations, onUpdateStatus, onUpdateOrder, onDelete, onLogout, notify, actions }) {
+function AdminDashboard({ orders, donations, clients, messages, newsletter, onUpdateStatus, onUpdateOrder, onDelete, onLogout, notify, actions }) {
+  const cloud = useCloud();
   const store = useStore();
   const { allProducts, settings, coupons } = store;
   const [tab, setTab] = useState("visao");
@@ -3973,18 +4629,29 @@ function AdminDashboard({ orders, donations, onUpdateStatus, onUpdateOrder, onDe
     return !q || normalize(`${p.name} ${p.variant} ${CATEGORY_LABELS[p.category]}`).includes(q);
   });
 
-  /** Clientes agregados por e-mail */
+  /** Clientes: quem fez cadastro + quem comprou sem cadastro (agrupados por e-mail) */
   const customers = useMemo(() => {
     const map = {};
+    clients.forEach((c) => {
+      const k = (c.email || c.uid || "").toLowerCase();
+      const a = c.address || {};
+      map[k] = {
+        name: c.name, email: c.email, phone: c.phone, uid: c.uid,
+        city: a.city ? `${a.city}/${a.state || ""}` : "—",
+        registered: true, createdAt: c.createdAt, newsletter: !!c.newsletter,
+        orders: 0, spent: 0, last: null,
+      };
+    });
     orders.forEach((o) => {
       const k = o.customer.email.toLowerCase();
-      if (!map[k]) map[k] = { ...o.customer, city: `${o.address.city}/${o.address.state}`, orders: 0, spent: 0, last: o.createdAt };
+      if (!map[k]) map[k] = { ...o.customer, city: `${o.address.city}/${o.address.state}`, registered: false, orders: 0, spent: 0, last: null };
       map[k].orders += 1;
       map[k].spent += o.total;
-      if (new Date(o.createdAt) > new Date(map[k].last)) map[k].last = o.createdAt;
+      if (!map[k].last || new Date(o.createdAt) > new Date(map[k].last)) map[k].last = o.createdAt;
     });
-    return Object.values(map).sort((a, b) => b.spent - a.spent);
-  }, [orders]);
+    return Object.values(map).sort((a, b) => b.spent - a.spent || new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+  }, [orders, clients]);
+  const [confirmClient, setConfirmClient] = useState(null);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -4008,7 +4675,8 @@ function AdminDashboard({ orders, donations, onUpdateStatus, onUpdateOrder, onDe
     { id: "produtos", label: "Produtos", icon: Store, count: lowStock.length, warn: true },
     { id: "cupons", label: "Cupons", icon: Tag },
     { id: "doacoes", label: "Doações", icon: Heart, count: donations.filter((d) => d.status === "Aguardando").length, warn: true },
-    { id: "clientes", label: "Clientes", icon: Users },
+    { id: "clientes", label: "Clientes", icon: Users, count: clients.length },
+    { id: "mensagens", label: "Mensagens", icon: Inbox, count: messages.filter((m) => !m.read).length },
     { id: "config", label: "Configurações", icon: Settings },
   ];
 
@@ -4036,18 +4704,37 @@ function AdminDashboard({ orders, donations, onUpdateStatus, onUpdateOrder, onDe
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <span className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-800">
-            <span className="relative flex h-2 w-2">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-75" />
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-600" />
+          {cloud.status === "online" ? (
+            <span className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-800">
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-75" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-600" />
+              </span>
+              <Database className="h-3.5 w-3.5" /> {cloud.provider === "firebase" ? "Firebase conectado" : "Banco de dados conectado"}
             </span>
-            Ao vivo
-          </span>
+          ) : (
+            <span className="inline-flex items-center gap-2 rounded-full bg-stone-100 px-3 py-1.5 text-xs font-semibold text-stone-600" title="Os dados ficam só neste navegador">
+              <Database className="h-3.5 w-3.5" /> {cloud.status === "connecting" ? "Conectando…" : "Modo local"}
+            </span>
+          )}
           <button onClick={onLogout} className="inline-flex items-center gap-1.5 rounded-full bg-ink px-3 py-1.5 text-xs font-semibold text-ink-fg transition hover:opacity-90">
             <LogOut className="h-3.5 w-3.5" /> Sair
           </button>
         </div>
       </div>
+
+      {cloud.status === "online" && !cloud.isAdmin && (
+        <p className="mt-6 flex items-start gap-2 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+          Sua conta não faz parte da equipe deste site, então o painel mostra só os seus próprios dados. Para ver tudo, o dono precisa convidar você como Editor.
+        </p>
+      )}
+      {cloud.status === "local" && (
+        <p className="mt-6 flex items-start gap-2 rounded-2xl border border-stone-200 bg-surface p-4 text-sm text-stone-600">
+          <Database className="mt-0.5 h-4 w-4 shrink-0" />
+          Modo local: os cadastros e pedidos ficam salvos só neste navegador. Abra o site pelo link do Claude para usar o banco de dados compartilhado.
+        </p>
+      )}
 
       {/* Abas */}
       <div className="sticky z-30 mt-8 -mx-1 overflow-x-auto px-1 pb-1" style={{ top: "calc(env(safe-area-inset-top, 0px) + 6.5rem)" }}>
@@ -4412,49 +5099,91 @@ function AdminDashboard({ orders, donations, onUpdateStatus, onUpdateOrder, onDe
 
       {/* ---------------- CLIENTES ---------------- */}
       {tab === "clientes" && (
-        <section className="mt-6 overflow-hidden rounded-3xl border border-stone-200 bg-surface">
-          <div className="border-b border-stone-200 p-5">
-            <h2 className="text-lg font-semibold text-stone-900">Clientes</h2>
-            <p className="text-xs text-stone-500">{customers.length} clientes · ordenados por valor gasto</p>
+        <div className="mt-6 space-y-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <KpiCard icon={User} label="Cadastrados" value={customers.filter((c) => c.registered).length} sub="Criaram conta no site" tone="bg-emerald-50 text-emerald-800" />
+            <KpiCard icon={ShoppingBag} label="Já compraram" value={customers.filter((c) => c.orders > 0).length} sub={`${customers.filter((c) => c.orders > 1).length} compraram mais de uma vez`} tone="bg-amber-50 text-amber-700" />
+            <KpiCard icon={Mail} label="Querem novidades" value={new Set([...customers.filter((c) => c.newsletter).map((c) => c.email), ...newsletter.map((n) => n.email)]).size} sub="Pelo cadastro ou pela newsletter" tone="bg-sky-50 text-sky-700" />
           </div>
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[640px] text-left text-sm">
-              <thead className="bg-stone-50 text-[11px] uppercase tracking-wider text-stone-500">
-                <tr>
-                  <th className="px-5 py-3 font-semibold">Cliente</th>
-                  <th className="px-5 py-3 font-semibold">Contato</th>
-                  <th className="px-5 py-3 font-semibold">Cidade</th>
-                  <th className="px-5 py-3 text-right font-semibold">Pedidos</th>
-                  <th className="px-5 py-3 text-right font-semibold">Total gasto</th>
-                  <th className="px-5 py-3 font-semibold">Último pedido</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-stone-100">
-                {customers.map((c) => (
-                  <tr key={c.email}>
-                    <td className="px-5 py-3">
-                      <div className="flex items-center gap-3">
-                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-xs font-bold text-emerald-800">
-                          {c.name.split(" ").map((n) => n[0]).slice(0, 2).join("").toUpperCase()}
-                        </span>
-                        <span className="font-semibold text-stone-900">{c.name}</span>
-                        {c.orders > 1 && <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-800">Recorrente</span>}
-                      </div>
-                    </td>
-                    <td className="px-5 py-3 text-xs text-stone-600">
-                      <p className="select-all">{c.email}</p>
-                      <p className="select-all">{c.phone}</p>
-                    </td>
-                    <td className="px-5 py-3 text-xs text-stone-600">{c.city}</td>
-                    <td className="px-5 py-3 text-right tabular-nums text-stone-700">{c.orders}</td>
-                    <td className="px-5 py-3 text-right font-semibold tabular-nums text-stone-900">{formatBRL(c.spent)}</td>
-                    <td className="whitespace-nowrap px-5 py-3 text-xs text-stone-500">{formatDateTime(c.last)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
+          <section className="overflow-hidden rounded-3xl border border-stone-200 bg-surface">
+            <div className="border-b border-stone-200 p-5">
+              <h2 className="text-lg font-semibold text-stone-900">Clientes</h2>
+              <p className="text-xs text-stone-500">{customers.length} {customers.length === 1 ? "pessoa" : "pessoas"} · cadastros feitos em “Minha conta” e quem comprou sem cadastro</p>
+            </div>
+            {customers.length === 0 ? (
+              <div className="p-12 text-center text-sm text-stone-500">
+                <User className="mx-auto mb-3 h-8 w-8 text-stone-300" />
+                Ninguém se cadastrou ainda. Os cadastros aparecem aqui assim que alguém usa “Minha conta” ou faz um pedido.
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[820px] text-left text-sm">
+                  <thead className="bg-stone-50 text-[11px] uppercase tracking-wider text-stone-500">
+                    <tr>
+                      <th className="px-5 py-3 font-semibold">Cliente</th>
+                      <th className="px-5 py-3 font-semibold">Contato</th>
+                      <th className="px-5 py-3 font-semibold">Cidade</th>
+                      <th className="px-5 py-3 font-semibold">Cadastro</th>
+                      <th className="px-5 py-3 text-right font-semibold">Pedidos</th>
+                      <th className="px-5 py-3 text-right font-semibold">Total gasto</th>
+                      <th className="px-5 py-3" />
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-stone-100">
+                    {customers.map((c) => (
+                      <tr key={c.email || c.uid}>
+                        <td className="px-5 py-3">
+                          <div className="flex items-center gap-3">
+                            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-xs font-bold text-emerald-800">
+                              {(c.name || "?").split(" ").map((n) => n[0]).slice(0, 2).join("").toUpperCase()}
+                            </span>
+                            <div>
+                              <p className="font-semibold text-stone-900">{c.name}</p>
+                              <p className="flex flex-wrap gap-1">
+                                {c.registered
+                                  ? <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-800">Cadastrado</span>
+                                  : <span className="rounded-full bg-stone-100 px-2 py-0.5 text-[10px] font-bold text-stone-600">Comprou sem cadastro</span>}
+                                {c.orders > 1 && <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-800">Recorrente</span>}
+                                {c.newsletter && <span className="rounded-full bg-sky-100 px-2 py-0.5 text-[10px] font-bold text-sky-800">Novidades</span>}
+                              </p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-5 py-3 text-xs text-stone-600">
+                          <p className="select-all">{c.email}</p>
+                          <p className="select-all">{c.phone}</p>
+                        </td>
+                        <td className="px-5 py-3 text-xs text-stone-600">{c.city}</td>
+                        <td className="whitespace-nowrap px-5 py-3 text-xs text-stone-500">{c.createdAt ? formatDateTime(c.createdAt) : "—"}</td>
+                        <td className="px-5 py-3 text-right tabular-nums text-stone-700">{c.orders}</td>
+                        <td className="px-5 py-3 text-right font-semibold tabular-nums text-stone-900">{formatBRL(c.spent)}</td>
+                        <td className="px-5 py-3 text-right">
+                          {c.registered && (confirmClient === (c.email || c.uid) ? (
+                            <ConfirmInline
+                              question="Apagar o cadastro?"
+                              confirmLabel="Apagar"
+                              onConfirm={() => { actions.deleteClient(c); setConfirmClient(null); }}
+                              onCancel={() => setConfirmClient(null)}
+                            />
+                          ) : (
+                            <button onClick={() => setConfirmClient(c.email || c.uid)} className="rounded-full p-1.5 text-stone-400 hover:text-rose-600" aria-label={`Apagar cadastro de ${c.name}`}>
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          ))}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </section>
+        </div>
+      )}
+
+      {/* ---------------- MENSAGENS ---------------- */}
+      {tab === "mensagens" && (
+        <MessagesPanel messages={messages} newsletter={newsletter} onUpdate={actions.updateMessage} onDelete={actions.deleteMessage} notify={notify} />
       )}
 
       {/* ---------------- DOAÇÕES ---------------- */}
@@ -4538,18 +5267,268 @@ function App() {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [orders, setOrders] = useState(loadOrders);
   const [donations, setDonations] = useState(loadDonations);
+  const [accountOpen, setAccountOpen] = useState(false);
+
+  /* ---------- Banco de dados ---------- */
+  const [cloud, setCloud] = useState(() => {
+    if (window.claude && typeof window.claude.use === "function") return { status: "connecting", provider: "claude" };
+    if (FIREBASE_CONFIG.apiKey) return { status: "connecting", provider: "firebase" };
+    return { status: "local" };
+  });
+  const [mine, setMine] = useState({});     // documentos da própria pessoa
+  const [all, setAll] = useState({});       // coleções inteiras (só a equipe recebe)
+  const [configReady, setConfigReady] = useState(false);
+  const remoteConfigRef = React.useRef(null);
+  const reconcilingRef = React.useRef(false);
+  const [profileLocal, setProfileLocal] = useState(() => loadJSON(PROFILE_KEY, null));
+  const [messagesLocal, setMessagesLocal] = useState(() => loadJSON(MESSAGES_KEY, { lista: [], newsletter: [] }));
+  const online = cloud.status === "online";
+
+  // 1. Conecta: no Claude usa o banco do próprio site; fora dele, o Firebase
+  useEffect(() => {
+    if (cloud.status !== "connecting") return;
+    let alive = true;
+    if (cloud.provider === "firebase") {
+      connectFirebase((u, err, ctx) => {
+        if (!alive) return;
+        if (err || !u) {
+          console.warn("[banco] Firebase:", err && err.code, err && err.message);
+          setCloud({ status: "local" });
+          return;
+        }
+        setCloud({
+          status: "online", provider: "firebase", db: ctx.db, auth: ctx.api,
+          uid: u.uid, email: u.email, isAnonymous: u.isAnonymous, isAdmin: isTeamEmail(u.email),
+        });
+      }).catch((e) => {
+        console.warn("[banco] Firebase não carregou:", e && e.message);
+        if (alive) setCloud({ status: "local" });
+      });
+      return () => { alive = false; };
+    }
+    (async () => {
+      try {
+        const [db, user] = await Promise.all([window.claude.use("db"), window.claude.use("user")]);
+        if (!db || !user) throw new Error("sem banco");
+        const uid = await user.id();
+        if (!uid) throw new Error("sem identificação");
+        const isAdmin = await user.canEdit().catch(() => false);
+        if (alive) setCloud({ status: "online", provider: "claude", db, uid, isAdmin: !!isAdmin });
+      } catch {
+        if (alive) setCloud({ status: "local" });
+      }
+    })();
+    return () => { alive = false; };
+  }, []);
+
+  // 2. Assina os dados (uma vez por conexão)
+  useEffect(() => {
+    if (!online) return;
+    const { db, uid, isAdmin } = cloud;
+    const warn = (what) => (e) => console.warn(`[banco] ${what}:`, e && e.code, e && e.message);
+    const subs = [];
+    setMine({});
+    setAll({});
+    subs.push(db.doc("loja/config").onSnapshot((snap) => {
+      const next = normalizeStore(snap.exists ? snap.data().store : DEFAULT_STORE);
+      const json = JSON.stringify(next);
+      setConfigReady(true);
+      // Ignora entregas que não mudam nada (não apaga uma alteração ainda não gravada)
+      if (json === remoteConfigRef.current) return;
+      remoteConfigRef.current = json;
+      setStoreData(next);
+    }, warn("config")));
+    CLOUD_COLLECTIONS.forEach((col) => {
+      subs.push(db.doc(`${col}/${uid}`).onSnapshot((snap) => {
+        setMine((m) => ({ ...m, [col]: snap.exists ? { uid, ...snap.data() } : null }));
+      }, warn(col)));
+      if (isAdmin) {
+        subs.push(db.collection(col).onSnapshot((qs) => {
+          setAll((a) => ({ ...a, [col]: qs.docs.map((d) => ({ uid: d.id, ...d.data() })) }));
+        }, warn(`${col} (todos)`)));
+      }
+    });
+    return () => subs.forEach((u) => u());
+  }, [online, cloud.uid, cloud.isAdmin]);
+
+  // 3. A equipe grava as mudanças da loja (preço, estoque, cupons, regras)
+  useEffect(() => {
+    if (!online || !cloud.isAdmin || !configReady) return;
+    const json = JSON.stringify(storeData);
+    if (json === remoteConfigRef.current) return;
+    remoteConfigRef.current = json;
+    cloud.db.doc("loja/config").set({ store: storeData, atualizadoEm: new Date().toISOString() })
+      .catch((e) => cloudFail(e, "as configurações da loja"));
+  }, [storeData, online, cloud.isAdmin, configReady]);
+
+  // 4. A equipe dá baixa no estoque e conta os cupons dos pedidos novos
+  useEffect(() => {
+    if (!online || !cloud.isAdmin || !configReady || reconcilingRef.current) return;
+    const pending = (all.pedidos || []).filter((d) => (d.lista || []).some((o) => !o.stockApplied));
+    if (!pending.length) return;
+    reconcilingRef.current = true;
+    (async () => {
+      const sold = {};
+      const used = {};
+      try {
+        for (const d of pending) {
+          const applied = [];
+          await writeUserDoc(cloud.db, "pedidos", d.uid, (doc) => ({
+            ...doc,
+            lista: doc.lista.map((o) => {
+              if (o.stockApplied) return o;
+              applied.push(o);
+              return { ...o, stockApplied: true };
+            }),
+          }));
+          applied.forEach((o) => {
+            o.items.forEach((i) => { sold[i.id] = (sold[i.id] || 0) + i.qty; });
+            if (o.coupon) used[o.coupon] = (used[o.coupon] || 0) + 1;
+          });
+        }
+        if (Object.keys(sold).length || Object.keys(used).length) {
+          setStoreData((dd) => {
+            const products = { ...dd.products };
+            Object.entries(sold).forEach(([id, qty]) => {
+              const cur = products[id] && products[id].stock !== undefined ? products[id].stock : DEFAULT_STOCK[id] ?? 30;
+              products[id] = { ...(products[id] || {}), stock: Math.max(0, cur - qty) };
+            });
+            const coupons = dd.coupons.map((c) => (used[c.code] ? { ...c, uses: (c.uses || 0) + used[c.code] } : c));
+            return { ...dd, products, coupons };
+          });
+        }
+      } catch (e) {
+        console.warn("[banco] estoque:", e && e.code, e && e.message);
+      } finally {
+        reconcilingRef.current = false;
+      }
+    })();
+  }, [online, cloud.isAdmin, configReady, all.pedidos]);
+
+  /** Junta as listas de cada pessoa numa lista só, guardando de quem é cada item */
+  const gather = (col) => {
+    const docs = online ? (cloud.isAdmin ? all[col] || [] : mine[col] ? [mine[col]] : []) : [];
+    return docs.flatMap((d) => (d.lista || []).map((x) => ({ ...x, _uid: d.uid })));
+  };
+  const ordersView = online ? gather("pedidos") : orders;
+  const donationsView = online ? gather("doacoes") : donations;
+  const messagesView = online ? gather("mensagens") : messagesLocal.lista;
+  const newsletterView = online
+    ? (cloud.isAdmin ? all.mensagens || [] : mine.mensagens ? [mine.mensagens] : []).filter((d) => d.newsletter).map((d) => ({ ...d.newsletter, _uid: d.uid }))
+    : messagesLocal.newsletter;
+  const myProfile = online ? mine.clientes || null : profileLocal;
+  const clientsView = online
+    ? (cloud.isAdmin ? all.clientes || [] : mine.clientes ? [mine.clientes] : [])
+    : profileLocal ? [profileLocal] : [];
+  const myOrders = online
+    ? ordersView.filter((o) => o._uid === cloud.uid)
+    : myProfile ? orders.filter((o) => o.customer.email.toLowerCase() === myProfile.email) : [];
+  const myDonations = online ? donationsView.filter((d) => d._uid === cloud.uid) : [];
+
+  const cloudFail = (e, what) => {
+    console.warn("[banco]", e && e.code, e && e.message);
+    notify(
+      e && e.code === "quota_exceeded"
+        ? "O banco de dados está cheio. Apague registros antigos no painel."
+        : `Não foi possível salvar ${what} no banco de dados. Confira se sua conta tem permissão para usar este site.`,
+      "error"
+    );
+  };
+  /** Altera ou remove um item da lista de uma pessoa (usado pelo painel) */
+  const editUserItem = async (col, item, fn) => {
+    try {
+      await writeUserDoc(cloud.db, col, item._uid, (d) => ({
+        ...d,
+        lista: d.lista.flatMap((x) => (x.id === item.id ? fn(x) : [x])),
+      }));
+      return true;
+    } catch (e) {
+      cloudFail(e, "a alteração");
+      return false;
+    }
+  };
+
+  /** Cadastro do cliente */
+  const saveProfile = async (p) => {
+    const now = new Date().toISOString();
+    const data = { ...p, createdAt: (myProfile && myProfile.createdAt) || now, atualizadoEm: now };
+    if (online) {
+      try {
+        await cloud.db.doc(`clientes/${cloud.uid}`).set(data);
+        return true;
+      } catch (e) {
+        cloudFail(e, "o cadastro");
+        return false;
+      }
+    }
+    setProfileLocal(data);
+    saveJSON(PROFILE_KEY, data);
+    return true;
+  };
+
+  /** Mensagem do formulário de contato */
+  const sendMessage = async ({ name, email, message }) => {
+    const msg = { id: online ? cloudId("MSG") : `MSG-${Date.now()}`, name, email, message, createdAt: new Date().toISOString(), read: false };
+    if (online) {
+      try {
+        await writeUserDoc(cloud.db, "mensagens", cloud.uid, (d) => ({ ...d, lista: [msg, ...d.lista] }));
+        return true;
+      } catch (e) {
+        cloudFail(e, "a mensagem");
+        return false;
+      }
+    }
+    setMessagesLocal((m) => {
+      const next = { ...m, lista: [msg, ...(m.lista || [])] };
+      saveJSON(MESSAGES_KEY, next);
+      return next;
+    });
+    return true;
+  };
+
+  /** Inscrição na newsletter */
+  const subscribeNewsletter = async (email) => {
+    const entry = { email, createdAt: new Date().toISOString() };
+    if (online) {
+      try {
+        await writeUserDoc(cloud.db, "mensagens", cloud.uid, (d) => ({ ...d, newsletter: entry }));
+        return true;
+      } catch (e) {
+        cloudFail(e, "a inscrição");
+        return false;
+      }
+    }
+    setMessagesLocal((m) => {
+      const next = { ...m, newsletter: [entry, ...(m.newsletter || []).filter((x) => x.email !== email)] };
+      saveJSON(MESSAGES_KEY, next);
+      return next;
+    });
+    return true;
+  };
   const [toast, setToast] = useState(null);
 
   // Persiste os pedidos e o carrinho sempre que mudarem (quando o ambiente permitir)
   useEffect(() => saveOrders(orders), [orders]);
   useEffect(() => saveCart(cart), [cart]);
-  useEffect(() => saveStore(storeData), [storeData]);
+  useEffect(() => { if (cloud.status === "local") saveStore(storeData); }, [storeData, cloud.status]);
   useEffect(() => saveDonations(donations), [donations]);
 
   /** Registra uma doação (o pagamento é feito pelo PIX gerado na tela) */
-  const addDonation = ({ amount, name, message }) => {
-    const d = { id: nextDonationId(donations), createdAt: new Date().toISOString(), amount, name, message, status: "Aguardando" };
-    setDonations((prev) => [d, ...prev]);
+  const addDonation = async ({ amount, name, message }) => {
+    const d = {
+      id: online ? cloudId("DO") : nextDonationId(donations),
+      createdAt: new Date().toISOString(), amount, name, message, status: "Aguardando",
+    };
+    if (online) {
+      try {
+        await writeUserDoc(cloud.db, "doacoes", cloud.uid, (doc) => ({ ...doc, lista: [d, ...doc.lista] }));
+      } catch (e) {
+        cloudFail(e, "a doação");
+        return null;
+      }
+    } else {
+      setDonations((prev) => [d, ...prev]);
+    }
     return d;
   };
   useEffect(() => {
@@ -4602,9 +5581,9 @@ function App() {
 
   // Bloqueia a rolagem do fundo quando um modal/drawer está aberto
   useEffect(() => {
-    document.body.style.overflow = cartOpen || selectedProduct ? "hidden" : "";
+    document.body.style.overflow = cartOpen || selectedProduct || accountOpen ? "hidden" : "";
     return () => { document.body.style.overflow = ""; };
-  }, [cartOpen, selectedProduct]);
+  }, [cartOpen, selectedProduct, accountOpen]);
 
   // Fecha modal/drawer com a tecla ESC
   useEffect(() => {
@@ -4682,13 +5661,13 @@ function App() {
    *  - envia AUTOMATICAMENTE para o Painel Admin (estado `orders`)
    *  - limpa o carrinho
    */
-  const placeOrder = (form, totals) => {
+  const placeOrder = async (form, totals) => {
     if (liveCart.some((i) => i.issue)) {
       notify("Alguns itens mudaram de estoque. Confira o carrinho.", "error");
       return null;
     }
     const order = {
-      id: nextOrderId(orders),
+      id: online ? cloudId("FA") : nextOrderId(orders),
       createdAt: new Date().toISOString(),
       customer: { name: form.name.trim(), email: form.email.trim(), phone: form.phone },
       address: {
@@ -4707,6 +5686,24 @@ function App() {
           : form.payment,
       status: "Pendente",
     };
+    if (online) {
+      // Vai para o banco; a equipe dá baixa no estoque quando o painel recebe o pedido
+      try {
+        await writeUserDoc(cloud.db, "pedidos", cloud.uid, (d) => ({ ...d, lista: [{ ...order, stockApplied: false }, ...d.lista] }));
+      } catch (e) {
+        cloudFail(e, "o pedido");
+        return null;
+      }
+      if (!myProfile) {
+        saveProfile({
+          name: order.customer.name, email: order.customer.email.toLowerCase(), phone: order.customer.phone, newsletter: false,
+          address: { ...order.address },
+        });
+      }
+      setCart([]);
+      notify(`Pedido ${order.id} realizado com sucesso!`);
+      return order;
+    }
     setOrders((prev) => [order, ...prev]);
     // Baixa o estoque e conta o uso do cupom
     setStoreData((d) => {
@@ -4730,18 +5727,32 @@ function App() {
     notify("Bem-vindo ao Painel Admin");
   };
   const logoutAdmin = () => {
+    if (cloud.provider === "firebase" && cloud.auth) cloud.auth.signOut();
     setAdminAuthed(false);
     try { window.sessionStorage.removeItem(ADMIN_SESSION_KEY); } catch { /* ignora */ }
     setView("store");
     window.scrollTo({ top: 0 });
     notify("Você saiu do Painel Admin");
   };
-  const deleteOrder = (id) => {
-    setOrders((prev) => prev.filter((o) => o.id !== id));
+  const findOrder = (id) => ordersView.find((o) => o.id === id);
+  const deleteOrder = async (id) => {
+    if (online) {
+      const o = findOrder(id);
+      if (!o || !(await editUserItem("pedidos", o, () => []))) return;
+    } else {
+      setOrders((prev) => prev.filter((o) => o.id !== id));
+    }
     notify(`Pedido ${id} excluído`);
   };
 
-  const updateOrder = (id, patch) => setOrders((prev) => prev.map((o) => (o.id === id ? { ...o, ...patch } : o)));
+  const updateOrder = (id, patch) => {
+    if (online) {
+      const o = findOrder(id);
+      if (o) editUserItem("pedidos", o, (x) => [{ ...x, ...patch }]);
+      return;
+    }
+    setOrders((prev) => prev.map((o) => (o.id === id ? { ...o, ...patch } : o)));
+  };
 
   /** Ações do painel sobre a loja (preços, estoque, cupons, regras) */
   const adminActions = {
@@ -4770,8 +5781,54 @@ function App() {
       notify("Loja restaurada para os valores originais");
     },
     resetOrders: () => resetOrders(),
-    updateDonation: (id, patch) => setDonations((prev) => prev.map((d) => (d.id === id ? { ...d, ...patch } : d))),
-    deleteDonation: (id) => setDonations((prev) => prev.filter((d) => d.id !== id)),
+    updateDonation: (id, patch) => {
+      if (online) {
+        const d = donationsView.find((x) => x.id === id);
+        if (d) editUserItem("doacoes", d, (x) => [{ ...x, ...patch }]);
+        return;
+      }
+      setDonations((prev) => prev.map((d) => (d.id === id ? { ...d, ...patch } : d)));
+    },
+    deleteDonation: (id) => {
+      if (online) {
+        const d = donationsView.find((x) => x.id === id);
+        if (d) editUserItem("doacoes", d, () => []);
+        return;
+      }
+      setDonations((prev) => prev.filter((d) => d.id !== id));
+    },
+    updateMessage: (m, patch) => {
+      if (online) return editUserItem("mensagens", m, (x) => [{ ...x, ...patch }]);
+      setMessagesLocal((cur) => {
+        const next = { ...cur, lista: cur.lista.map((x) => (x.id === m.id ? { ...x, ...patch } : x)) };
+        saveJSON(MESSAGES_KEY, next);
+        return next;
+      });
+    },
+    deleteMessage: (m) => {
+      if (online) return editUserItem("mensagens", m, () => []).then((ok) => ok && notify("Mensagem excluída"));
+      setMessagesLocal((cur) => {
+        const next = { ...cur, lista: cur.lista.filter((x) => x.id !== m.id) };
+        saveJSON(MESSAGES_KEY, next);
+        return next;
+      });
+      notify("Mensagem excluída");
+    },
+    deleteClient: async (c) => {
+      if (online) {
+        if (!c.uid) return;
+        try {
+          await cloud.db.doc(`clientes/${c.uid}`).delete();
+          notify(`Cadastro de ${c.name} apagado`);
+        } catch (e) {
+          cloudFail(e, "a exclusão");
+        }
+        return;
+      }
+      setProfileLocal(null);
+      try { window.localStorage.removeItem(PROFILE_KEY); } catch { /* ignora */ }
+      notify(`Cadastro de ${c.name} apagado`);
+    },
   };
 
   const resetOrders = () => {
@@ -4779,8 +5836,13 @@ function App() {
     notify("Pedidos de exemplo restaurados");
   };
 
-  const updateOrderStatus = (id, status) => {
-    setOrders((prev) => prev.map((o) => (o.id === id ? { ...o, status } : o)));
+  const updateOrderStatus = async (id, status) => {
+    if (online) {
+      const o = findOrder(id);
+      if (!o || !(await editUserItem("pedidos", o, (x) => [{ ...x, status }]))) return;
+    } else {
+      setOrders((prev) => prev.map((o) => (o.id === id ? { ...o, status } : o)));
+    }
     notify(`Pedido ${id} atualizado para "${status}"`);
   };
 
@@ -4798,6 +5860,10 @@ function App() {
 
   return (
     <StoreContext.Provider value={store}>
+    <CloudContext.Provider value={{
+      status: cloud.status, provider: cloud.provider || null, isAdmin: !!cloud.isAdmin, uid: cloud.uid || null,
+      email: cloud.email || null, isAnonymous: !!cloud.isAnonymous, auth: cloud.auth || null,
+    }}>
     <div className="min-h-screen bg-page font-sans text-stone-800 antialiased transition-colors duration-300">
       <Header
         view={view}
@@ -4812,6 +5878,8 @@ function App() {
         onToggleTheme={toggleTheme}
         activeSection={view === "store" ? activeSection : null}
         cartBump={cartBump}
+        onOpenAccount={() => setAccountOpen(true)}
+        hasProfile={!!myProfile}
       />
 
       {view === "store" ? (
@@ -4821,16 +5889,19 @@ function App() {
           <ProductsSection onOpen={setSelectedProduct} onAdd={addToCart} favs={favs} onToggleFav={toggleFav} />
           {store.settings.donationsEnabled && <DonationSection onDonate={addDonation} notify={notify} />}
           <AboutSection />
-          <OrderTracker orders={orders} />
+          <OrderTracker orders={ordersView} />
           <FaqSection />
-          <ContactSection notify={notify} />
-          <Footer notify={notify} onNavigate={navigateTo} />
+          <ContactSection notify={notify} onSend={sendMessage} profile={myProfile} />
+          <Footer notify={notify} onNavigate={navigateTo} onSubscribe={subscribeNewsletter} />
         </>
       ) : (
-        adminAuthed ? (
+        (cloud.provider === "firebase" ? cloud.status === "online" && cloud.isAdmin : adminAuthed) ? (
           <AdminDashboard
-            orders={orders}
-            donations={donations}
+            orders={ordersView}
+            donations={donationsView}
+            clients={clientsView}
+            messages={messagesView}
+            newsletter={newsletterView}
             onUpdateStatus={updateOrderStatus}
             onUpdateOrder={updateOrder}
             onDelete={deleteOrder}
@@ -4864,6 +5935,17 @@ function App() {
         onPlaceOrder={placeOrder}
         notify={notify}
         onAdd={(p) => addToCart(p, 1, { silent: true })}
+        profile={myProfile}
+      />
+
+      <AccountPanel
+        open={accountOpen}
+        onClose={() => setAccountOpen(false)}
+        profile={myProfile}
+        onSave={saveProfile}
+        orders={myOrders}
+        donations={myDonations}
+        notify={notify}
       />
 
       {/* Voltar ao topo */}
@@ -4880,6 +5962,7 @@ function App() {
 
       <Toast toast={toast} onAction={() => { setToast(null); setCartOpen(true); }} />
     </div>
+    </CloudContext.Provider>
     </StoreContext.Provider>
   );
 }
