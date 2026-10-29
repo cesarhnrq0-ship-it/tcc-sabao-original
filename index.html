@@ -124,6 +124,8 @@ const Type = __icon('<polyline points="4 7 4 4 20 4 20 7"/><line x1="9" x2="15" 
 const User = __icon('<path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>');
 const Database = __icon('<ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5V19A9 3 0 0 0 21 19V5"/><path d="M3 12A9 3 0 0 0 21 12"/>');
 const Inbox = __icon('<polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/>');
+const MessageCircle = __icon('<path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/>');
+const Send = __icon('<path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/>');
 const Eye = __icon('<path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/>');
 
 /* ============================================================================
@@ -630,7 +632,7 @@ const useStore = () => React.useContext(StoreContext);
  * lê e altera tudo. Fora do Claude (arquivo baixado, GitHub Pages), tudo
  * continua salvo no navegador (localStorage).
  * ========================================================================== */
-const CLOUD_COLLECTIONS = ["clientes", "pedidos", "doacoes", "mensagens"];
+const CLOUD_COLLECTIONS = ["clientes", "pedidos", "doacoes", "mensagens", "chats"];
 
 /* ----------------------------------------------------------------------------
  * FIREBASE — usado quando o site está publicado fora do Claude
@@ -1049,7 +1051,7 @@ function Logo({ light = false }) {
       <div className={`flex h-9 w-9 items-center justify-center rounded-full ${light ? "bg-white/10" : "bg-emerald-900"}`}>
         <Leaf className={`h-5 w-5 ${light ? "text-emerald-300" : "text-white"}`} />
       </div>
-      <span className={`font-serif text-2xl tracking-tight ${light ? "text-white" : "text-stone-900 max-[389px]:sr-only"}`}>
+      <span className={`font-serif text-2xl tracking-tight ${light ? "text-white" : "text-stone-900 max-[409px]:sr-only"}`}>
         Farm<span className="italic text-emerald-700">aura</span>
       </span>
     </div>
@@ -1091,13 +1093,13 @@ function Header({ view, setView, cartCount, onOpenCart, onNavigate, theme, onTog
 
         {/* Navegação desktop (somente no modo loja) */}
         {view === "store" && (
-          <nav className="hidden items-center gap-6 xl:flex">
+          <nav className="hidden items-center gap-5 xl:flex">
             {links.map((l) => (
               <button
                 key={l.id}
                 onClick={() => go(l.id)}
                 aria-current={activeSection === l.id ? "true" : undefined}
-                className={`relative py-1 text-sm font-medium transition hover:text-emerald-800 ${
+                className={`relative whitespace-nowrap py-1 text-sm font-medium transition hover:text-emerald-800 ${
                   activeSection === l.id ? "text-emerald-800" : "text-stone-600"
                 }`}
               >
@@ -1124,7 +1126,7 @@ function Header({ view, setView, cartCount, onOpenCart, onNavigate, theme, onTog
               }`}
             >
               <Store className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">Modo Loja</span>
+              <span className="hidden whitespace-nowrap sm:inline xl:hidden 2xl:inline">Modo Loja</span>
             </button>
             <button
               onClick={() => setView("admin")}
@@ -1135,7 +1137,7 @@ function Header({ view, setView, cartCount, onOpenCart, onNavigate, theme, onTog
               }`}
             >
               <LayoutDashboard className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">Painel Admin</span>
+              <span className="hidden whitespace-nowrap sm:inline xl:hidden 2xl:inline">Painel Admin</span>
             </button>
           </div>
 
@@ -2524,6 +2526,313 @@ function MessagesPanel({ messages, newsletter, onUpdate, onDelete, notify }) {
           </ul>
         )}
       </section>
+    </div>
+  );
+}
+
+/* ============================================================================
+ * CHAT AO VIVO
+ * Cada cliente tem uma conversa em chats/<pessoa>:
+ *   { name, email, mensagens: [{ id, from: "cliente" | "equipe", text, at }],
+ *     ultimaEm, lidoPeloClienteEm, lidoPelaEquipeEm }
+ * O cliente conversa pelo balão no canto da loja; a equipe responde na aba
+ * "Chat" do Painel Admin. As mensagens chegam na hora pelos dois lados.
+ * ========================================================================== */
+const CHAT_QUICK_REPLIES = [
+  "Olá! Em que posso ajudar?",
+  "Seu pedido já está em separação e logo sai para entrega.",
+  "Obrigado pelo contato! Qualquer dúvida, é só chamar.",
+];
+const chatTime = (iso) => {
+  const d = new Date(iso);
+  const today = new Date().toDateString() === d.toDateString();
+  return today
+    ? d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })
+    : d.toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
+};
+/** Mensagens do outro lado que ainda não foram lidas */
+const chatUnread = (chat, from) => {
+  if (!chat || !Array.isArray(chat.mensagens)) return 0;
+  const seen = from === "equipe" ? chat.lidoPeloClienteEm : chat.lidoPelaEquipeEm;
+  return chat.mensagens.filter((m) => m.from === from && (!seen || m.at > seen)).length;
+};
+
+/** Lista de mensagens com rolagem automática para a mais nova */
+function ChatMessages({ messages, me, welcome }) {
+  const endRef = React.useRef(null);
+  useEffect(() => {
+    if (endRef.current) endRef.current.scrollIntoView({ block: "end" });
+  }, [messages.length]);
+  return (
+    <div className="flex-1 space-y-2 overflow-y-auto px-4 py-4" aria-live="polite">
+      {welcome && (
+        <div className="flex">
+          <p className="max-w-[85%] rounded-2xl rounded-bl-md bg-surface px-3.5 py-2.5 text-sm text-stone-800 shadow-sm ring-1 ring-stone-200">{welcome}</p>
+        </div>
+      )}
+      {messages.map((m) => {
+        const mine = m.from === me;
+        return (
+          <div key={m.id} className={`flex ${mine ? "justify-end" : ""}`}>
+            <div className={`max-w-[85%] rounded-2xl px-3.5 py-2 text-sm shadow-sm ${
+              mine ? "rounded-br-md bg-emerald-900 text-white" : "rounded-bl-md bg-surface text-stone-800 ring-1 ring-stone-200"
+            }`}>
+              <p className="whitespace-pre-line break-words">{m.text}</p>
+              <p className={`mt-0.5 text-right text-[10px] ${mine ? "text-white/60" : "text-stone-400"}`}>{chatTime(m.at)}</p>
+            </div>
+          </div>
+        );
+      })}
+      <div ref={endRef} />
+    </div>
+  );
+}
+
+/** Caixa de digitar (Enter envia, Shift+Enter quebra linha) */
+function ChatInput({ onSend, placeholder = "Escreva sua mensagem", id }) {
+  const [text, setText] = useState("");
+  const [busy, setBusy] = useState(false);
+  const send = async () => {
+    const t = text.trim();
+    if (!t || busy) return;
+    setBusy(true);
+    const ok = await onSend(t);
+    setBusy(false);
+    if (ok) setText("");
+  };
+  return (
+    <form
+      onSubmit={(e) => { e.preventDefault(); send(); }}
+      className="flex items-end gap-2 border-t border-stone-200 bg-surface p-3"
+    >
+      <textarea
+        id={id}
+        rows={1}
+        maxLength={500}
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
+        placeholder={placeholder}
+        aria-label="Mensagem"
+        className="max-h-28 min-h-[42px] flex-1 resize-none rounded-2xl border border-stone-300 bg-page px-3.5 py-2.5 text-sm outline-none focus:border-emerald-700 focus:ring-2 focus:ring-emerald-700/15"
+      />
+      <button
+        disabled={!text.trim() || busy}
+        className="flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-full bg-emerald-900 text-white transition hover:brightness-110 disabled:opacity-40"
+        aria-label="Enviar mensagem"
+      >
+        <Send className="h-4 w-4" />
+      </button>
+    </form>
+  );
+}
+
+/** Balão de chat da loja (lado do cliente) */
+function ChatWidget({ open, setOpen, chat, profile, onSend, onRead }) {
+  const cloud = useCloud();
+  const [who, setWho] = useState({ name: "", email: "" });
+  const [whoError, setWhoError] = useState("");
+  const [started, setStarted] = useState(false);
+  const messages = (chat && chat.mensagens) || [];
+  const unread = chatUnread(chat, "equipe");
+  const known = !!(chat || profile || started);
+
+  // Ao abrir a conversa, marca as respostas da equipe como lidas
+  useEffect(() => {
+    if (open && unread > 0) onRead();
+  }, [open, unread]);
+
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e) => { if (e.key === "Escape") setOpen(false); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open]);
+
+  const start = (e) => {
+    e.preventDefault();
+    if (who.name.trim().length < 2) return setWhoError("Digite seu nome.");
+    if (who.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(who.email.trim())) return setWhoError("Digite um e-mail válido ou deixe em branco.");
+    setWhoError("");
+    setStarted(true);
+  };
+  const send = (text) =>
+    onSend(text, {
+      name: (chat && chat.name) || (profile && profile.name) || who.name.trim(),
+      email: (chat && chat.email) || (profile && profile.email) || who.email.trim(),
+    });
+
+  return (
+    <>
+      {open && (
+        <div
+          className="fixed z-50 flex flex-col overflow-hidden bg-page shadow-2xl ring-1 ring-stone-900/10 max-sm:inset-0 max-sm:pb-[env(safe-area-inset-bottom)] sm:bottom-24 sm:right-5 sm:h-[540px] sm:max-h-[calc(100vh-7rem)] sm:w-[370px] sm:rounded-3xl"
+          role="dialog"
+          aria-label="Chat com a Farmaura"
+        >
+          <div className="palette-light flex items-center gap-3 bg-emerald-900 px-4 py-3.5 text-white" style={{ paddingTop: "max(0.875rem, env(safe-area-inset-top, 0px))" }}>
+            <span className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/15">
+              <Leaf className="h-5 w-5" />
+              <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-emerald-400 ring-2 ring-emerald-900" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="font-semibold">Atendimento Farmaura</p>
+              <p className="text-xs text-white/70">Respondemos aqui mesmo, em poucos minutos</p>
+            </div>
+            <button onClick={() => setOpen(false)} className="rounded-full p-2 hover:bg-white/10" aria-label="Fechar chat">
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+
+          {known ? (
+            <>
+              <ChatMessages
+                messages={messages}
+                me="cliente"
+                welcome={`Olá${((chat && chat.name) || (profile && profile.name) || who.name) ? `, ${((chat && chat.name) || (profile && profile.name) || who.name).split(" ")[0]}` : ""}! Como podemos ajudar? Pode mandar sua dúvida sobre produtos, pedidos ou entregas.`}
+              />
+              {cloud.status === "local" && (
+                <p className="bg-stone-100 px-4 py-1.5 text-center text-[11px] text-stone-500">Modo local: as mensagens ficam só neste navegador.</p>
+              )}
+              <ChatInput onSend={send} id="chat-cliente" />
+            </>
+          ) : (
+            <form onSubmit={start} className="flex flex-1 flex-col justify-center gap-4 p-6" noValidate>
+              <div className="text-center">
+                <MessageCircle className="mx-auto h-10 w-10 text-emerald-700" />
+                <p className="mt-3 font-serif text-2xl text-stone-900">Fale com a gente</p>
+                <p className="mt-1 text-sm text-stone-500">Diga como podemos te chamar e já pode mandar sua mensagem.</p>
+              </div>
+              <Field label="Seu nome" value={who.name} onChange={(v) => { setWho((w) => ({ ...w, name: v })); setWhoError(""); }} placeholder="Maria" maxLength={40} />
+              <Field label="E-mail (opcional)" type="email" value={who.email} onChange={(v) => { setWho((w) => ({ ...w, email: v })); setWhoError(""); }} placeholder="Para respondermos se você sair" />
+              {whoError && <p className="text-xs font-medium text-rose-600">{whoError}</p>}
+              <button className="rounded-full bg-emerald-900 py-3.5 text-sm font-semibold text-white transition hover:brightness-110">Começar conversa</button>
+            </form>
+          )}
+        </div>
+      )}
+
+      <button
+        onClick={() => setOpen(!open)}
+        className="fixed z-40 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-900 text-white shadow-xl shadow-emerald-900/30 transition hover:scale-105 max-sm:data-[open=true]:hidden"
+        data-open={open}
+        style={{ right: "max(1.25rem, env(safe-area-inset-right, 0px))", bottom: "calc(1.25rem + env(safe-area-inset-bottom, 0px))" }}
+        aria-label={open ? "Fechar chat" : unread ? `Abrir chat (${unread} ${unread === 1 ? "nova mensagem" : "novas mensagens"})` : "Abrir chat com a Farmaura"}
+      >
+        {open ? <X className="h-6 w-6" /> : <MessageCircle className="h-6 w-6" />}
+        {!open && unread > 0 && (
+          <span className="absolute -right-0.5 -top-0.5 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-rose-600 px-1 text-[11px] font-bold text-white ring-2 ring-page">
+            {unread}
+          </span>
+        )}
+      </button>
+    </>
+  );
+}
+
+/** Aba "Chat" do Painel Admin (lado da equipe) */
+function ChatAdminPanel({ chats, onReply, onRead, onDelete, notify }) {
+  const list = [...chats]
+    .filter((c) => Array.isArray(c.mensagens) && c.mensagens.length)
+    .sort((a, b) => String(b.ultimaEm || "").localeCompare(String(a.ultimaEm || "")));
+  const [selected, setSelected] = useState(null);
+  const [confirmDel, setConfirmDel] = useState(false);
+  const current = list.find((c) => c.uid === selected) || list[0] || null;
+  const unreadHere = chatUnread(current, "cliente");
+  const convoRef = React.useRef(null);
+
+  // Abrir a conversa marca as mensagens do cliente como lidas
+  useEffect(() => {
+    if (current && unreadHere > 0) onRead(current.uid);
+  }, [current && current.uid, unreadHere]);
+
+  const pick = (uid) => {
+    setSelected(uid);
+    setConfirmDel(false);
+    if (window.innerWidth < 1024 && convoRef.current) setTimeout(() => convoRef.current.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
+  };
+
+  if (!list.length) {
+    return (
+      <div className="mt-6 rounded-3xl border border-dashed border-stone-300 bg-surface p-12 text-center text-sm text-stone-500">
+        <MessageCircle className="mx-auto mb-3 h-8 w-8 text-stone-300" />
+        Nenhuma conversa ainda. Quando um cliente escrever no balão de chat da loja, a conversa aparece aqui na hora.
+      </div>
+    );
+  }
+
+  return (
+    <div className="mt-6 grid items-start gap-4 lg:grid-cols-[320px_1fr]">
+      <section className="overflow-hidden rounded-3xl border border-stone-200 bg-surface">
+        <p className="border-b border-stone-200 px-5 py-4 text-sm font-semibold text-stone-900">Conversas · {list.length}</p>
+        <ul className="max-h-[560px] divide-y divide-stone-100 overflow-y-auto">
+          {list.map((c) => {
+            const last = c.mensagens[c.mensagens.length - 1];
+            const n = chatUnread(c, "cliente");
+            const active = current && current.uid === c.uid;
+            return (
+              <li key={c.uid}>
+                <button
+                  onClick={() => pick(c.uid)}
+                  className={`flex w-full items-start gap-3 px-5 py-3.5 text-left transition ${active ? "bg-emerald-50" : "hover:bg-stone-50"}`}
+                >
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-xs font-bold text-emerald-800">
+                    {(c.name || "?").split(" ").map((x) => x[0]).slice(0, 2).join("").toUpperCase()}
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="flex items-center justify-between gap-2">
+                      <span className={`truncate text-sm ${n ? "font-bold text-stone-900" : "font-semibold text-stone-800"}`}>{c.name || "Visitante"}</span>
+                      <span className="shrink-0 text-[10px] text-stone-400">{last ? chatTime(last.at) : ""}</span>
+                    </span>
+                    <span className="mt-0.5 flex items-center gap-2">
+                      <span className={`truncate text-xs ${n ? "text-stone-800" : "text-stone-500"}`}>
+                        {last && last.from === "equipe" ? "Você: " : ""}{last ? last.text : ""}
+                      </span>
+                      {n > 0 && <span className="ml-auto flex h-5 min-w-[20px] shrink-0 items-center justify-center rounded-full bg-emerald-600 px-1 text-[10px] font-bold text-white">{n}</span>}
+                    </span>
+                  </span>
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      </section>
+
+      {current && (
+        <section ref={convoRef} className="flex h-[620px] scroll-mt-40 flex-col overflow-hidden rounded-3xl border border-stone-200 bg-page">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-stone-200 bg-surface px-5 py-3.5">
+            <div className="min-w-0">
+              <p className="font-semibold text-stone-900">{current.name || "Visitante"}</p>
+              <p className="select-all text-xs text-stone-500">{current.email || "sem e-mail"}</p>
+            </div>
+            {confirmDel ? (
+              <ConfirmInline
+                question="Apagar esta conversa?"
+                confirmLabel="Apagar"
+                onConfirm={() => { onDelete(current.uid); setConfirmDel(false); setSelected(null); }}
+                onCancel={() => setConfirmDel(false)}
+              />
+            ) : (
+              <button onClick={() => setConfirmDel(true)} className="inline-flex items-center gap-1.5 text-xs font-semibold text-stone-500 hover:text-rose-600">
+                <Trash2 className="h-3.5 w-3.5" /> Apagar conversa
+              </button>
+            )}
+          </div>
+          <ChatMessages messages={current.mensagens} me="equipe" />
+          <div className="flex gap-2 overflow-x-auto border-t border-stone-200 bg-surface px-3 pt-3">
+            {CHAT_QUICK_REPLIES.map((q) => (
+              <button
+                key={q}
+                onClick={() => onReply(current.uid, q)}
+                className="shrink-0 rounded-full border border-stone-300 px-3 py-1.5 text-xs text-stone-700 transition hover:border-emerald-700 hover:text-emerald-800"
+              >
+                {q.length > 34 ? q.slice(0, 34) + "…" : q}
+              </button>
+            ))}
+          </div>
+          <ChatInput key={current.uid} onSend={(t) => onReply(current.uid, t)} placeholder={`Responder ${((current.name || "cliente").split(" ")[0])}`} id="chat-equipe" />
+        </section>
+      )}
     </div>
   );
 }
@@ -4578,7 +4887,7 @@ function DonationsPanel({ donations, onUpdate, onDelete, notify }) {
   );
 }
 
-function AdminDashboard({ orders, donations, clients, messages, newsletter, onUpdateStatus, onUpdateOrder, onDelete, onLogout, notify, actions }) {
+function AdminDashboard({ orders, donations, clients, messages, newsletter, chats, onUpdateStatus, onUpdateOrder, onDelete, onLogout, notify, actions }) {
   const cloud = useCloud();
   const store = useStore();
   const { allProducts, settings, coupons } = store;
@@ -4693,6 +5002,7 @@ function AdminDashboard({ orders, donations, clients, messages, newsletter, onUp
   const TABS = [
     { id: "visao", label: "Visão Geral", icon: BarChart },
     { id: "pedidos", label: "Pedidos", icon: Package, count: kpis.pending },
+    { id: "chat", label: "Chat", icon: MessageCircle, count: chats.filter((c) => chatUnread(c, "cliente") > 0).length },
     { id: "produtos", label: "Produtos", icon: Store, count: lowStock.length, warn: true },
     { id: "cupons", label: "Cupons", icon: Tag },
     { id: "doacoes", label: "Doações", icon: Heart, count: donations.filter((d) => d.status === "Aguardando").length, warn: true },
@@ -4721,7 +5031,8 @@ function AdminDashboard({ orders, donations, clients, messages, newsletter, onUp
           <h1 className="mt-2 font-serif text-3xl text-stone-900 sm:text-4xl">Olá, equipe Farmaura</h1>
           <p className="mt-1 text-sm text-stone-500">
             {kpis.pending > 0 ? `${kpis.pending} ${kpis.pending === 1 ? "pedido espera" : "pedidos esperam"} processamento` : "Nenhum pedido pendente agora"}
-            {lowStock.length > 0 && ` · ${lowStock.length} ${lowStock.length === 1 ? "produto" : "produtos"} com estoque baixo`}.
+            {lowStock.length > 0 && ` · ${lowStock.length} ${lowStock.length === 1 ? "produto" : "produtos"} com estoque baixo`}
+            {(() => { const n = chats.filter((c) => chatUnread(c, "cliente") > 0).length; return n ? ` · ${n} ${n === 1 ? "conversa esperando" : "conversas esperando"} resposta` : ""; })()}.
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -5202,6 +5513,11 @@ function AdminDashboard({ orders, donations, clients, messages, newsletter, onUp
         </div>
       )}
 
+      {/* ---------------- CHAT AO VIVO ---------------- */}
+      {tab === "chat" && (
+        <ChatAdminPanel chats={chats} onReply={actions.replyChat} onRead={actions.readChat} onDelete={actions.deleteChat} notify={notify} />
+      )}
+
       {/* ---------------- MENSAGENS ---------------- */}
       {tab === "mensagens" && (
         <MessagesPanel messages={messages} newsletter={newsletter} onUpdate={actions.updateMessage} onDelete={actions.deleteMessage} notify={notify} />
@@ -5289,6 +5605,8 @@ function App() {
   const [orders, setOrders] = useState(loadOrders);
   const [donations, setDonations] = useState(loadDonations);
   const [accountOpen, setAccountOpen] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
+  const [chatLocal, setChatLocal] = useState(() => loadJSON("farmaura_chat_v1", null));
 
   /* ---------- Banco de dados ---------- */
   const [cloud, setCloud] = useState(() => {
@@ -5470,6 +5788,43 @@ function App() {
       return false;
     }
   };
+
+  /* ---------- Chat ao vivo ---------- */
+  const myChat = online ? mine.chats || null : chatLocal;
+  const chatsView = online
+    ? (cloud.isAdmin ? all.chats || [] : mine.chats ? [mine.chats] : [])
+    : chatLocal ? [{ uid: "local", ...chatLocal }] : [];
+  /** Lê a conversa, aplica a mudança e grava (uma escrita por vez) */
+  const writeChat = async (uid, fn) => {
+    if (!online) {
+      const next = fn(chatLocal || {});
+      setChatLocal(next);
+      saveJSON("farmaura_chat_v1", next);
+      return true;
+    }
+    try {
+      const ref = cloud.db.doc(`chats/${uid}`);
+      const snap = await ref.get();
+      const cur = snap.exists ? snap.data() : {};
+      await ref.set(fn({ ...cur, mensagens: Array.isArray(cur.mensagens) ? cur.mensagens : [] }));
+      return true;
+    } catch (e) {
+      cloudFail(e, "a mensagem do chat");
+      return false;
+    }
+  };
+  const chatMsg = (from, text) => ({ id: `${from[0]}${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}`, from, text, at: new Date().toISOString() });
+  /** Cliente manda mensagem */
+  const sendChat = (text, who) =>
+    writeChat(online ? cloud.uid : "local", (d) => {
+      const m = chatMsg("cliente", text);
+      return {
+        ...d, name: d.name || who.name || "Visitante", email: d.email || who.email || "",
+        mensagens: [...(d.mensagens || []), m], ultimaEm: m.at, lidoPeloClienteEm: m.at,
+      };
+    });
+  const readChatCliente = () =>
+    writeChat(online ? cloud.uid : "local", (d) => ({ ...d, lidoPeloClienteEm: new Date().toISOString() }));
 
   /** Cadastro do cliente */
   const saveProfile = async (p) => {
@@ -5839,6 +6194,21 @@ function App() {
       });
       notify("Mensagem excluída");
     },
+    replyChat: (uid, text) =>
+      writeChat(uid, (d) => {
+        const m = chatMsg("equipe", text);
+        return { ...d, mensagens: [...(d.mensagens || []), m], ultimaEm: m.at, lidoPelaEquipeEm: m.at };
+      }),
+    readChat: (uid) => writeChat(uid, (d) => ({ ...d, lidoPelaEquipeEm: new Date().toISOString() })),
+    deleteChat: async (uid) => {
+      if (!online) {
+        setChatLocal(null);
+        try { window.localStorage.removeItem("farmaura_chat_v1"); } catch { /* ignora */ }
+      } else {
+        try { await cloud.db.doc(`chats/${uid}`).delete(); } catch (e) { cloudFail(e, "a exclusão"); return; }
+      }
+      notify("Conversa apagada");
+    },
     deleteClient: async (c) => {
       if (online) {
         if (!c.uid) return;
@@ -5927,6 +6297,7 @@ function App() {
             clients={clientsView}
             messages={messagesView}
             newsletter={newsletterView}
+            chats={chatsView}
             onUpdateStatus={updateOrderStatus}
             onUpdateOrder={updateOrder}
             onDelete={deleteOrder}
@@ -5973,12 +6344,16 @@ function App() {
         notify={notify}
       />
 
+      {view === "store" && (
+        <ChatWidget open={chatOpen} setOpen={setChatOpen} chat={myChat} profile={myProfile} onSend={sendChat} onRead={readChatCliente} />
+      )}
+
       {/* Voltar ao topo */}
-      {showTop && view === "store" && (
+      {showTop && view === "store" && !chatOpen && (
         <button
           onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
           className="fixed z-30 flex h-11 w-11 items-center justify-center rounded-full bg-surface text-stone-800 shadow-lg ring-1 ring-stone-900/10 transition hover:-translate-y-0.5"
-          style={{ right: "calc(1.25rem + env(safe-area-inset-right, 0px))", bottom: "calc(1.25rem + env(safe-area-inset-bottom, 0px))" }}
+          style={{ right: "calc(1.25rem + 0.375rem + env(safe-area-inset-right, 0px))", bottom: "calc(5.75rem + env(safe-area-inset-bottom, 0px))" }}
           aria-label="Voltar ao topo"
         >
           <ArrowUp className="h-5 w-5" />
