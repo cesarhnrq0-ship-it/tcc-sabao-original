@@ -1,0 +1,7 @@
+node_modules/
+publicar/
+publicar-claude/
+versao-antiga/
+versao-anterior-2026-11-11/
+.DS_Store
+*.log

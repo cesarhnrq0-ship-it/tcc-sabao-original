@@ -1,0 +1,29 @@
+{
+  "name": "farmaura",
+  "private": true,
+  "version": "2.0.0",
+  "type": "module",
+  "description": "Farmaura — e-commerce de dermocosméticos (TCC SENAI)",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build && node scripts/pos-build.mjs",
+    "build:claude": "vite build --mode claude && node scripts/pos-build.mjs claude",
+    "preview": "vite preview --outDir publicar --port 4173",
+    "imagens": "node scripts/otimizar-imagens.mjs"
+  },
+  "dependencies": {
+    "qrcode-generator": "^1.4.4",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@babel/parser": "^7.28.5",
+    "@babel/traverse": "^7.28.5",
+    "@vitejs/plugin-react": "^4.7.0",
+    "autoprefixer": "^10.4.21",
+    "postcss": "^8.5.6",
+    "sharp": "^0.35.5",
+    "tailwindcss": "^3.4.17",
+    "vite": "^6.4.6"
+  }
+}

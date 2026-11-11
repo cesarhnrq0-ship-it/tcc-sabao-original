@@ -1,0 +1,29 @@
+rules_version = '2';
+
+// Regras do banco de dados da Farmaura (Firestore)
+// Cole este texto em: Firebase > Firestore Database > Regras > Publicar
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // E-mails da equipe (os mesmos da lista FIREBASE_ADMINS no site)
+    function isTeam() {
+      return request.auth != null
+        && request.auth.token.email != null
+        && request.auth.token.email.lower() in ['farmaurainc@gmail.com'];
+    }
+
+    // Preços, estoque, cupons, regras e avaliações aprovadas: todos leem, só a equipe altera
+    match /loja/{doc} {
+      allow read: if true;
+      allow write: if isTeam();
+    }
+
+    // Cadastro, pedidos, doações, mensagens, chat e avaliações: um documento por pessoa.
+    // Cada pessoa lê e grava só o próprio; a equipe lê e altera todos.
+    match /{colecao}/{pessoa} {
+      allow read, write: if colecao in ['clientes', 'pedidos', 'doacoes', 'mensagens', 'chats', 'avaliacoes']
+        && request.auth != null
+        && (request.auth.uid == pessoa || isTeam());
+    }
+  }
+}

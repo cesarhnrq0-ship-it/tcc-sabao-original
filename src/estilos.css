@@ -1,0 +1,75 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Cores e fontes da marca (padrão). O painel Admin > Aparência grava outras no <html>. */
+:root{--destaque:200 241 105;--destaque-fg:11 42 31;--banner:11 42 31;--font-titulo:"Fraunces";--font-texto:"DM Sans";--raio:1}
+.skip-link{position:absolute;left:12px;top:-60px;z-index:100;padding:10px 16px;border-radius:999px;background:rgb(var(--ink));color:rgb(var(--ink-fg));font-weight:600;font-size:14px;transition:top .2s}
+.skip-link:focus{top:12px}
+/* Tokens de cor: trocam entre claro e escuro. O painel Aparência sobrescreve os da marca. */
+:root{--stone-50:250 250 249;--stone-100:245 245 244;--stone-200:231 229 228;--stone-300:214 211 209;--stone-400:168 162 158;--stone-500:120 113 108;--stone-600:87 83 78;--stone-700:68 64 60;--stone-800:41 37 36;--stone-900:28 25 23;--stone-950:12 10 9;--emerald-50:236 253 245;--emerald-100:209 250 229;--emerald-200:167 243 208;--emerald-300:110 231 183;--emerald-400:52 211 153;--emerald-500:16 185 129;--emerald-600:5 150 105;--emerald-700:4 120 87;--emerald-800:6 95 70;--emerald-900:6 78 59;--emerald-950:2 44 34;--amber-50:255 251 235;--amber-100:254 243 199;--amber-200:253 230 138;--amber-300:252 211 77;--amber-400:251 191 36;--amber-500:245 158 11;--amber-600:217 119 6;--amber-700:180 83 9;--amber-800:146 64 14;--amber-900:120 53 15;--amber-950:69 26 3;--sky-50:240 249 255;--sky-100:224 242 254;--sky-200:186 230 253;--sky-300:125 211 252;--sky-400:56 189 248;--sky-500:14 165 233;--sky-600:2 132 199;--sky-700:3 105 161;--sky-800:7 89 133;--sky-900:12 74 110;--sky-950:8 47 73;--rose-50:255 241 242;--rose-100:255 228 230;--rose-200:254 205 211;--rose-300:253 164 175;--rose-400:251 113 133;--rose-500:244 63 94;--rose-600:225 29 72;--rose-700:190 18 60;--rose-800:159 18 57;--rose-900:136 19 55;--rose-950:76 5 25;--violet-50:245 243 255;--violet-100:237 233 254;--violet-200:221 214 254;--violet-300:196 181 253;--violet-400:167 139 250;--violet-500:139 92 246;--violet-600:124 58 237;--violet-700:109 40 217;--violet-800:91 33 182;--violet-900:76 29 149;--violet-950:46 16 101;--lime-50:247 254 231;--lime-100:236 252 203;--lime-200:217 249 157;--lime-300:190 242 100;--lime-400:163 230 53;--lime-500:132 204 22;--lime-600:101 163 13;--lime-700:77 124 15;--lime-800:63 98 18;--lime-900:54 83 20;--lime-950:26 46 5;--page:250 248 243;--surface:255 255 255;--ink:28 25 23;--ink-fg:255 255 255;color-scheme:light}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]):not(.theme-light){--stone-50:29 33 31;--stone-100:35 40 37;--stone-200:46 52 49;--stone-300:62 69 65;--stone-400:108 115 111;--stone-500:153 160 155;--stone-600:181 186 181;--stone-700:205 209 204;--stone-800:224 227 222;--stone-900:238 240 234;--stone-950:247 248 244;--emerald-50:14 36 29;--emerald-100:12 46 36;--emerald-200:10 69 52;--emerald-300:110 231 183;--emerald-400:52 211 153;--emerald-500:16 185 129;--emerald-600:16 185 129;--emerald-700:52 211 153;--emerald-800:110 231 183;--emerald-900:6 95 70;--emerald-950:2 44 34;--amber-50:46 29 17;--amber-100:63 35 17;--amber-200:101 49 15;--amber-300:252 211 77;--amber-400:251 191 36;--amber-500:245 158 11;--amber-600:245 158 11;--amber-700:251 191 36;--amber-800:252 211 77;--amber-900:146 64 14;--amber-950:69 26 3;--sky-50:16 35 44;--sky-100:15 44 59;--sky-200:10 65 93;--sky-300:125 211 252;--sky-400:56 189 248;--sky-500:14 165 233;--sky-600:14 165 233;--sky-700:56 189 248;--sky-800:125 211 252;--sky-900:7 89 133;--sky-950:8 47 73;--rose-50:50 20 28;--rose-100:71 20 35;--rose-200:109 19 43;--rose-300:253 164 175;--rose-400:251 113 133;--rose-500:244 63 94;--rose-600:244 63 94;--rose-700:251 113 133;--rose-800:253 164 175;--rose-900:159 18 57;--rose-950:76 5 25;--violet-50:34 23 55;--violet-100:44 24 77;--violet-200:65 28 125;--violet-300:196 181 253;--violet-400:167 139 250;--violet-500:139 92 246;--violet-600:139 92 246;--violet-700:167 139 250;--violet-800:196 181 253;--violet-900:91 33 182;--violet-950:46 16 101;--lime-50:27 38 19;--lime-100:34 48 19;--lime-200:47 71 18;--lime-300:190 242 100;--lime-400:163 230 53;--lime-500:132 204 22;--lime-600:132 204 22;--lime-700:163 230 53;--lime-800:190 242 100;--lime-900:63 98 18;--lime-950:26 46 5;--page:17 20 18;--surface:24 28 26;--ink:236 239 232;--ink-fg:17 20 18;color-scheme:dark}}
+:root[data-theme="dark"]:not(.theme-light),:root.theme-dark{--stone-50:29 33 31;--stone-100:35 40 37;--stone-200:46 52 49;--stone-300:62 69 65;--stone-400:108 115 111;--stone-500:153 160 155;--stone-600:181 186 181;--stone-700:205 209 204;--stone-800:224 227 222;--stone-900:238 240 234;--stone-950:247 248 244;--emerald-50:14 36 29;--emerald-100:12 46 36;--emerald-200:10 69 52;--emerald-300:110 231 183;--emerald-400:52 211 153;--emerald-500:16 185 129;--emerald-600:16 185 129;--emerald-700:52 211 153;--emerald-800:110 231 183;--emerald-900:6 95 70;--emerald-950:2 44 34;--amber-50:46 29 17;--amber-100:63 35 17;--amber-200:101 49 15;--amber-300:252 211 77;--amber-400:251 191 36;--amber-500:245 158 11;--amber-600:245 158 11;--amber-700:251 191 36;--amber-800:252 211 77;--amber-900:146 64 14;--amber-950:69 26 3;--sky-50:16 35 44;--sky-100:15 44 59;--sky-200:10 65 93;--sky-300:125 211 252;--sky-400:56 189 248;--sky-500:14 165 233;--sky-600:14 165 233;--sky-700:56 189 248;--sky-800:125 211 252;--sky-900:7 89 133;--sky-950:8 47 73;--rose-50:50 20 28;--rose-100:71 20 35;--rose-200:109 19 43;--rose-300:253 164 175;--rose-400:251 113 133;--rose-500:244 63 94;--rose-600:244 63 94;--rose-700:251 113 133;--rose-800:253 164 175;--rose-900:159 18 57;--rose-950:76 5 25;--violet-50:34 23 55;--violet-100:44 24 77;--violet-200:65 28 125;--violet-300:196 181 253;--violet-400:167 139 250;--violet-500:139 92 246;--violet-600:139 92 246;--violet-700:167 139 250;--violet-800:196 181 253;--violet-900:91 33 182;--violet-950:46 16 101;--lime-50:27 38 19;--lime-100:34 48 19;--lime-200:47 71 18;--lime-300:190 242 100;--lime-400:163 230 53;--lime-500:132 204 22;--lime-600:132 204 22;--lime-700:163 230 53;--lime-800:190 242 100;--lime-900:63 98 18;--lime-950:26 46 5;--page:17 20 18;--surface:24 28 26;--ink:236 239 232;--ink-fg:17 20 18;color-scheme:dark}
+.palette-light{--stone-50:250 250 249;--stone-100:245 245 244;--stone-200:231 229 228;--stone-300:214 211 209;--stone-400:168 162 158;--stone-500:120 113 108;--stone-600:87 83 78;--stone-700:68 64 60;--stone-800:41 37 36;--stone-900:28 25 23;--stone-950:12 10 9;--emerald-50:236 253 245;--emerald-100:209 250 229;--emerald-200:167 243 208;--emerald-300:110 231 183;--emerald-400:52 211 153;--emerald-500:16 185 129;--emerald-600:5 150 105;--emerald-700:4 120 87;--emerald-800:6 95 70;--emerald-900:6 78 59;--emerald-950:2 44 34;--amber-50:255 251 235;--amber-100:254 243 199;--amber-200:253 230 138;--amber-300:252 211 77;--amber-400:251 191 36;--amber-500:245 158 11;--amber-600:217 119 6;--amber-700:180 83 9;--amber-800:146 64 14;--amber-900:120 53 15;--amber-950:69 26 3;--sky-50:240 249 255;--sky-100:224 242 254;--sky-200:186 230 253;--sky-300:125 211 252;--sky-400:56 189 248;--sky-500:14 165 233;--sky-600:2 132 199;--sky-700:3 105 161;--sky-800:7 89 133;--sky-900:12 74 110;--sky-950:8 47 73;--rose-50:255 241 242;--rose-100:255 228 230;--rose-200:254 205 211;--rose-300:253 164 175;--rose-400:251 113 133;--rose-500:244 63 94;--rose-600:225 29 72;--rose-700:190 18 60;--rose-800:159 18 57;--rose-900:136 19 55;--rose-950:76 5 25;--violet-50:245 243 255;--violet-100:237 233 254;--violet-200:221 214 254;--violet-300:196 181 253;--violet-400:167 139 250;--violet-500:139 92 246;--violet-600:124 58 237;--violet-700:109 40 217;--violet-800:91 33 182;--violet-900:76 29 149;--violet-950:46 16 101;--lime-50:247 254 231;--lime-100:236 252 203;--lime-200:217 249 157;--lime-300:190 242 100;--lime-400:163 230 53;--lime-500:132 204 22;--lime-600:101 163 13;--lime-700:77 124 15;--lime-800:63 98 18;--lime-900:54 83 20;--lime-950:26 46 5;--page:250 248 243;--surface:255 255 255;--ink:28 25 23;--ink-fg:255 255 255;color-scheme:light}
+html{scroll-behavior:smooth}
+body{background:rgb(var(--page));color:rgb(var(--stone-800))}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:50;background:rgb(var(--page))}
+header.sticky{top:env(safe-area-inset-top,0px)!important}
+#boot{display:flex;min-height:60vh;align-items:center;justify-content:center;font:500 14px system-ui;color:rgb(var(--stone-600));padding:16px;text-align:center}
+::selection{background:rgb(var(--emerald-200));color:rgb(var(--emerald-900))}
+:focus-visible{outline:2px solid rgb(var(--emerald-600));outline-offset:2px;border-radius:6px}
+@keyframes bump{0%{transform:scale(1)}40%{transform:scale(1.22)}100%{transform:scale(1)}}
+.cart-bump{animation:bump .45s ease}
+@keyframes floatSoft{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+.float-soft{animation:floatSoft 5s ease-in-out infinite}
+@keyframes toastIn{from{transform:translate(-50%,12px);opacity:.4}to{transform:translate(-50%,0);opacity:1}}
+.toast-in{animation:toastIn .25s ease-out}
+@keyframes pageIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.page-in{animation:pageIn .35s ease-out both}
+/* ---- Reformulação visual: utilitários de destaque ---- */
+.text-gradient{background:linear-gradient(100deg,rgb(var(--destaque)) 0%,rgb(var(--emerald-300)) 45%,rgb(var(--amber-300)) 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.btn-glow{box-shadow:0 10px 30px -8px rgb(var(--destaque) / .55),inset 0 1px 0 rgba(255,255,255,.4)}
+.btn-glow:hover{box-shadow:0 14px 36px -6px rgb(var(--destaque) / .75),inset 0 1px 0 rgba(255,255,255,.4)}
+.grain::after{content:"";position:absolute;inset:0;pointer-events:none;opacity:.07;mix-blend-mode:overlay;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+.grid-lines{background-image:linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px);background-size:56px 56px;-webkit-mask-image:radial-gradient(ellipse at 60% 40%,#000 20%,transparent 75%);mask-image:radial-gradient(ellipse at 60% 40%,#000 20%,transparent 75%)}
+@keyframes marquee{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+.marquee{display:flex;width:max-content;animation:marquee 38s linear infinite}
+.marquee-fast{animation-duration:26s}
+.marquee-wrap:hover .marquee,.letreiro-pausado .marquee{animation-play-state:paused!important}
+.marquee-lento{animation-duration:55s}
+.texto-vazado{color:transparent;-webkit-text-stroke:1.5px rgb(255 255 255 / .55)}
+@keyframes orb{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(18px,-22px) scale(1.06)}}
+.orb{animation:orb 12s ease-in-out infinite}
+@keyframes spinSlow{to{transform:rotate(360deg)}}
+.spin-slow{animation:spinSlow 22s linear infinite}
+@keyframes shine{from{transform:translateX(-120%) skewX(-20deg)}to{transform:translateX(320%) skewX(-20deg)}}
+.shine{position:relative;overflow:hidden}
+.shine::before{content:"";position:absolute;inset:0 auto 0 0;width:35%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.45),transparent);transform:translateX(-120%) skewX(-20deg);pointer-events:none}
+.shine:hover::before{animation:shine .9s ease}
+.reveal-on [data-reveal]{opacity:0;transform:translateY(28px);transition:opacity .7s ease,transform .7s cubic-bezier(.2,.7,.2,1)}
+.reveal-on [data-reveal].is-in{opacity:1;transform:none}
+.card-lift{transition:transform .35s cubic-bezier(.2,.7,.2,1),box-shadow .35s ease}
+.card-lift:hover{transform:translateY(-6px)}
+@media print{body *{visibility:hidden}.print-area,.print-area *{visibility:visible}.print-area{position:absolute;left:0;top:0;width:100%}.no-print{display:none!important}}
+/* Menos movimento (Windows/celular com animações desligadas): tudo para, MENOS os letreiros,
+   que continuam passando e têm botão de pausar (WCAG 2.2.2) */
+@media (prefers-reduced-motion: reduce){*:not(.marquee){transition:none!important;animation:none!important;scroll-behavior:auto!important}}
+
+/* ---- Painel Aparência: cantos e animações ---- */
+.cantos-medio [class*="rounded-["],.cantos-medio .rounded-3xl{border-radius:1rem!important}
+.cantos-medio .rounded-2xl{border-radius:.75rem!important}
+.cantos-reto [class*="rounded-["],.cantos-reto .rounded-3xl,.cantos-reto .rounded-2xl,.cantos-reto .rounded-xl{border-radius:.375rem!important}
+.cantos-reto [class*=" px-"].rounded-full,.cantos-reto [class*=" px-"][class*="rounded-full "]{border-radius:.375rem!important}
+.sem-animacao .marquee,.sem-animacao .orb,.sem-animacao .spin-slow,.sem-animacao .float-soft{animation:none!important}
+.sem-animacao.reveal-on [data-reveal]{opacity:1;transform:none;transition:none}
+.numero-deco::before{content:attr(data-numero)}
+
+/* ---- Letreiros parados (Painel > Aparência > Letreiros e faixas) ---- */
+.letreiros-parados .marquee{animation:none!important;width:auto}
+.letreiros-parados .marquee>div{flex-wrap:wrap;justify-content:center;flex-shrink:1;width:100%;row-gap:.25rem}
+.letreiros-parados .marquee>div:nth-child(n+2){display:none}
+.letreiros-parados .letreiro-topo .marquee>div>span:nth-child(n+2){display:none}
+.letreiros-parados .letreiro-topo .marquee>div>span>span:last-child{display:none}
+.letreiros-parados .botao-pausar{display:none}
+.letreiros-parados .letreiro-topo{padding-right:0}
+.letreiros-parados #inicio .marquee>div>span{font-size:1.875rem;padding:0 1rem;gap:1rem}

@@ -1,0 +1,89 @@
+FARMAURA - Site de e-commerce (TCC) - VERSÃO 2
+
+O QUE MUDOU NESTA VERSÃO
+- Visual novo: topo escuro com produto em destaque, faixas animadas, "Compre por linha",
+  cards maiores com preço promocional em destaque e newsletter em destaque no rodapé.
+- Site muito mais rápido: o código agora é compilado antes de publicar (antes o navegador
+  baixava o Babel e compilava 8.000 linhas a cada visita). Medição local:
+  1,74 MB -> 0,25 MB baixados na primeira visita; fotos em WebP (691 KB -> 277 KB).
+  O painel admin só é baixado quando alguém abre o painel.
+- Painel Admin > APARÊNCIA (novo): muda cores (6 temas prontos), fontes, cantos, formato
+  das fotos, tema claro/escuro padrão, avisos do topo, textos do banner, faixa de benefícios,
+  "Sobre", newsletter, contato/WhatsApp/Instagram e a ORDEM das seções da página.
+  Tem prévia ao vivo, botão "Descartar", backup em arquivo e "Restaurar visual padrão".
+- Novidades para o cliente:
+  * Busca com sugestões enquanto digita (com foto e preço; funciona pelo teclado).
+  * Comparador: marque "Comparar" em 2 ou 3 produtos e veja lado a lado.
+  * Vistos recentemente.
+  * Lista de favoritos compartilhável por link (Favoritos > "Compartilhar minha lista").
+  * Frete por CEP na página do produto e no checkout (endereço preenchido sozinho pelo CEP).
+    Valor e prazo de cada região: Painel > Configurações > Frete.
+  * Botões de compartilhar e "Tirar dúvida no WhatsApp" na página do produto.
+  * QR Code do site no rodapé (com botão para baixar) e na folha de QR Codes do painel.
+- Qualidade: código dividido em módulos (pasta src/), 0 erros de acessibilidade WCAG 2.1 AA
+  no teste automático (axe), SEO (descrição, imagem de compartilhamento para WhatsApp,
+  dados de produto para o Google), senha do painel guardada como hash e não mais em texto.
+
+ARQUIVOS
+- src/                -> o código do site (veja CLAUDE.md para o mapa de cada arquivo).
+- imagens/            -> fotos ORIGINAIS dos produtos (.jpg). Trocou uma foto? Rode "npm run imagens".
+- public/             -> arquivos copiados como estão (fotos WebP, ícone, imagem de compartilhamento).
+- publicar/           -> o SITE PRONTO para o GitHub Pages (gerado pelo "npm run build").
+- publicar-claude/    -> o site em UM arquivo só, para publicar no Claude ("npm run build:claude").
+- index.html (raiz)   -> esqueleto usado na compilação. NÃO é o site pronto.
+- rodar-site.bat      -> abre o site no navegador para testar (atualiza sozinho ao salvar o código).
+- gerar-site.bat      -> gera as pastas publicar/ e publicar-claude/ (para testar ou publicar no Claude).
+- enviar-para-github.bat -> envia o código para o GitHub; o site é publicado sozinho.
+- firestore.rules     -> regras de segurança recomendadas para o Firestore.
+- versao-anterior-2026-11-11/ -> cópia de segurança da versão 1 (o index.html antigo).
+
+PRIMEIRA VEZ NO COMPUTADOR
+1. Instale o Node.js (versão 20 ou mais nova): https://nodejs.org
+2. Dois cliques em rodar-site.bat (na primeira vez ele instala tudo sozinho).
+
+PUBLICAR NO GITHUB PAGES (automático)
+Esta pasta é uma cópia (clone) do repositório github.com/cesarhnrq0-ship-it/tcc-sabao-original.
+O GitHub compila e publica o site sozinho a cada envio (arquivo .github/workflows/publicar.yml).
+1. UMA VEZ SÓ, antes do primeiro envio: no GitHub, abra o repositório > Settings > Pages >
+   Build and deployment > Source: escolha "GitHub Actions".
+2. Para enviar: dois cliques em enviar-para-github.bat (na primeira vez o Windows abre o
+   navegador para você entrar na sua conta do GitHub).
+3. Acompanhe na aba "Actions" do repositório. Em 1 a 2 minutos o site atualiza.
+Sem o passo 1 o site antigo continua no ar, mas a versão nova não é publicada.
+
+MUDAR O VISUAL SEM PROGRAMAR
+Painel Admin > aba "Aparência". Mexa, confira a prévia e clique em "Salvar alterações".
+Com o Firebase ligado, todos os clientes veem a mudança na hora (sem publicar de novo).
+
+CADASTROS DE EXEMPLO
+- Painel Admin > Configurações > "Carregar exemplos" grava 24 clientes com pedidos dos
+  últimos 3 meses, mensagens, inscrições e doações (não mexem no estoque).
+- Eles aparecem com o selo "Exemplo" na lista de clientes. "Apagar exemplos" remove tudo.
+
+CHAT AO VIVO
+- O cliente conversa pelo balão verde no canto da loja; a equipe responde em Painel Admin > "Chat".
+
+BANCO DE DADOS: Firebase, projeto "tcc-sabao"
+Coleções: loja, clientes, pedidos, doacoes, mensagens, chats, avaliacoes.
+(loja/config guarda preços, estoque, cupons e a aparência; loja/avaliacoes guarda as avaliações aprovadas)
+
+A) Regras abertas (allow read, write: if true)
+   - ATENÇÃO: qualquer pessoa na internet consegue ler, alterar e apagar os dados.
+     Bom para testar e apresentar, não para clientes reais.
+
+B) Recomendado: Firestore + Authentication + firestore.rules
+   1. Authentication > Método de login: ligue "Anônimo" e "E-mail/senha".
+      (Hoje o login anônimo parece DESLIGADO: o Firebase responde "400" ao site.)
+   2. Authentication > Usuários > Adicionar usuário: farmaurainc@gmail.com + senha forte.
+   3. Firestore > Regras: cole o firestore.rules e publique.
+   4. Authentication > Configurações > Domínios autorizados: adicione seuusuario.github.io
+   - Clientes criam conta com senha; cada um só vê os próprios dados e conversas.
+   - Painel Admin com o e-mail e a senha da equipe.
+
+SENHA DO PAINEL (modo sem login do Firebase)
+- Padrão: farmaura2026. Troque em Painel Admin > Configurações > Senha.
+- A senha agora é guardada como "hash" (resumo criptográfico). Lojas antigas que tinham a senha
+  em texto são convertidas automaticamente na primeira vez que a equipe entra no painel.
+
+PAGAMENTO VIA PIX: chave configurável em Painel Admin > Configurações.
+CUPONS PADRÃO: BEMVINDO10 (10%), WAYFARER15 (15%), VERAO20 (R$ 20 acima de R$ 150)
