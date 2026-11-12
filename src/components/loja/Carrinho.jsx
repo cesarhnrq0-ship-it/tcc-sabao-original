@@ -105,7 +105,9 @@ export function CartDrawer({ open, onClose, cart, updateQty, removeItem, onPlace
   };
 
   return (
-    <div className={`fixed inset-0 z-50 ${open ? "" : "pointer-events-none"}`} aria-hidden={!open}>
+    // "inert" tira os botões do carrinho fechado da ordem do Tab (eles continuam no HTML
+    // por causa da animação, mas o teclado e o leitor de tela não chegam mais neles)
+    <div className={`fixed inset-0 z-50 ${open ? "" : "pointer-events-none"}`} aria-hidden={!open} {...(open ? {} : { inert: "" })}>
       {/* Overlay */}
       <div
         className={`absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity duration-300 ${open ? "opacity-100" : "opacity-0"}`}
