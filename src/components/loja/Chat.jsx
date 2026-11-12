@@ -210,7 +210,7 @@ export function ChatWidget({ open, setOpen, chat, profile, onSend, onRead }) {
 
       <button
         onClick={() => setOpen(!open)}
-        className="fixed z-40 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-900 text-white shadow-xl shadow-emerald-900/30 transition hover:scale-105 max-sm:data-[open=true]:hidden"
+        className="fixed z-40 flex h-12 w-12 items-center sm:h-14 sm:w-14 justify-center rounded-full bg-emerald-900 text-white shadow-xl shadow-emerald-900/30 transition hover:scale-105 max-sm:data-[open=true]:hidden"
         data-open={open}
         style={{ right: "max(1.25rem, env(safe-area-inset-right, 0px))", bottom: "calc(1.25rem + env(safe-area-inset-bottom, 0px))" }}
         aria-label={open ? "Fechar chat" : unread ? `Abrir chat (${unread} ${unread === 1 ? "nova mensagem" : "novas mensagens"})` : "Abrir chat com a Farmaura"}

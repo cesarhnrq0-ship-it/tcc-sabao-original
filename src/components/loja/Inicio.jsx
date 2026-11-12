@@ -27,14 +27,14 @@ export function Hero({ onShop, onAbout }) {
       <div className="pointer-events-none absolute bottom-0 left-1/3 -z-10 h-64 w-96 rounded-full bg-amber-300/10 blur-3xl" />
 
       <div className="relative mx-auto grid max-w-7xl items-center gap-14 px-4 pb-24 pt-12 sm:px-6 md:pt-16 lg:grid-cols-[1.1fr_1fr] lg:px-8 lg:pb-28 lg:pt-20">
-        <div className="page-in">
+        <div className="page-in min-w-0">
           {h.selo === "auto" && launch && (
             <button
               onClick={() => nav.openPage(launch.id)}
-              className="group inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 py-1 pl-1 pr-4 text-xs font-semibold text-white/90 backdrop-blur transition hover:border-destaque/60 hover:bg-white/10"
+              className="group inline-flex max-w-full items-center gap-2 rounded-full border border-white/15 bg-white/5 py-1 pl-1 pr-4 text-xs font-semibold text-white/90 backdrop-blur transition hover:border-destaque/60 hover:bg-white/10"
             >
               <span className="rounded-full bg-destaque px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-destaque-fg">Novo</span>
-              {launch.name} · {launch.variant.split("·")[0].trim()}
+              <span className="truncate">{launch.name} · {launch.variant.split("·")[0].trim()}</span>
               <ArrowRight className="h-3.5 w-3.5 transition group-hover:translate-x-1" />
             </button>
           )}
@@ -57,7 +57,8 @@ export function Hero({ onShop, onAbout }) {
               className="btn-glow shine group inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full bg-destaque px-8 py-4 text-sm font-bold text-destaque-fg transition hover:-translate-y-0.5"
             >
               <ShoppingBag className="h-4 w-4" />
-              {h.botao || "Comprar agora"}{minPrice ? ` · a partir de ${formatBRL(minPrice)}` : ""}
+              {h.botao || "Comprar agora"}
+              {minPrice > 0 && <span className="max-[379px]:hidden">· a partir de {formatBRL(minPrice)}</span>}
               <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
             </button>
             <button
@@ -117,14 +118,16 @@ export function Hero({ onShop, onAbout }) {
             )}
 
             {/* Cartão flutuante de preço */}
-            <div className="float-soft absolute -bottom-10 left-1/2 w-[88%] -translate-x-1/2 rounded-3xl bg-white/95 p-4 text-[#1c1917] shadow-2xl shadow-black/30 backdrop-blur sm:left-auto sm:right-[-1.5rem] sm:w-72 sm:translate-x-0">
+            {/* Posição fica no invólucro; a animação de flutuar fica no cartão (as duas usam "transform" e uma apagava a outra no celular) */}
+            <div className="absolute inset-x-4 -bottom-10 sm:inset-x-auto sm:right-[-1.5rem] sm:w-72">
+            <div className="float-soft rounded-3xl bg-white/95 p-4 text-[#1c1917] shadow-2xl shadow-black/30 backdrop-blur">
               <div className="flex items-center gap-3">
                 <SafeImage src={star.image} alt="" className="h-14 w-14 shrink-0 rounded-2xl object-cover" />
                 <div className="min-w-0">
                   <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-700">{star.badge}</p>
                   <p className="truncate font-semibold">{star.name}</p>
                   <p className="text-sm">
-                    {star.oldPrice && <span className="mr-1.5 text-xs text-stone-400 line-through">{formatBRL(star.oldPrice)}</span>}
+                    {star.oldPrice && <span className="mr-1.5 text-xs text-stone-500 line-through">{formatBRL(star.oldPrice)}</span>}
                     <b>{formatBRL(star.price)}</b>
                   </p>
                 </div>
@@ -140,6 +143,7 @@ export function Hero({ onShop, onAbout }) {
                   ou {formatBRL(star.price * (1 - settings.pixDiscount / 100))} no PIX
                 </p>
               )}
+            </div>
             </div>
 
             <div className="absolute -right-2 top-8 hidden items-center gap-2.5 rounded-2xl bg-banner/80 px-3.5 py-2.5 ring-1 ring-white/15 backdrop-blur sm:flex lg:-right-6">

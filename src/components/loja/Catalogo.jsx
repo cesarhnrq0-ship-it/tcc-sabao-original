@@ -175,7 +175,7 @@ export function ProductCard({ product, onOpen, onAdd, isFav, onToggleFav, notify
             </span>
           )}
           {product.highlights.map(({ icon: Icon, label }) => (
-            <span key={label} className="inline-flex items-center gap-1 rounded-full bg-stone-100 px-2.5 py-1 text-[11px] font-medium text-stone-700">
+            <span key={label} className="inline-flex items-center gap-1 rounded-full bg-stone-100 px-2.5 py-1 text-[11px] font-medium text-stone-700 max-sm:hidden">
               <Icon className="h-3 w-3" /> {label}
             </span>
           ))}
@@ -266,7 +266,7 @@ export function CatalogSection({ catalog, items, onOpen, onAdd, favs, onToggleFa
             <p className="mt-4 text-stone-600 sm:text-lg">{catalog.text}</p>
           </div>
           {/* número decorativo (vem do CSS, leitores de tela ignoram) */}
-          <span className="numero-deco font-serif text-6xl leading-none text-stone-200 sm:text-8xl" data-numero={String(items.length).padStart(2, "0")} aria-hidden="true" />
+          <span className="numero-deco hidden font-serif text-8xl leading-none text-stone-200 md:block" data-numero={String(items.length).padStart(2, "0")} aria-hidden="true" />
         </div>
         <div className={`mt-10 grid gap-5 ${single ? "md:grid-cols-[minmax(0,26rem)_1fr]" : items.length % 4 === 0 ? "sm:grid-cols-2 xl:grid-cols-4" : "sm:grid-cols-2 lg:grid-cols-3"}`}>
           {items.map((p) => (
@@ -323,8 +323,9 @@ export function ProductsSection({ onOpen, onAdd, favs, onToggleFav, notify }) {
       <div className="border-b border-stone-200 bg-surface">
         <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-5 sm:px-6 md:flex-row md:items-center lg:px-8">
           <SearchBox query={query} setQuery={setQuery} products={products} onPick={(p) => nav.openPage(p.id)} />
-          <div className="flex gap-2">
-            <div className="relative flex-1 md:flex-none">
+          {/* No celular: ordenação ocupa a linha inteira e os dois botões dividem a linha de baixo */}
+          <div className="grid grid-cols-2 gap-2 md:flex">
+            <div className="relative col-span-2 md:col-span-1 md:flex-none">
               <select
                 id="ordenar-produtos"
                 value={sort}
@@ -339,7 +340,7 @@ export function ProductsSection({ onOpen, onAdd, favs, onToggleFav, notify }) {
             <button
               onClick={() => setOnlyFavs((v) => !v)}
               aria-pressed={onlyFavs}
-              className={`inline-flex shrink-0 items-center gap-2 rounded-full border px-4 py-3 text-sm font-semibold transition ${
+              className={`inline-flex shrink-0 items-center justify-center gap-2 rounded-full border px-4 py-3 text-sm font-semibold transition ${
                 onlyFavs ? "border-rose-600 bg-rose-600 text-white" : "border-stone-300 text-stone-700 hover:border-stone-500"
               }`}
             >
@@ -349,7 +350,7 @@ export function ProductsSection({ onOpen, onAdd, favs, onToggleFav, notify }) {
             <button
               onClick={() => setShowFilters((v) => !v)}
               aria-expanded={showFilters}
-              className={`inline-flex shrink-0 items-center gap-2 rounded-full border px-4 py-3 text-sm font-semibold transition ${
+              className={`inline-flex shrink-0 items-center justify-center gap-2 rounded-full border px-4 py-3 text-sm font-semibold transition ${
                 showFilters || nFilters ? "border-emerald-700 bg-emerald-50 text-emerald-800" : "border-stone-300 text-stone-700 hover:border-stone-500"
               }`}
             >

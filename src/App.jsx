@@ -1073,7 +1073,7 @@ export function App() {
       {showTop && view === "store" && !chatOpen && (
         <button
           onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-          className="fixed z-30 flex h-11 w-11 items-center justify-center rounded-full bg-surface text-stone-800 shadow-lg ring-1 ring-stone-900/10 transition hover:-translate-y-0.5"
+          className="fixed z-30 flex h-11 w-11 items-center justify-center rounded-full bg-surface max-sm:hidden text-stone-800 shadow-lg ring-1 ring-stone-900/10 transition hover:-translate-y-0.5"
           style={{ right: "calc(1.25rem + 0.375rem + env(safe-area-inset-right, 0px))", bottom: "calc(5.75rem + env(safe-area-inset-bottom, 0px))" }}
           aria-label="Voltar ao topo"
         >
