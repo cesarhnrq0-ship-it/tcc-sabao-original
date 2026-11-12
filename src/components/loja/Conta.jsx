@@ -235,7 +235,10 @@ export function AccountPanel({ open, onClose, profile, onSave, orders, donations
                     </span>
                     <div>
                       <p className="font-semibold text-stone-900">{profile.name}</p>
-                      <p className="text-xs text-stone-500">Cliente desde {new Date(profile.createdAt).toLocaleDateString("pt-BR")}</p>
+                      {/* Cadastro salvo por uma versão antiga pode não ter data: mostrava "Invalid Date" */}
+                      {profile.createdAt && !isNaN(new Date(profile.createdAt)) && (
+                        <p className="text-xs text-stone-500">Cliente desde {new Date(profile.createdAt).toLocaleDateString("pt-BR")}</p>
+                      )}
                     </div>
                   </div>
                   <button onClick={() => setEditing(true)} className="inline-flex items-center gap-1 rounded-full border border-stone-300 px-3 py-1.5 text-xs font-semibold text-stone-700 hover:border-stone-500">

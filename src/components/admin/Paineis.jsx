@@ -257,7 +257,9 @@ export function ReviewsAdminPanel({ reviews, onModerate, onDelete }) {
                         <Stars rating={r.stars} size="h-3.5 w-3.5" />
                         <span className="text-sm font-semibold text-stone-900">{r.name}</span>
                         <span className="text-xs text-stone-400">{formatDateTime(r.createdAt)}</span>
-                        <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ring-1 ${REVIEW_STATUS[r.status].color}`}>{REVIEW_STATUS[r.status].label}</span>
+                        {(() => { const st = REVIEW_STATUS[r.status] || REVIEW_STATUS.pendente; return (
+                          <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ring-1 ${st.color}`}>{st.label}</span>
+                        ); })()}
                       </div>
                       <p className="mt-2 text-sm leading-relaxed text-stone-700">{r.text}</p>
                     </div>
@@ -656,7 +658,8 @@ export function ProductEditor({ product, onClose, onSave, onSaveCustom, onReset,
       price: round2(price),
       oldPrice: oldPrice === null ? null : round2(oldPrice),
       stock,
-      badge: f.badge.trim() || product.badge,
+      // Sem "|| product.badge": deixar o campo vazio tem de apagar o selo
+      badge: f.badge.trim(),
       bestSeller: f.bestSeller,
       active: f.active,
     });
@@ -1038,9 +1041,9 @@ export function SettingsPanel({ onSave, onResetStore, onResetOrders, onLoadDemo,
                       </td>
                       <td className="px-2 py-1.5">
                         <span className="inline-flex items-center gap-1">
-                          <input aria-label={`Prazo mínimo ${r.label}`} inputMode="numeric" value={reg[r.id].min} onChange={(e) => setR(r.id, "min", e.target.value.replace(/D/g, ""))} className="w-12 rounded-lg border border-stone-300 bg-page px-2 py-1.5 outline-none focus:border-emerald-700" />
+                          <input aria-label={`Prazo mínimo ${r.label}`} inputMode="numeric" value={reg[r.id].min} onChange={(e) => setR(r.id, "min", e.target.value.replace(/\D/g, ""))} className="w-12 rounded-lg border border-stone-300 bg-page px-2 py-1.5 outline-none focus:border-emerald-700" />
                           a
-                          <input aria-label={`Prazo máximo ${r.label}`} inputMode="numeric" value={reg[r.id].max} onChange={(e) => setR(r.id, "max", e.target.value.replace(/D/g, ""))} className="w-12 rounded-lg border border-stone-300 bg-page px-2 py-1.5 outline-none focus:border-emerald-700" />
+                          <input aria-label={`Prazo máximo ${r.label}`} inputMode="numeric" value={reg[r.id].max} onChange={(e) => setR(r.id, "max", e.target.value.replace(/\D/g, ""))} className="w-12 rounded-lg border border-stone-300 bg-page px-2 py-1.5 outline-none focus:border-emerald-700" />
                         </span>
                       </td>
                     </tr>

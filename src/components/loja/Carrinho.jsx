@@ -107,7 +107,14 @@ export function CartDrawer({ open, onClose, cart, updateQty, removeItem, onPlace
   return (
     // "inert" tira os botões do carrinho fechado da ordem do Tab (eles continuam no HTML
     // por causa da animação, mas o teclado e o leitor de tela não chegam mais neles)
-    <div className={`fixed inset-0 z-50 ${open ? "" : "pointer-events-none"}`} aria-hidden={!open} {...(open ? {} : { inert: "" })}>
+    <div
+      className={`fixed inset-0 z-50 ${open ? "" : "pointer-events-none"}`}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Carrinho de compras"
+      aria-hidden={!open}
+      {...(open ? {} : { inert: "" })}
+    >
       {/* Overlay */}
       <div
         className={`absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity duration-300 ${open ? "opacity-100" : "opacity-0"}`}
@@ -118,8 +125,6 @@ export function CartDrawer({ open, onClose, cart, updateQty, removeItem, onPlace
         className={`absolute right-0 top-0 flex h-full w-full max-w-md flex-col bg-page shadow-2xl transition-transform duration-300 ${
           open ? "translate-x-0" : "translate-x-full"
         }`}
-        role="dialog"
-        aria-label="Carrinho de compras"
       >
         {/* Cabeçalho do drawer */}
         <div className="flex items-center justify-between border-b border-stone-200 px-6 py-5">
@@ -312,29 +317,32 @@ export function CartDrawer({ open, onClose, cart, updateQty, removeItem, onPlace
             <div className="flex-1 space-y-6 overflow-y-auto px-6 py-5">
               <fieldset className="space-y-3">
                 <legend className="mb-2 text-xs font-bold uppercase tracking-wider text-emerald-800">1 · Dados Pessoais</legend>
-                <Field label="Nome Completo" value={form.name} onChange={(v) => set("name", v)} error={errors.name} placeholder="Maria da Silva" />
-                <Field label="E-mail" type="email" value={form.email} onChange={(v) => set("email", v)} error={errors.email} placeholder="maria@email.com" />
-                <Field label="Telefone / WhatsApp" inputMode="tel" value={form.phone} onChange={(v) => set("phone", maskPhone(v))} error={errors.phone} placeholder="(11) 99999-9999" />
+                <Field label="Nome Completo" name="nome" autoComplete="name" value={form.name} onChange={(v) => set("name", v)} error={errors.name} placeholder="Maria da Silva" />
+                <Field label="E-mail" name="email" autoComplete="email" type="email" value={form.email} onChange={(v) => set("email", v)} error={errors.email} placeholder="maria@email.com" />
+                <Field label="Telefone / WhatsApp" name="telefone" autoComplete="tel-national" inputMode="tel" value={form.phone} onChange={(v) => set("phone", maskPhone(v))} error={errors.phone} placeholder="(11) 99999-9999" />
               </fieldset>
 
               <fieldset className="space-y-3">
                 <legend className="mb-2 text-xs font-bold uppercase tracking-wider text-emerald-800">2 · Endereço de Entrega</legend>
                 <div>
-                  <Field label="CEP" inputMode="numeric" value={form.zip} onChange={onCep} error={errors.zip} placeholder="00000-000" />
+                  <Field label="CEP" name="cep" autoComplete="postal-code" inputMode="numeric" value={form.zip} onChange={onCep} error={errors.zip} placeholder="00000-000" />
                   <p className={`mt-1 text-[11px] ${cepStatus.state === "error" ? "text-rose-700" : "text-stone-500"}`} role="status" aria-live="polite">
                     {cepStatus.msg || "Digite o CEP e a gente preenche o endereço."}
                   </p>
                 </div>
                 <div className="grid grid-cols-3 gap-3">
-                  <Field className="col-span-2" label="Rua" value={form.street} onChange={(v) => set("street", v)} error={errors.street} placeholder="Rua das Flores" />
-                  <Field label="Número" value={form.number} onChange={(v) => set("number", v)} error={errors.number} placeholder="123" />
+                  <Field className="col-span-2" label="Rua" name="rua" autoComplete="address-line1" value={form.street} onChange={(v) => set("street", v)} error={errors.street} placeholder="Rua das Flores" />
+                  <Field label="Número" name="numero" autoComplete="address-line2" value={form.number} onChange={(v) => set("number", v)} error={errors.number} placeholder="123" />
                 </div>
-                <Field label="Bairro" value={form.district} onChange={(v) => set("district", v)} error={errors.district} placeholder="Centro" />
+                <Field label="Bairro" name="bairro" autoComplete="address-level3" value={form.district} onChange={(v) => set("district", v)} error={errors.district} placeholder="Centro" />
                 <div className="grid grid-cols-3 gap-3">
-                  <Field className="col-span-2" label="Cidade" value={form.city} onChange={(v) => set("city", v)} error={errors.city} placeholder="São Paulo" />
+                  <Field className="col-span-2" label="Cidade" name="cidade" autoComplete="address-level2" value={form.city} onChange={(v) => set("city", v)} error={errors.city} placeholder="São Paulo" />
                   <label className="block">
                     <span className="mb-1.5 block text-xs font-semibold text-stone-700">Estado</span>
                     <select
+                      id="uf"
+                      name="uf"
+                      autoComplete="address-level1"
                       value={form.state}
                       onChange={(e) => set("state", e.target.value)}
                       className={`w-full rounded-xl border bg-page px-3 py-3 text-sm outline-none focus:ring-2 focus:ring-emerald-700/15 ${
@@ -379,11 +387,11 @@ export function CartDrawer({ open, onClose, cart, updateQty, removeItem, onPlace
                 )}
                 {form.payment === "Cartão de Crédito" && (
                   <div className="space-y-3 rounded-2xl border border-stone-200 bg-surface p-4">
-                    <Field label="Número do Cartão" inputMode="numeric" value={form.cardNumber} onChange={(v) => set("cardNumber", maskCard(v))} error={errors.cardNumber} placeholder="0000 0000 0000 0000" />
-                    <Field label="Nome impresso no cartão" value={form.cardName} onChange={(v) => set("cardName", v.toUpperCase())} error={errors.cardName} placeholder="MARIA D SILVA" />
+                    <Field label="Número do Cartão" name="cartao-numero" autoComplete="cc-number" inputMode="numeric" value={form.cardNumber} onChange={(v) => set("cardNumber", maskCard(v))} error={errors.cardNumber} placeholder="0000 0000 0000 0000" />
+                    <Field label="Nome impresso no cartão" name="cartao-nome" autoComplete="cc-name" value={form.cardName} onChange={(v) => set("cardName", v.toUpperCase())} error={errors.cardName} placeholder="MARIA D SILVA" />
                     <div className="grid grid-cols-2 gap-3">
-                      <Field label="Validade" inputMode="numeric" value={form.cardExpiry} onChange={(v) => set("cardExpiry", maskExpiry(v))} error={errors.cardExpiry} placeholder="MM/AA" />
-                      <Field label="CVV" inputMode="numeric" maxLength={4} value={form.cardCvv} onChange={(v) => set("cardCvv", onlyDigits(v).slice(0, 4))} error={errors.cardCvv} placeholder="123" />
+                      <Field label="Validade" name="cartao-validade" autoComplete="cc-exp" inputMode="numeric" value={form.cardExpiry} onChange={(v) => set("cardExpiry", maskExpiry(v))} error={errors.cardExpiry} placeholder="MM/AA" />
+                      <Field label="CVV" name="cartao-cvv" autoComplete="cc-csc" inputMode="numeric" maxLength={4} value={form.cardCvv} onChange={(v) => set("cardCvv", onlyDigits(v).slice(0, 4))} error={errors.cardCvv} placeholder="123" />
                     </div>
                     <p className="flex items-center gap-1.5 text-[11px] text-stone-500">
                       <ShieldCheck className="h-3.5 w-3.5 text-emerald-700" /> Ambiente simulado: os dados do cartão não são salvos.

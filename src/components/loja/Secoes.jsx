@@ -128,7 +128,7 @@ export function DonationSection({ onDonate, notify }) {
                 </div>
                 {error && <span className="mt-1.5 block text-xs font-medium text-rose-600">{error}</span>}
               </label>
-              <Field label="Seu nome (opcional)" value={name} onChange={setName} maxLength={40} placeholder="Deixe vazio para doar anonimamente" />
+              <Field label="Seu nome (opcional)" name="doacao-nome" autoComplete="name" value={name} onChange={setName} maxLength={40} placeholder="Deixe vazio para doar anonimamente" />
               <label className="block">
                 <span className="mb-1.5 flex justify-between text-xs font-semibold text-stone-700">
                   Recado (opcional) <span className="font-normal tabular-nums text-stone-500">{message.length}/140</span>
@@ -351,7 +351,7 @@ function ContactLinks({ contato }) {
   const ig = safeUrl(contato.instagram);
   const items = [
     contato.email && { icon: Mail, l: contato.email, href: `mailto:${contato.email}` },
-    contato.telefone && { icon: Phone, l: `${contato.telefone}${wa ? " · WhatsApp" : ""}`, href: wa || `tel:${contato.telefone.replace(/D/g, "")}` },
+    contato.telefone && { icon: Phone, l: `${contato.telefone}${wa ? " · WhatsApp" : ""}`, href: wa || `tel:${contato.telefone.replace(/\D/g, "")}` },
     contato.endereco && { icon: MapPin, l: contato.endereco, href: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(contato.endereco)}` },
     ig && { icon: Instagram, l: "Instagram", href: ig },
   ].filter(Boolean);
@@ -406,11 +406,13 @@ export function ContactSection({ notify, onSend, profile }) {
           <ContactLinks contato={contato} />
         </div>
         <form onSubmit={submit} className="space-y-4 rounded-[2rem] border border-stone-200 bg-surface p-6 sm:p-8">
-          <Field label="Nome" value={form.name} onChange={(v) => setForm({ ...form, name: v })} placeholder="Seu nome" />
-          <Field label="E-mail" type="email" value={form.email} onChange={(v) => setForm({ ...form, email: v })} placeholder="voce@email.com" />
+          <Field label="Nome" name="contato-nome" autoComplete="name" value={form.name} onChange={(v) => setForm({ ...form, name: v })} placeholder="Seu nome" />
+          <Field label="E-mail" name="contato-email" autoComplete="email" type="email" value={form.email} onChange={(v) => setForm({ ...form, email: v })} placeholder="voce@email.com" />
           <label className="block">
             <span className="mb-1.5 block text-xs font-semibold text-stone-700">Mensagem</span>
             <textarea
+              id="contato-mensagem"
+              name="contato-mensagem"
               rows={4}
               value={form.message}
               onChange={(e) => setForm({ ...form, message: e.target.value })}
@@ -460,8 +462,8 @@ export function OrderTracker({ orders }) {
           </p>
           <form onSubmit={search} className="mt-8 space-y-3" noValidate>
             <div className="grid gap-3 sm:grid-cols-2">
-              <Field label="Número do pedido" value={code} onChange={(v) => setCode(v.toUpperCase())} placeholder="FA-10422" />
-              <Field label="E-mail da compra" type="email" value={email} onChange={setEmail} placeholder="voce@email.com" />
+              <Field label="Número do pedido" name="rastrear-pedido" value={code} onChange={(v) => setCode(v.toUpperCase())} placeholder="FA-10422" />
+              <Field label="E-mail da compra" name="rastrear-email" autoComplete="email" type="email" value={email} onChange={setEmail} placeholder="voce@email.com" />
             </div>
             <button className="inline-flex items-center gap-2 rounded-full bg-emerald-900 px-6 py-3.5 text-sm font-semibold text-white transition hover:brightness-110">
               <Search className="h-4 w-4" /> Rastrear
@@ -681,7 +683,7 @@ export function Footer({ notify, onNavigate, onSubscribe }) {
         <div className="space-y-3 text-sm">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white">Contato</p>
           {contato.email && <a href={`mailto:${contato.email}`} className="flex items-center gap-2 hover:text-white"><Mail className="h-4 w-4 shrink-0 text-emerald-400" /> {contato.email}</a>}
-          {contato.telefone && <a href={wa || `tel:${contato.telefone.replace(/D/g, "")}`} target={wa ? "_blank" : undefined} rel="noopener noreferrer" className="flex items-center gap-2 hover:text-white"><Phone className="h-4 w-4 shrink-0 text-emerald-400" /> {contato.telefone}{wa ? " · WhatsApp" : ""}</a>}
+          {contato.telefone && <a href={wa || `tel:${contato.telefone.replace(/\D/g, "")}`} target={wa ? "_blank" : undefined} rel="noopener noreferrer" className="flex items-center gap-2 hover:text-white"><Phone className="h-4 w-4 shrink-0 text-emerald-400" /> {contato.telefone}{wa ? " · WhatsApp" : ""}</a>}
           {contato.endereco && <p className="flex items-center gap-2"><MapPin className="h-4 w-4 shrink-0 text-emerald-400" /> {contato.endereco}</p>}
           {ig && <a href={ig} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-white"><Instagram className="h-4 w-4 shrink-0 text-emerald-400" /> Instagram</a>}
           <div className="flex flex-wrap gap-2 pt-2">

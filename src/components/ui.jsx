@@ -262,12 +262,17 @@ export function QtyControl({ qty, onChange, min = 1, max = 20 }) {
 }
 
 /** Campo de formulário reutilizável com mensagem de erro */
-export function Field({ label, value, onChange, error, type = "text", placeholder, className = "", inputMode, maxLength }) {
+// "name" e "autoComplete" são opcionais, mas sem eles o navegador não oferece
+// o preenchimento automático (nome, e-mail, endereço) nos formulários.
+export function Field({ label, value, onChange, error, type = "text", placeholder, className = "", inputMode, maxLength, name, autoComplete, id }) {
   return (
     <label className={`block ${className}`}>
       <span className="mb-1.5 block text-xs font-semibold text-stone-700">{label}</span>
       <input
         type={type}
+        id={id || name}
+        name={name}
+        autoComplete={autoComplete}
         value={value}
         inputMode={inputMode}
         maxLength={maxLength}
@@ -306,10 +311,12 @@ export function KpiCard({ icon: Icon, label, value, sub, tone }) {
 
 /** Badge de status do pedido */
 export function StatusBadge({ status }) {
-  const s = ORDER_STATUS[status];
+  // Pedido gravado por uma versão antiga pode ter status fora da lista:
+  // sem este padrão o painel inteiro quebrava ao tentar ler a cor.
+  const s = ORDER_STATUS[status] || ORDER_STATUS.Recebido;
   return (
     <span className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-1 text-[11px] font-semibold ring-1 ${s.color}`}>
-      <span className={`h-1.5 w-1.5 rounded-full ${s.dot}`} /> {status}
+      <span className={`h-1.5 w-1.5 rounded-full ${s.dot}`} /> {status || "Recebido"}
     </span>
   );
 }

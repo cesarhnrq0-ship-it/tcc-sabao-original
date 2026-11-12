@@ -625,6 +625,14 @@ export function App() {
       return order;
     }
     setOrders((prev) => [order, ...prev]);
+    // Mesmo comportamento do modo online: quem compra sem cadastro fica cadastrado.
+    // Sem isto, "Minha conta" seguia pedindo cadastro e "Meus pedidos" ficava vazio.
+    if (!myProfile) {
+      saveProfile({
+        name: order.customer.name, email: order.customer.email.toLowerCase(), phone: order.customer.phone, newsletter: false,
+        address: { ...order.address },
+      });
+    }
     // Baixa o estoque e conta o uso do cupom
     setStoreData((d) => {
       const products = { ...d.products };
