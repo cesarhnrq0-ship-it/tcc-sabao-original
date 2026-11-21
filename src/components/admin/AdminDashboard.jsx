@@ -804,8 +804,9 @@ export function AdminDashboard({ orders, donations, clients, messages, newslette
                   </thead>
                   <tbody className="divide-y divide-stone-100">
                     {filtered.map((o) => (
-                      <tr key={o.id} className="cursor-pointer align-top transition hover:bg-stone-50/70" onClick={() => setOpenId(o.id)}>
-                        <td className="px-5 py-4">
+                      <tr key={o.id} className="cursor-pointer align-top transition odd:bg-white/[0.025] hover:bg-white/[0.06]" onClick={() => setOpenId(o.id)}>
+                        <td className="relative px-5 py-4">
+                          <span className={`absolute inset-y-3 left-0 w-1 rounded-r-full ${(ORDER_STATUS[o.status] || ORDER_STATUS.Recebido).dot}`} aria-hidden="true" />
                           <p className="font-mono text-xs font-bold text-emerald-800">{o.id}</p>
                           <p className="mt-1 whitespace-nowrap text-xs text-stone-500">{formatDateTime(o.createdAt)}</p>
                           {o.note && <p className="mt-1 inline-flex items-center gap-1 text-[11px] text-stone-500"><StickyNote className="h-3 w-3" /> com nota</p>}
@@ -843,9 +844,11 @@ export function AdminDashboard({ orders, donations, clients, messages, newslette
                 </table>
               </div>
 
-              <ul className="divide-y divide-stone-100 lg:hidden">
+              {/* Celular e tablet: cada pedido num bloco separado, com a cor do status na lateral */}
+              <ul className="space-y-3 p-3 sm:p-4 lg:hidden">
                 {filtered.map((o) => (
-                  <li key={o.id} className="space-y-3 p-5">
+                  <li key={o.id} className="relative space-y-3 overflow-hidden rounded-2xl bg-white/[0.04] p-4 pl-5 vidro-borda shadow-lg shadow-black/20">
+                    <span className={`absolute inset-y-0 left-0 w-1.5 ${(ORDER_STATUS[o.status] || ORDER_STATUS.Recebido).dot}`} aria-hidden="true" />
                     <button onClick={() => setOpenId(o.id)} className="w-full space-y-3 text-left">
                       <div className="flex items-start justify-between gap-3">
                         <div>
