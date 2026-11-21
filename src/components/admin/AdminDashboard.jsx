@@ -1,10 +1,11 @@
 import React, { useMemo, useState } from "react";
 import { AparenciaPanel } from "./AparenciaPanel";
+import { TelaApresentacao, tocarAviso, useNovosPedidos } from "./Apresentacao";
 import { ChatAdminPanel, CouponsPanel, DonationsPanel, MessagesPanel, OrderDetail, ProductEditor, QrSheetModal, RevenueChart, ReviewsAdminPanel, SettingsPanel, StockMovements } from "./Paineis";
 import { ConfirmInline, KpiCard, SafeImage, StatusBadge, StatusSelect, StockBadge, Switch } from "../ui";
 import { CATEGORY_LABELS, ORDER_STATUS, PAYMENT_METHODS } from "../../data/catalogo";
 import { useCloud, useStore } from "../../lib/contextos";
-import { Leaf, Sparkles, AlertTriangle, BarChart, ChevronRight, Clock, Copy, Database, DollarSign, Gift, Heart, Inbox, LogOut, Mail, MessageCircle, Minus, Package, PenLine, Plus, QrCode, Search, Settings, ShoppingBag, Star, StickyNote, Store, Tag, Trash2, User, Users } from "../../lib/icones";
+import { Leaf, Play, Sparkles, AlertTriangle, BarChart, ChevronRight, Clock, Copy, Database, DollarSign, Gift, Heart, Inbox, LogOut, Mail, MessageCircle, Minus, Package, PenLine, Plus, QrCode, Search, Settings, ShoppingBag, Star, StickyNote, Store, Tag, Trash2, User, Users } from "../../lib/icones";
 import { PAYMENT_GROUP, chatUnread, formatBRL, formatDateTime, normalize, ordersToCSV } from "../../lib/util";
 
 /** "agora", "há 5 min", "há 3 h", "há 2 dias" ou a data */
@@ -65,7 +66,7 @@ function GraficoLinha({ pontos, rotulos, formatar }) {
   const area = xy.length ? `${linha} L${xy[xy.length - 1][0]},${H} L${xy[0][0]},${H} Z` : "";
   return (
     <div className="mt-6">
-      <div className="relative">
+      <div className="relative overflow-x-clip">
         <svg viewBox={`0 0 ${W} ${H}`} className="h-52 w-full overflow-visible" preserveAspectRatio="none" role="img" aria-label={`Gráfico: ${pontos.map((v, i) => `${rotulos[i] || i + 1}: ${formatar(v)}`).join("; ")}`}>
           <defs>
             <linearGradient id={`area-${id}`} x1="0" y1="0" x2="0" y2="1">
@@ -143,6 +144,20 @@ export function AdminDashboard({ orders, donations, clients, messages, newslette
   const [tab, setTab] = useState("visao");
   // Cada aba começa do topo (o menu lateral fica parado)
   React.useEffect(() => { window.scrollTo({ top: 0 }); }, [tab]);
+
+  /* ---------- Novo pedido: aviso e som; modo apresentação (TCC) ---------- */
+  const [apresentando, setApresentando] = useState(false);
+  const [som, setSomState] = useState(() => { try { return window.localStorage.getItem("farmaura_som_pedidos") !== "0"; } catch { return true; } });
+  const setSom = (fn) => setSomState((v) => {
+    const next = typeof fn === "function" ? fn(v) : fn;
+    try { window.localStorage.setItem("farmaura_som_pedidos", next ? "1" : "0"); } catch { /* ignora */ }
+    return next;
+  });
+  useNovosPedidos(orders, (o) => {
+    if (apresentando) return; // a tela da apresentação tem o próprio aviso
+    notify(`Novo pedido ${o.id} · ${o.customer.name.split(" ")[0]} · ${formatBRL(o.total)}`);
+    if (som) tocarAviso();
+  });
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("Todos");
   const [paymentFilter, setPaymentFilter] = useState("Todos");
@@ -424,6 +439,9 @@ export function AdminDashboard({ orders, donations, clients, messages, newslette
                 ))}
               </div>
             )}
+            <button onClick={() => setApresentando(true)} className="inline-flex items-center gap-1.5 rounded-xl bg-destaque px-3 py-2 text-xs font-semibold text-destaque-fg btn-glow transition hover:brightness-105">
+              <Play className="h-3.5 w-3.5" /> Apresentação
+            </button>
             {cloud.status === "online" ? (
               <span className="inline-flex items-center gap-2 rounded-xl bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-800">
                 <span className="relative flex h-2 w-2">
@@ -443,7 +461,7 @@ export function AdminDashboard({ orders, donations, clients, messages, newslette
           </div>
 
           {/* Abas no celular e tablet (no computador, o menu lateral) */}
-          <div className="-mx-1 overflow-x-auto px-1 lg:hidden">
+          <div className="overflow-x-auto lg:hidden">
             <div className="flex min-w-max gap-1 rounded-2xl bg-surface vidro-borda p-1">
               {[...TABS, { id: "__loja", label: "Ver a loja", icon: Store }].map(({ id, label, icon: Icon, count, warn }) => (
                 <button
@@ -1081,6 +1099,17 @@ export function AdminDashboard({ orders, donations, clients, messages, newslette
         <SettingsPanel onSave={actions.saveSettings} onResetStore={actions.resetStore} onResetOrders={actions.resetOrders} onLoadDemo={actions.loadDemo} onClearDemo={actions.clearDemo} demoCount={clients.filter((c) => c.demo).length} notify={notify} />
       )}
 
+      {apresentando && (
+        <TelaApresentacao
+          orders={orders}
+          onClose={() => setApresentando(false)}
+          onLoadDemo={actions.loadDemo}
+          onClearDemo={actions.clearDemo}
+          demoCount={clients.filter((c) => c.demo).length}
+          som={som}
+          setSom={setSom}
+        />
+      )}
       {openOrder && (
         <OrderDetail
           key={openOrder.id}

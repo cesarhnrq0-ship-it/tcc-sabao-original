@@ -54,7 +54,7 @@ export function Logo({ light = false }) {
 }
 
 /** QR Code do PIX (desenhado em SVG, sempre preto no branco para o banco conseguir ler) */
-export function PixQR({ payload, size = 196 }) {
+export function PixQR({ payload, size = 196, label = "QR Code para pagar com PIX" }) {
   const qr = useMemo(() => {
     if (typeof window.qrcode !== "function") return null;
     try {
@@ -77,7 +77,7 @@ export function PixQR({ payload, size = 196 }) {
     );
   }
   return (
-    <svg viewBox={`-3 -3 ${qr.n + 6} ${qr.n + 6}`} width={size} height={size} shapeRendering="crispEdges" role="img" aria-label="QR Code para pagar com PIX" className="rounded-xl">
+    <svg viewBox={`-3 -3 ${qr.n + 6} ${qr.n + 6}`} width={size} height={size} shapeRendering="crispEdges" role="img" aria-label={label} className="rounded-xl">
       <rect x="-3" y="-3" width={qr.n + 6} height={qr.n + 6} fill="#ffffff" />
       <path d={qr.d} fill="#000000" />
     </svg>
