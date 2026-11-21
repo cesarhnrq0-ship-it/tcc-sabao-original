@@ -14,8 +14,6 @@ export const DEFAULT_SETTINGS = {
   giftFee: 7.9,        // embalagem para presente (R$)
   lowStock: 5,         // alerta de estoque baixo (unidades)
   announcement: "",    // aviso do topo (vazio = texto automático)
-  // Resumo SHA-256 da senha padrão "farmaura2026" (troque em Painel > Configurações)
-  adminPasswordHash: "661fd63a512cff514ddc9d5edc5fb7fd01fc63dafa3ab26c5ac49f1a890a62d9",
   pixKey: "f7b4fedc-54ca-4672-a6b2-f5aab823fce4", // chave PIX que recebe os pagamentos
   pixName: "FARMAURA",                            // nome do recebedor (até 25 letras)
   pixCity: "SAO PAULO",                           // cidade do recebedor (até 15 letras)
@@ -39,13 +37,20 @@ export const DEFAULT_COUPONS = [
 export const DEFAULT_STORE = { settings: DEFAULT_SETTINGS, coupons: DEFAULT_COUPONS, products: {}, customization: {}, movimentos: [], appearance: DEFAULT_APPEARANCE };
 /** Registra uma movimentação de estoque (guarda as 300 mais recentes) */
 export const addMoves = (data, moves) => ({ ...data, movimentos: [...moves, ...(data.movimentos || [])].slice(0, 300) });
+/** A senha do painel não existe mais: tira o texto e o resumo de lojas salvas antes */
+const semSenha = (s) => {
+  const { adminPassword, adminPasswordHash, ...resto } = { ...DEFAULT_SETTINGS, ...(s || {}) };
+  return resto;
+};
+/** A loja salva ainda guarda a senha antiga do painel (a equipe regrava sem ela) */
+export const temSenhaAntiga = (raw) => !!(raw && raw.settings && (raw.settings.adminPassword || raw.settings.adminPasswordHash));
 export const STORE_KEY = "farmaura_store_v1";
 export const loadStore = () => {
   try {
     const raw = JSON.parse(window.localStorage.getItem(STORE_KEY) || "null");
     if (!raw) return DEFAULT_STORE;
     return {
-      settings: { ...DEFAULT_SETTINGS, ...(raw.settings || {}) },
+      settings: semSenha(raw.settings),
       coupons: Array.isArray(raw.coupons) ? raw.coupons : DEFAULT_COUPONS,
       products: raw.products || {},
       customization: raw.customization || {},
@@ -89,7 +94,7 @@ export const buildStore = (data) => {
 };
 /** Garante o formato da loja vinda do banco */
 export const normalizeStore = (raw) => ({
-  settings: { ...DEFAULT_SETTINGS, ...((raw && raw.settings) || {}) },
+  settings: semSenha(raw && raw.settings),
   coupons: raw && Array.isArray(raw.coupons) ? raw.coupons : DEFAULT_COUPONS,
   products: (raw && raw.products) || {},
   customization: (raw && raw.customization) || {},

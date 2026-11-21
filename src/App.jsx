@@ -9,17 +9,16 @@ import { ProductModal } from "./components/loja/ProdutoModal";
 import { ProductPage } from "./components/loja/ProdutoPagina";
 import { AboutSection, ContactSection, DonationSection, FaqSection, Footer, OrderTracker, QuizSection, SustainabilitySection } from "./components/loja/Secoes";
 import { Toast } from "./components/ui";
-import { fixOrder } from "./data/catalogo";
+import { fixOrder, validOrder } from "./data/catalogo";
 import { buildDemoData } from "./data/exemplos";
-import { DEFAULT_STOCK, DEFAULT_STORE, MESSAGES_KEY, MOCK_ORDERS, PROFILE_KEY, addMoves, buildStore, loadJSON, loadStore, normalizeStore, saveJSON, saveStore } from "./data/loja";
+import { DEFAULT_STOCK, DEFAULT_STORE, MESSAGES_KEY, MOCK_ORDERS, PROFILE_KEY, addMoves, buildStore, loadJSON, loadStore, normalizeStore, saveJSON, saveStore, temSenhaAntiga } from "./data/loja";
 import { applyAppearance, normalizeAppearance } from "./lib/aparencia";
 import { lerFavoritosDoLink, registrarVisto } from "./lib/recursos";
-import { hashSenha } from "./lib/seguranca";
 import { CompareBar, RecentlyViewed, SharedFavorites } from "./components/loja/Recursos";
 import { CloudContext, NavContext, ReviewsContext, StoreContext } from "./lib/contextos";
 import { ArrowUp } from "./lib/icones";
 import { CLOUD_COLLECTIONS, FIREBASE_CONFIG, cloudId, connectFirebase, isTeamEmail, writeUserDoc } from "./lib/nuvem";
-import { ADMIN_SESSION_KEY, FAVS_KEY, THEME_KEY, loadAdminSession, loadCart, loadDonations, loadFavs, loadOrders, loadTheme, nextDonationId, nextOrderId, onlyDigits, reviewStats, round2, saveCart, saveDonations, saveOrders } from "./lib/util";
+import { FAVS_KEY, LOCAL_DEV, THEME_KEY, loadCart, loadDonations, loadFavs, loadOrders, loadTheme, nextDonationId, nextOrderId, onlyDigits, reviewStats, round2, saveCart, saveDonations, saveOrders } from "./lib/util";
 
 // O painel admin só é baixado quando alguém abre "Painel Admin" (a loja fica mais leve)
 const AdminDashboard = React.lazy(() => import("./components/admin/AdminDashboard").then((m) => ({ default: m.AdminDashboard })));
@@ -38,7 +37,6 @@ export function App() {
   const [favs, setFavs] = useState(loadFavs);
   const [storeData, setStoreData] = useState(loadStore);
   const store = useMemo(() => buildStore(storeData), [storeData]);
-  const [adminAuthed, setAdminAuthed] = useState(loadAdminSession);
   const [theme, setTheme] = useState(loadTheme);
   const [activeSection, setActiveSection] = useState("inicio");
   const [showTop, setShowTop] = useState(false);
@@ -84,10 +82,10 @@ export function App() {
           return;
         }
         setCloud({
-          status: "online", provider: "firebase", db: ctx.db, auth: u.noAuth ? null : ctx.api, noAuth: !!u.noAuth,
+          status: "online", provider: "firebase", db: ctx.db, auth: ctx.api,
           uid: u.uid, email: u.email, isAnonymous: u.isAnonymous,
-          // sem login no Firebase, a equipe entra com a senha do painel
-          isAdmin: u.noAuth ? loadAdminSession() : isTeamEmail(u.email),
+          // igual às regras do Firestore: e-mail da equipe e já confirmado
+          isAdmin: isTeamEmail(u.email) && u.emailVerified,
         });
       }).catch((e) => {
         console.warn("[banco] Firebase não carregou:", e && e.message);
@@ -122,12 +120,15 @@ export function App() {
       setPublicReviews(snap.exists && Array.isArray(snap.data().lista) ? snap.data().lista : []);
     }, warn("avaliações")));
     subs.push(db.doc("loja/config").onSnapshot((snap) => {
-      const next = normalizeStore(snap.exists ? snap.data().store : DEFAULT_STORE);
+      const raw = snap.exists ? snap.data().store : DEFAULT_STORE;
+      const next = normalizeStore(raw);
       const json = JSON.stringify(next);
       setConfigReady(true);
+      // Loja salva com a senha antiga do painel: a equipe regrava sem ela
+      const rewrite = isAdmin && temSenhaAntiga(raw);
       // Ignora entregas que não mudam nada (não apaga uma alteração ainda não gravada)
-      if (json === remoteConfigRef.current) return;
-      remoteConfigRef.current = json;
+      if (json === remoteConfigRef.current && !rewrite) return;
+      remoteConfigRef.current = rewrite ? null : json;
       setStoreData(next);
     }, warn("config")));
     CLOUD_COLLECTIONS.forEach((col) => {
@@ -156,7 +157,7 @@ export function App() {
   // 4. A equipe dá baixa no estoque e conta os cupons dos pedidos novos
   useEffect(() => {
     if (!online || !cloud.isAdmin || !configReady || reconcilingRef.current) return;
-    const pending = (all.pedidos || []).filter((d) => (d.lista || []).some((o) => !o.stockApplied));
+    const pending = (all.pedidos || []).filter((d) => Array.isArray(d.lista) && d.lista.some((o) => validOrder(o) && !o.stockApplied));
     if (!pending.length) return;
     reconcilingRef.current = true;
     (async () => {
@@ -169,13 +170,19 @@ export function App() {
           await writeUserDoc(cloud.db, "pedidos", d.uid, (doc) => ({
             ...doc,
             lista: doc.lista.map((o) => {
-              if (o.stockApplied) return o;
+              if (!validOrder(o) || o.stockApplied) return o;
               applied.push(o);
               return { ...o, stockApplied: true };
             }),
           }));
           applied.forEach((o) => {
-            o.items.forEach((i) => { sold[i.id] = (sold[i.id] || 0) + i.qty; soldBy.push({ at: o.createdAt, productId: i.id, qty: i.qty, ref: o.id }); });
+            o.items.forEach((i) => {
+              // O pedido vem do navegador do cliente: só produtos que existem e no máximo 20 por item
+              if (!store.allProducts.some((p) => p.id === i.id)) return;
+              const qty = Math.min(20, Math.max(0, Math.floor(i.qty)));
+              sold[i.id] = (sold[i.id] || 0) + qty;
+              soldBy.push({ at: o.createdAt, productId: i.id, qty, ref: o.id });
+            });
             if (o.coupon) used[o.coupon] = (used[o.coupon] || 0) + 1;
           });
         }
@@ -203,7 +210,7 @@ export function App() {
   /** Junta as listas de cada pessoa numa lista só, guardando de quem é cada item */
   const gather = (col) => {
     const docs = online ? (cloud.isAdmin ? all[col] || [] : mine[col] ? [mine[col]] : []) : [];
-    return docs.flatMap((d) => (d.lista || []).map((x) => ({ ...x, _uid: d.uid })));
+    return docs.flatMap((d) => (Array.isArray(d.lista) ? d.lista : []).filter((x) => (col === "pedidos" ? validOrder(x) : !!x)).map((x) => ({ ...x, _uid: d.uid })));
   };
   const ordersView = (online ? gather("pedidos") : orders).map(fixOrder);
 
@@ -214,6 +221,7 @@ export function App() {
   const reviewsCtx = useMemo(() => ({ approved: reviewsApproved, mine: reviewsMine, stats: reviewStats(reviewsApproved) }), [JSON.stringify(reviewsApproved), JSON.stringify(reviewsMine)]);
   const saveLocalReviews = (fn) => setReviewsLocal((cur) => { const next = fn(cur); saveJSON("farmaura_reviews_v1", next); return next; });
   const submitReview = async ({ productId, stars, name, text }) => {
+    if (offlineBlock()) return false;
     if (reviewsMine.some((r) => r.productId === productId && r.status !== "rejeitada")) {
       notify("Você já avaliou este produto.", "error");
       return false;
@@ -272,6 +280,12 @@ export function App() {
     : myProfile ? orders.filter((o) => o.customer.email.toLowerCase() === myProfile.email) : [];
   const myDonations = online ? donationsView.filter((d) => d._uid === cloud.uid) : [];
 
+  /** Sem conexão com o banco, recusa o envio (ficaria só neste navegador e a equipe não veria) */
+  const offlineBlock = () => {
+    if (online || LOCAL_DEV || !FIREBASE_CONFIG.apiKey) return false;
+    notify("Sem conexão com o banco de dados. Tente de novo em instantes.", "error");
+    return true;
+  };
   const cloudFail = (e, what) => {
     console.warn("[banco]", e && e.code, e && e.message);
     notify(
@@ -322,7 +336,7 @@ export function App() {
   const chatMsg = (from, text) => ({ id: `${from[0]}${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}`, from, text, at: new Date().toISOString() });
   /** Cliente manda mensagem */
   const sendChat = (text, who) =>
-    writeChat(online ? cloud.uid : "local", (d) => {
+    offlineBlock() ? Promise.resolve(false) : writeChat(online ? cloud.uid : "local", (d) => {
       const m = chatMsg("cliente", text);
       return {
         ...d, name: d.name || who.name || "Visitante", email: d.email || who.email || "",
@@ -334,6 +348,7 @@ export function App() {
 
   /** Cadastro do cliente */
   const saveProfile = async (p) => {
+    if (offlineBlock()) return false;
     const now = new Date().toISOString();
     const data = { ...p, createdAt: (myProfile && myProfile.createdAt) || now, atualizadoEm: now };
     if (online) {
@@ -352,6 +367,7 @@ export function App() {
 
   /** Mensagem do formulário de contato */
   const sendMessage = async ({ name, email, message }) => {
+    if (offlineBlock()) return false;
     const msg = { id: online ? cloudId("MSG") : `MSG-${Date.now()}`, name, email, message, createdAt: new Date().toISOString(), read: false };
     if (online) {
       try {
@@ -372,6 +388,7 @@ export function App() {
 
   /** Inscrição na newsletter */
   const subscribeNewsletter = async (email) => {
+    if (offlineBlock()) return false;
     const entry = { email, createdAt: new Date().toISOString() };
     if (online) {
       try {
@@ -399,6 +416,7 @@ export function App() {
 
   /** Registra uma doação (o pagamento é feito pelo PIX gerado na tela) */
   const addDonation = async ({ amount, name, message }) => {
+    if (offlineBlock()) return null;
     const d = {
       id: online ? cloudId("DO") : nextDonationId(donations),
       createdAt: new Date().toISOString(), amount, name, message, status: "Aguardando",
@@ -582,6 +600,7 @@ export function App() {
    *  - limpa o carrinho
    */
   const placeOrder = async (form, totals) => {
+    if (offlineBlock()) return null;
     if (liveCart.some((i) => i.issue)) {
       notify("Alguns itens mudaram de estoque. Confira o carrinho.", "error");
       return null;
@@ -651,29 +670,11 @@ export function App() {
     return order;
   };
 
-  // Segurança: lojas antigas guardavam a senha do painel em texto no banco.
-  // Assim que a equipe entra, ela é trocada pelo resumo SHA-256 (e o texto é apagado).
-  useEffect(() => {
-    const plain = storeData.settings.adminPassword;
-    if (!adminAuthed || typeof plain !== "string" || !plain) return;
-    let vivo = true;
-    hashSenha(plain).then((h) => {
-      if (vivo) setStoreData((d) => ({ ...d, settings: { ...d.settings, adminPasswordHash: h, adminPassword: undefined } }));
-    }).catch(() => { /* navegador sem criptografia: mantém como estava */ });
-    return () => { vivo = false; };
-  }, [adminAuthed, storeData.settings.adminPassword]);
-
   const loginAdmin = () => {
-    if (cloud.noAuth) setCloud((c) => ({ ...c, isAdmin: true }));
-    setAdminAuthed(true);
-    try { window.sessionStorage.setItem(ADMIN_SESSION_KEY, "ok"); } catch { /* ignora */ }
     notify("Bem-vindo ao Painel Admin");
   };
   const logoutAdmin = () => {
     if (cloud.provider === "firebase" && cloud.auth) cloud.auth.signOut();
-    if (cloud.noAuth) setCloud((c) => ({ ...c, isAdmin: false }));
-    setAdminAuthed(false);
-    try { window.sessionStorage.removeItem(ADMIN_SESSION_KEY); } catch { /* ignora */ }
     setView("store");
     window.scrollTo({ top: 0 });
     notify("Você saiu do Painel Admin");
@@ -951,7 +952,7 @@ export function App() {
     <ReviewsContext.Provider value={{ ...reviewsCtx, submit: submitReview }}>
     <CloudContext.Provider value={{
       status: cloud.status, provider: cloud.provider || null, isAdmin: !!cloud.isAdmin, uid: cloud.uid || null,
-      email: cloud.email || null, isAnonymous: !!cloud.isAnonymous, auth: cloud.auth || null, noAuth: !!cloud.noAuth,
+      email: cloud.email || null, isAnonymous: !!cloud.isAnonymous, auth: cloud.auth || null,
     }}>
     <div className="min-h-screen bg-page font-sans text-stone-800 antialiased transition-colors duration-300">
       <Header
@@ -1010,7 +1011,8 @@ export function App() {
         </main>
       ) : (
         <React.Suspense fallback={<CarregandoPainel />}>
-        {(cloud.provider === "firebase" && !cloud.noAuth ? cloud.status === "online" && cloud.isAdmin : adminAuthed) ? (
+        {/* Só a conta da equipe abre o painel; sem banco, apenas no computador de quem desenvolve */}
+        {(online ? cloud.isAdmin : cloud.status === "local" && LOCAL_DEV) ? (
           <AdminDashboard
             orders={ordersView}
             donations={donationsView}

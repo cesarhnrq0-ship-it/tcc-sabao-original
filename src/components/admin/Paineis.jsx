@@ -7,7 +7,6 @@ import { MOCK_ORDERS, autoAnnouncement, couponLabel, couponValueText } from "../
 import { useCloud, useStore } from "../../lib/contextos";
 import { CheckCircle2, ChevronRight, Clock, Copy, FileText, Gift, Heart, Inbox, Lock, MessageCircle, PenLine, Plus, QrCode, RotateCcw, Star, StickyNote, Tag, Trash2, Truck, Users, X } from "../../lib/icones";
 import { FIREBASE_ADMINS } from "../../lib/nuvem";
-import { conferirSenha, hashSenha } from "../../lib/seguranca";
 import { REGIOES, defaultFreteRegioes } from "../../lib/frete";
 import { PUBLIC_SITE_URL, CHAT_QUICK_REPLIES, DONATION_STATUS, EMPTY_COUPON, REVIEW_STATUS, chatTime, chatUnread, downloadQR, fmtAvg, formatBRL, formatDateTime, numText, orderGiftFee, parseNum, pixText, productUrl, round2 } from "../../lib/util";
 
@@ -945,12 +944,9 @@ export function SettingsPanel({ onSave, onResetStore, onResetOrders, onLoadDemo,
     return Object.fromEntries(REGIOES.map((r) => { const x = t[r.id] || { fee: settings.shippingFee, min: 3, max: 8 }; return [r.id, { fee: numText(x.fee), min: String(x.min), max: String(x.max) }]; }));
   });
   const setR = (id, k, v) => setReg((s) => ({ ...s, [id]: { ...s[id], [k]: v } }));
-  const [pw, setPw] = useState({ current: "", next: "", confirm: "" });
   const [errors, setErrors] = useState({});
-  const [pwErrors, setPwErrors] = useState({});
   const [confirm, setConfirm] = useState(null);
   const set = (k, v) => { setF((s) => ({ ...s, [k]: v })); setErrors((e) => ({ ...e, [k]: undefined })); };
-  const setP = (k, v) => { setPw((s) => ({ ...s, [k]: v })); setPwErrors((e) => ({ ...e, [k]: undefined })); };
 
   const preview = f.announcement.trim() || autoAnnouncement({
     freeShipping: parseNum(f.freeShipping) || 0,
@@ -998,20 +994,6 @@ export function SettingsPanel({ onSave, onResetStore, onResetOrders, onLoadDemo,
       donationsEnabled: f.donationsEnabled,
     });
     notify("Configurações salvas. A loja já está usando os novos valores.");
-  };
-
-  const savePassword = async (e) => {
-    e.preventDefault();
-    const er = {};
-    if (!(await conferirSenha(pw.current, settings))) er.current = "A senha atual está errada.";
-    if (pw.next.length < 6) er.next = "Use pelo menos 6 caracteres.";
-    if (pw.next !== pw.confirm) er.confirm = "As senhas não são iguais.";
-    setPwErrors(er);
-    if (Object.keys(er).length) return;
-    // Guarda só o resumo; o campo antigo em texto é apagado
-    onSave({ adminPasswordHash: await hashSenha(pw.next), adminPassword: undefined });
-    setPw({ current: "", next: "", confirm: "" });
-    notify("Senha do painel alterada");
   };
 
   return (
@@ -1087,7 +1069,6 @@ export function SettingsPanel({ onSave, onResetStore, onResetOrders, onLoadDemo,
       </form>
 
       <div className="space-y-6">
-        {cloud.provider === "firebase" && !cloud.noAuth ? (
           <div className="space-y-2 rounded-3xl border border-stone-200 bg-surface p-6">
             <h2 className="flex items-center gap-2 text-lg font-semibold text-stone-900"><Lock className="h-5 w-5 text-emerald-700" /> Acesso da equipe</h2>
             <p className="text-sm text-stone-600">
@@ -1096,20 +1077,6 @@ export function SettingsPanel({ onSave, onResetStore, onResetOrders, onLoadDemo,
             </p>
             <p className="text-xs text-stone-500">Equipe hoje: {FIREBASE_ADMINS.join(", ")}</p>
           </div>
-        ) : (
-        <form onSubmit={savePassword} className="space-y-3 rounded-3xl border border-stone-200 bg-surface p-6" noValidate>
-          <div>
-            <h2 className="flex items-center gap-2 text-lg font-semibold text-stone-900"><Lock className="h-5 w-5 text-emerald-700" /> Senha do painel</h2>
-            <p className="text-xs text-stone-500">A nova senha vale a partir do próximo login neste navegador.</p>
-          </div>
-          <Field label="Senha atual" type="password" value={pw.current} onChange={(v) => setP("current", v)} error={pwErrors.current} />
-          <div className="grid gap-3 sm:grid-cols-2">
-            <Field label="Nova senha" type="password" value={pw.next} onChange={(v) => setP("next", v)} error={pwErrors.next} />
-            <Field label="Repita a nova senha" type="password" value={pw.confirm} onChange={(v) => setP("confirm", v)} error={pwErrors.confirm} />
-          </div>
-          <button className="w-full rounded-full bg-ink py-3 text-sm font-semibold text-ink-fg transition hover:opacity-90">Alterar senha</button>
-        </form>
-        )}
 
         <div className="space-y-4 rounded-3xl border border-rose-200 bg-surface p-6">
           <div>

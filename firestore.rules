@@ -5,11 +5,18 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // E-mails da equipe (os mesmos da lista FIREBASE_ADMINS no site)
+    // E-mails da equipe (os mesmos da lista FIREBASE_ADMINS no site), já confirmados:
+    // sem a confirmação, qualquer um criaria uma conta com o e-mail da equipe
     function isTeam() {
       return request.auth != null
         && request.auth.token.email != null
+        && request.auth.token.email_verified == true
         && request.auth.token.email.lower() in ['farmaurainc@gmail.com'];
+    }
+    // Listas guardadas no documento de cada pessoa: formato certo e tamanho limitado
+    function listaOk(campo, max) {
+      return !(campo in request.resource.data)
+        || (request.resource.data[campo] is list && request.resource.data[campo].size() <= max);
     }
 
     // Preços, estoque, cupons, regras e avaliações aprovadas: todos leem, só a equipe altera
@@ -19,11 +26,13 @@ service cloud.firestore {
     }
 
     // Cadastro, pedidos, doações, mensagens, chat e avaliações: um documento por pessoa.
-    // Cada pessoa lê e grava só o próprio; a equipe lê e altera todos.
+    // Cada pessoa lê e grava só o próprio (sem listar nem apagar); a equipe lê, altera e apaga todos.
     match /{colecao}/{pessoa} {
-      allow read, write: if colecao in ['clientes', 'pedidos', 'doacoes', 'mensagens', 'chats', 'avaliacoes']
+      allow get, create, update: if colecao in ['clientes', 'pedidos', 'doacoes', 'mensagens', 'chats', 'avaliacoes']
         && request.auth != null
-        && (request.auth.uid == pessoa || isTeam());
+        && request.auth.uid == pessoa
+        && (request.method == 'get' || (listaOk('lista', 200) && listaOk('mensagens', 500)));
+      allow read, write: if colecao in ['clientes', 'pedidos', 'doacoes', 'mensagens', 'chats', 'avaliacoes'] && isTeam();
     }
   }
 }

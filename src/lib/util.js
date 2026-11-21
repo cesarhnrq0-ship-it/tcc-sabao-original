@@ -428,11 +428,8 @@ export const validateCheckout = (f) => {
   return e;
 };
 
-/** Sessão do Painel Admin (dura até fechar a aba) */
-export const ADMIN_SESSION_KEY = "farmaura_admin_session";
-export const loadAdminSession = () => {
-  try { return window.sessionStorage.getItem(ADMIN_SESSION_KEY) === "ok"; } catch { return false; }
-};
+/** Site aberto no próprio computador (npm run dev / preview): sem banco, o modo local vale para testes */
+export const LOCAL_DEV = ["localhost", "127.0.0.1"].includes(window.location.hostname);
 export const PAYMENT_GROUP = (p) => (p.startsWith("Cartão") ? "Cartão de Crédito" : p);
 export const orderGiftFee = (o) => (o.gift ? (o.giftFee ?? DEFAULT_SETTINGS.giftFee) : 0);
 

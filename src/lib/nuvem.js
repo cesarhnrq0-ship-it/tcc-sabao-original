@@ -70,20 +70,6 @@ export const firebaseAdapter = (fs, firestore) => {
   };
 };
 
-/** Código fixo deste aparelho (usado quando o login do Firebase não está ligado) */
-export const deviceId = () => {
-  try {
-    let id = window.localStorage.getItem("farmaura_device_id");
-    if (!id) {
-      id = "dev-" + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
-      window.localStorage.setItem("farmaura_device_id", id);
-    }
-    return id;
-  } catch {
-    return "dev-" + Math.random().toString(36).slice(2, 10);
-  }
-};
-
 /** Carrega o Firebase, entra como visitante anônimo e avisa a cada troca de usuário */
 export const connectFirebase = async (onUser) => {
   const [appM, authM, fsM] = await Promise.all(
@@ -92,7 +78,7 @@ export const connectFirebase = async (onUser) => {
   const app = appM.initializeApp(FIREBASE_CONFIG);
   const auth = authM.getAuth(app);
   const db = firebaseAdapter(fsM, fsM.getFirestore(app));
-  const info = (u) => ({ uid: u.uid, email: u.email || null, isAnonymous: !!u.isAnonymous, noAuth: false });
+  const info = (u) => ({ uid: u.uid, email: u.email || null, emailVerified: !!u.emailVerified, isAnonymous: !!u.isAnonymous });
   const api = {
     /** Cria a conta. O visitante anônimo vira a conta, então os pedidos já feitos continuam dele. */
     signUp: async (email, password) => {
@@ -106,15 +92,15 @@ export const connectFirebase = async (onUser) => {
     },
     signIn: (email, password) => authM.signInWithEmailAndPassword(auth, email, password),
     signOut: () => authM.signOut(auth),
+    sendVerification: (user) => authM.sendEmailVerification(user),
     resetPassword: (email) => authM.sendPasswordResetEmail(auth, email),
   };
   authM.onAuthStateChanged(auth, (user) => {
     if (!user) {
       authM.signInAnonymously(auth).catch((e) => {
-        // Login anônimo desligado no console: o site funciona mesmo assim (regras abertas),
-        // usando um código salvo neste aparelho no lugar da conta.
+        // Sem login não há acesso ao banco: as regras do Firestore recusariam
         console.warn("[banco] Firebase sem login anônimo:", e && e.code);
-        onUser({ uid: deviceId(), email: null, isAnonymous: true, noAuth: true }, null, { db, api });
+        onUser(null, e);
       });
       return;
     }

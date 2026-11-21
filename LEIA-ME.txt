@@ -67,23 +67,25 @@ BANCO DE DADOS: Firebase, projeto "tcc-sabao"
 Coleções: loja, clientes, pedidos, doacoes, mensagens, chats, avaliacoes.
 (loja/config guarda preços, estoque, cupons e a aparência; loja/avaliacoes guarda as avaliações aprovadas)
 
-A) Regras abertas (allow read, write: if true)
-   - ATENÇÃO: qualquer pessoa na internet consegue ler, alterar e apagar os dados.
-     Bom para testar e apresentar, não para clientes reais.
-
-B) Recomendado: Firestore + Authentication + firestore.rules
+O site só funciona com Authentication ligado e as regras do firestore.rules publicadas.
+Sem login, a loja aparece, mas pedidos, mensagens e o Painel Admin ficam bloqueados.
    1. Authentication > Método de login: ligue "Anônimo" e "E-mail/senha".
-      (Hoje o login anônimo parece DESLIGADO: o Firebase responde "400" ao site.)
    2. Authentication > Usuários > Adicionar usuário: farmaurainc@gmail.com + senha forte.
-   3. Firestore > Regras: cole o firestore.rules e publique.
-   4. Authentication > Configurações > Domínios autorizados: adicione seuusuario.github.io
+   3. Authentication > Configurações > Domínios autorizados: adicione seuusuario.github.io
+   4. Firestore > Regras: cole o firestore.rules e publique.
+   5. Entre no Painel Admin: o site manda um link de confirmação para o e-mail da equipe.
+      Confirme e entre de novo (as regras só aceitam a equipe com e-mail confirmado).
    - Clientes criam conta com senha; cada um só vê os próprios dados e conversas.
-   - Painel Admin com o e-mail e a senha da equipe.
+   - Não use regras abertas (allow read, write: if true): qualquer pessoa leria os dados dos
+     clientes e poderia trocar a chave PIX.
 
-SENHA DO PAINEL (modo sem login do Firebase)
-- Padrão: farmaura2026. Troque em Painel Admin > Configurações > Senha.
-- A senha agora é guardada como "hash" (resumo criptográfico). Lojas antigas que tinham a senha
-  em texto são convertidas automaticamente na primeira vez que a equipe entra no painel.
+PAINEL ADMIN
+- Entra só com o e-mail e a senha da equipe no Firebase. A senha própria do painel foi removida:
+  o resumo dela ficava visível para qualquer pessoa e podia ser descoberto.
+- Trocar a senha ou incluir alguém: Firebase > Authentication, e a lista FIREBASE_ADMINS
+  (src/lib/nuvem.js) junto com o firestore.rules.
+- Testes no próprio computador (npm run dev / preview) sem banco: o painel abre direto, só com
+  os dados daquele navegador.
 
 PAGAMENTO VIA PIX: chave configurável em Painel Admin > Configurações.
 CUPONS PADRÃO: BEMVINDO10 (10%), WAYFARER15 (15%), VERAO20 (R$ 20 acima de R$ 150)

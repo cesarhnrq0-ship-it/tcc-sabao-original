@@ -381,6 +381,12 @@ export const ORDER_STATUS = {
 /** Converte os nomes antigos de status para os atuais (pedidos já gravados continuam valendo) */
 export const OLD_STATUS = { Pendente: "Recebido", "Em Processamento": "Em preparação", Enviado: "Pronto para entrega" };
 export const normStatus = (st) => OLD_STATUS[st] || (ORDER_STATUS[st] ? st : "Recebido");
+/** Pedido com o formato que o painel sabe mostrar (quem grava é o navegador do cliente) */
+export const validOrder = (o) =>
+  !!o && typeof o.id === "string" && typeof o.status === "string" && typeof o.total === "number" && typeof o.createdAt === "string" &&
+  !!o.customer && ["name", "email", "phone"].every((k) => typeof o.customer[k] === "string") &&
+  !!o.address && ["street", "number", "district", "city", "state", "zip"].every((k) => typeof o.address[k] === "string") &&
+  Array.isArray(o.items) && o.items.every((i) => !!i && typeof i.id === "string" && typeof i.name === "string" && typeof i.price === "number" && typeof i.qty === "number");
 export const fixOrder = (o) => (o && o.status !== normStatus(o.status) ? { ...o, status: normStatus(o.status) } : o);
 
 /** Formas de pagamento disponíveis no checkout */

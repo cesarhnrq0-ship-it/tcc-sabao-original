@@ -14,7 +14,7 @@ export function AccountPanel({ open, onClose, profile, onSave, orders, donations
   const [saving, setSaving] = useState(false);
   // Firebase: conta com e-mail e senha para entrar de qualquer aparelho
   const fb = cloud.provider === "firebase" && cloud.status === "online";
-  const needsPassword = fb && cloud.isAnonymous && !cloud.noAuth;
+  const needsPassword = fb && cloud.isAnonymous;
   const [mode, setMode] = useState("cadastro"); // "cadastro" | "entrar"
   const [pw, setPw] = useState({ password: "", confirm: "" });
   const [login, setLogin] = useState({ email: "", password: "" });
@@ -134,9 +134,7 @@ export function AccountPanel({ open, onClose, profile, onSave, orders, donations
           <p className={`flex items-start gap-2 rounded-xl px-3 py-2.5 text-xs ${cloud.status === "online" ? "bg-emerald-50 text-emerald-800" : "bg-stone-100 text-stone-600"}`}>
             <Database className="mt-px h-4 w-4 shrink-0" />
             {cloud.status === "online"
-              ? cloud.noAuth
-                ? "Seus dados ficam salvos no banco de dados da Farmaura, ligados a este aparelho."
-                : "Seus dados ficam salvos no banco de dados da Farmaura, ligados à sua conta. Você vê seus pedidos de qualquer aparelho."
+              ? "Seus dados ficam salvos no banco de dados da Farmaura, ligados à sua conta. Você vê seus pedidos de qualquer aparelho."
               : cloud.status === "connecting"
                 ? "Conectando ao banco de dados…"
                 : "Seus dados ficam salvos só neste navegador."}

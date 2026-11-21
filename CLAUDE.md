@@ -16,7 +16,7 @@ Pastas:
 - `src/main.jsx` e `src/App.jsx`: entrada e estado global (carrinho, pedidos, banco, rotas `#produto-<id>` e `#favoritos=...`).
 - `src/data/`: `catalogo.js` (PRODUCTS, CUSTOMIZATION, QUIZ...), `loja.js` (DEFAULT_SETTINGS, cupons, `buildStore`, `normalizeStore`), `exemplos.js`, `imagens.js`.
 - `src/lib/`: `aparencia.js` (painel Aparência), `frete.js` (frete por região + ViaCEP), `recursos.js` (vistos, comparador, favoritos por link),
-  `seguranca.js` (hash da senha do painel), `nuvem.js` (Firebase), `util.js`, `contextos.js`, `icones.jsx`.
+  `nuvem.js` (Firebase), `util.js`, `contextos.js`, `icones.jsx`.
 - `src/components/loja/`: Cabecalho, Inicio (Hero, faixa, "Compre por linha"), Catalogo (busca com sugestões, cards), ProdutoPagina, ProdutoModal,
   Carrinho (checkout com CEP automático), Conta, Chat, Secoes (quiz, sobre, contato, FAQ, rodapé...), Recursos (comparador, vistos, frete por CEP).
 - `src/components/admin/`: AdminDashboard (abas), Paineis (pedidos, produtos, cupons, configurações...), AparenciaPanel, Login.
@@ -33,7 +33,7 @@ Use as classes `bg-destaque`, `text-destaque-fg`, `bg-banner` e a escala `emeral
 
 ## Regras ao alterar
 - Preservar o fluxo de pedido e o painel. Evoluir, não recriar.
-- Não colocar senhas ou chaves privadas no código (a apiKey do Firebase é pública por natureza). A senha do painel fica só como hash SHA-256.
+- Não colocar senhas ou chaves privadas no código (a apiKey do Firebase é pública por natureza). O painel não tem senha própria: só a conta da equipe no Firebase, com e-mail confirmado. Não recriar o modo sem login nem o login por senha.
 - Não inventar avaliações, certificações ou números; dados de exemplo só pelo botão do painel (marcados `demo: true`).
 - Testar com `npm run dev` e no celular (F12 > modo dispositivo). Antes de publicar, `npm run build` e `npm run preview`.
 - Cuidado ao testar o painel: o site conecta no Firebase real. Em testes automáticos, bloqueie o Firebase (o site cai no modo local).
