@@ -117,3 +117,8 @@ header.sticky{top:env(safe-area-inset-top,0px)!important}
 /* Avisos (toast): no celular aparecem no topo, para não cobrir o botão do carrinho/checkout lá embaixo */
 .toast-pos{bottom:calc(1.5rem + env(safe-area-inset-bottom, 0px))}
 @media (max-width: 639px){.toast-pos{bottom:auto;top:calc(.75rem + env(safe-area-inset-top, 0px))}}
+/* Opções das listas (select): o Windows abre a lista com fundo branco e herdava o texto claro do tema
+   escuro, ficando ilegível. As opções usam as cores do próprio tema (loja clara/escura e painel). */
+select option,select optgroup{background-color:rgb(var(--surface));color:rgb(var(--stone-900))}
+.vidro select option,.vidro select optgroup{background-color:#181c1a;color:#eef0ea}
+.vidro select{color-scheme:dark}
