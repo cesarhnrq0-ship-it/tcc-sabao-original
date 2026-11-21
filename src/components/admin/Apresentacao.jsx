@@ -46,7 +46,7 @@ export function useNovosPedidos(orders, onNovo) {
 }
 
 /** Tela cheia da apresentação */
-export function TelaApresentacao({ pessoasAgora = null, orders, onClose, onLoadDemo, onClearDemo, demoCount, som, setSom }) {
+export function TelaApresentacao({ pessoasAgora = null, pessoasHoje = null, orders, onClose, onLoadDemo, onClearDemo, demoCount, som, setSom }) {
   const [desde] = useState(() => Date.now());
   const [destaque, setDestaque] = useState(null);
   const [confirmarLimpar, setConfirmarLimpar] = useState(false);
@@ -122,7 +122,7 @@ export function TelaApresentacao({ pessoasAgora = null, orders, onClose, onLoadD
           <section className="flex flex-col rounded-[2rem] bg-surface vidro-borda p-6 sm:p-8" aria-live="polite">
             <div className={`grid gap-3 ${pessoasAgora !== null ? "grid-cols-2 sm:grid-cols-4" : "grid-cols-3"}`}>
               {[
-                ...(pessoasAgora !== null ? [{ label: "Pessoas no site agora", value: pessoasAgora, icon: Users, sufixo: false }] : []),
+                ...(pessoasAgora !== null ? [{ label: `No site agora · ${pessoasHoje ?? 0} abriram hoje`, value: pessoasAgora, icon: Users, sufixo: false }] : []),
                 { label: "Pedidos", value: aoVivo.length, icon: Package },
                 { label: "Faturamento", value: formatBRL(total), icon: ShoppingBag },
                 { label: "Itens", value: unidades, icon: Sparkles },

@@ -208,17 +208,18 @@ export function App() {
   }, [online, cloud.isAdmin, configReady, all.pedidos]);
 
   /* ---------- Pessoas no site agora ---------- */
-  // Cada visitante com a aba visível manda um sinal por minuto (presenca/<pessoa> = { em: horário }).
+  // Cada visitante com a aba visível manda um sinal por minuto (presenca/<pessoa> = { em: último horário, ativo }).
   // Só guarda um código anônimo e o horário. A equipe não entra na contagem.
+  // "em" nunca zera (serve para "abriram hoje"); ao esconder a aba ou sair, "ativo" vira false.
   const [presentes, setPresentes] = useState([]);
   const [relogio, setRelogio] = useState(() => Date.now());
   useEffect(() => {
     if (!online || cloud.isAdmin || !cloud.uid || cloud.provider !== "firebase") return;
     const ref = cloud.db.doc(`presenca/${cloud.uid}`);
-    const marcar = (em) => ref.set({ em }).catch(() => { /* sem permissão ou sem rede: só não conta */ });
-    const bater = () => { if (document.visibilityState === "visible") marcar(Date.now()); };
-    const trocouAba = () => marcar(document.visibilityState === "visible" ? Date.now() : 0);
-    const saiu = () => marcar(0);
+    const marcar = (ativo) => ref.set({ em: Date.now(), ativo }).catch(() => { /* sem permissão ou sem rede: só não conta */ });
+    const bater = () => { if (document.visibilityState === "visible") marcar(true); };
+    const trocouAba = () => marcar(document.visibilityState === "visible");
+    const saiu = () => marcar(false);
     bater();
     const t = setInterval(bater, 60000);
     document.addEventListener("visibilitychange", trocouAba);
@@ -230,17 +231,24 @@ export function App() {
     let parar = null;
     const assinar = () => {
       if (parar) parar();
-      parar = cloud.db.recentes("presenca", "em", Date.now() - 120000,
-        (qs) => setPresentes(qs.docs.map((d) => ({ uid: d.id, em: d.data().em }))),
+      // Só os sinais de hoje (desde a meia-noite): servem para "agora" e para "abriram hoje"
+      const meiaNoite = new Date(); meiaNoite.setHours(0, 0, 0, 0);
+      parar = cloud.db.recentes("presenca", "em", meiaNoite.getTime() - 1,
+        (qs) => setPresentes(qs.docs.map((d) => ({ uid: d.id, em: d.data().em, ativo: d.data().ativo !== false }))),
         (e) => console.warn("[banco] presença:", e && e.code));
     };
     assinar();
-    const renovar = setInterval(assinar, 10 * 60000); // a consulta usa um horário fixo: renova de tempos em tempos
+    const renovar = setInterval(assinar, 10 * 60000); // a consulta usa um horário fixo: renova (e vira o dia) de tempos em tempos
     const tic = setInterval(() => setRelogio(Date.now()), 15000);
     return () => { if (parar) parar(); clearInterval(renovar); clearInterval(tic); };
   }, [online, cloud.isAdmin]);
-  const pessoasAgora = online && cloud.isAdmin && cloud.provider === "firebase"
-    ? presentes.filter((p) => typeof p.em === "number" && p.em > relogio - 90000).length
+  const contaPresenca = online && cloud.isAdmin && cloud.provider === "firebase";
+  const inicioHoje = new Date(relogio); inicioHoje.setHours(0, 0, 0, 0);
+  const pessoasAgora = contaPresenca
+    ? presentes.filter((p) => p.ativo && typeof p.em === "number" && p.em > relogio - 90000).length
+    : null;
+  const pessoasHoje = contaPresenca
+    ? presentes.filter((p) => typeof p.em === "number" && p.em >= inicioHoje.getTime()).length
     : null;
 
   /** Junta as listas de cada pessoa numa lista só, guardando de quem é cada item */
@@ -1057,6 +1065,7 @@ export function App() {
         {(online ? cloud.isAdmin : cloud.status === "local" && LOCAL_DEV) ? (
           <AdminDashboard
             pessoasAgora={pessoasAgora}
+            pessoasHoje={pessoasHoje}
             orders={ordersView}
             donations={donationsView}
             clients={clientsView}
