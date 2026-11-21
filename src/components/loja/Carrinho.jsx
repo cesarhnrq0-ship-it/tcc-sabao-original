@@ -13,6 +13,9 @@ export function CartDrawer({ open, onClose, cart, updateQty, removeItem, onPlace
   const [errors, setErrors] = useState({});
   const [placedOrder, setPlacedOrder] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+  // Celular: o resumo de valores fica recolhido e some enquanto a pessoa digita (o teclado ocupa meia tela)
+  const [resumoAberto, setResumoAberto] = useState(false);
+  const [digitando, setDigitando] = useState(false);
   const [coupon, setCoupon] = useState(null);
   const [couponInput, setCouponInput] = useState("");
   const [couponError, setCouponError] = useState("");
@@ -127,14 +130,14 @@ export function CartDrawer({ open, onClose, cart, updateQty, removeItem, onPlace
         }`}
       >
         {/* Cabeçalho do drawer */}
-        <div className="flex items-center justify-between border-b border-stone-200 px-6 py-5">
+        <div className="flex items-center justify-between border-b border-stone-200 px-4 py-3 sm:px-6 sm:py-5">
           <div className="flex items-center gap-3">
             {step === "checkout" && (
               <button onClick={() => setStep("cart")} className="rounded-full p-1.5 hover:bg-stone-200" aria-label="Voltar">
                 <ArrowLeft className="h-4 w-4" />
               </button>
             )}
-            <h2 className="font-serif text-2xl text-stone-900">
+            <h2 className="font-serif text-xl text-stone-900 sm:text-2xl">
               {step === "cart" && "Seu Carrinho"}
               {step === "checkout" && "Finalizar Compra"}
               {step === "success" && "Pedido Confirmado"}
@@ -162,7 +165,7 @@ export function CartDrawer({ open, onClose, cart, updateQty, removeItem, onPlace
             ) : (
               <>
                 {/* Barra de progresso do frete grátis */}
-                <div className="border-b border-stone-200 bg-surface px-6 py-4">
+                <div className="border-b border-stone-200 bg-surface px-4 py-3 sm:px-6 sm:py-4">
                   <p className="text-xs text-stone-600">
                     {remainingForFreeShipping > 0 ? (
                       <>Faltam <b className="text-emerald-800">{formatBRL(remainingForFreeShipping)}</b> para o frete grátis!</>
@@ -178,7 +181,7 @@ export function CartDrawer({ open, onClose, cart, updateQty, removeItem, onPlace
                   </div>
                 </div>
 
-                <ul className="flex-1 space-y-4 overflow-y-auto px-6 py-5">
+                <ul className="flex-1 space-y-3 overflow-y-auto px-4 py-4 sm:space-y-4 sm:px-6 sm:py-5">
                   {cart.map((item) => (
                     <li key={item.lineId} className={`flex gap-4 rounded-2xl border bg-surface p-3 ${item.issue ? "border-rose-300" : "border-stone-200"}`}>
                       <SafeImage src={item.image} alt={item.name} className="h-20 w-20 shrink-0 rounded-xl object-cover" />
@@ -237,7 +240,7 @@ export function CartDrawer({ open, onClose, cart, updateQty, removeItem, onPlace
                   )}
                 </ul>
 
-                <div className="border-t border-stone-200 bg-surface px-6 py-5">
+                <div className="border-t border-stone-200 bg-surface px-4 py-4 sm:px-6 sm:py-5">
                   {/* Cupom de desconto */}
                   {coupon ? (
                     <div className="mb-4 flex items-center justify-between rounded-xl border border-emerald-700/30 bg-emerald-50 px-3 py-2.5 text-xs">
@@ -301,7 +304,7 @@ export function CartDrawer({ open, onClose, cart, updateQty, removeItem, onPlace
                   <button
                     onClick={() => setStep("checkout")}
                     disabled={blocked.length > 0}
-                    className="mt-4 flex w-full items-center justify-center gap-2 rounded-full bg-emerald-900 py-4 text-sm font-semibold text-white transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="mt-3 flex w-full items-center justify-center gap-2 rounded-full bg-emerald-900 py-3.5 text-sm font-semibold text-white transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50 sm:mt-4 sm:py-4"
                   >
                     Ir para o Checkout <ArrowRight className="h-4 w-4" />
                   </button>
@@ -314,7 +317,11 @@ export function CartDrawer({ open, onClose, cart, updateQty, removeItem, onPlace
         {/* ---------- ETAPA 2: FORMULÁRIO DE CHECKOUT ---------- */}
         {step === "checkout" && (
           <form onSubmit={handleSubmit} className="flex flex-1 flex-col overflow-hidden" noValidate>
-            <div className="flex-1 space-y-6 overflow-y-auto px-6 py-5">
+            <div
+              className="flex-1 space-y-6 overflow-y-auto px-4 py-4 sm:px-6 sm:py-5"
+              onFocus={(e) => { if (e.target.matches("input, textarea, select")) setDigitando(true); }}
+              onBlur={() => setDigitando(false)}
+            >
               <fieldset className="space-y-3">
                 <legend className="mb-2 text-xs font-bold uppercase tracking-wider text-emerald-800">1 · Dados Pessoais</legend>
                 <Field label="Nome Completo" name="nome" autoComplete="name" value={form.name} onChange={(v) => set("name", v)} error={errors.name} placeholder="Maria da Silva" />
@@ -434,8 +441,21 @@ export function CartDrawer({ open, onClose, cart, updateQty, removeItem, onPlace
             </div>
 
             {/* Resumo e confirmação */}
-            <div className="border-t border-stone-200 bg-surface px-6 py-5">
-              <div className="space-y-1.5 text-sm">
+            <div className="border-t border-stone-200 bg-surface px-4 py-3 sm:px-6 sm:py-5">
+              {/* Celular: só o total, e o resumo abre ao tocar */}
+              <button
+                type="button"
+                onClick={() => setResumoAberto((v) => !v)}
+                aria-expanded={resumoAberto}
+                aria-controls="resumo-valores"
+                className={`flex w-full items-center justify-between gap-3 text-left sm:hidden ${digitando ? "hidden" : ""}`}
+              >
+                <span className="text-xs font-semibold text-emerald-800">
+                  {resumoAberto ? "Esconder resumo" : "Ver resumo"} <span aria-hidden="true">{resumoAberto ? "▴" : "▾"}</span>
+                </span>
+                <span className="text-sm text-stone-600">Total <b className="text-base text-stone-900">{formatBRL(totals.total)}</b></span>
+              </button>
+              <div id="resumo-valores" className={`space-y-1.5 text-sm ${resumoAberto && !digitando ? "mt-3 block" : "hidden"} sm:mt-0 sm:block`}>
                 <div className="flex justify-between text-stone-600">
                   <span>Subtotal ({cart.reduce((a, i) => a + i.qty, 0)} itens)</span><span>{formatBRL(totals.subtotal)}</span>
                 </div>
@@ -468,7 +488,7 @@ export function CartDrawer({ open, onClose, cart, updateQty, removeItem, onPlace
               <button
                 type="submit"
                 disabled={submitting}
-                className="mt-4 flex w-full items-center justify-center gap-2 rounded-full bg-emerald-900 py-4 text-sm font-semibold text-white transition hover:brightness-110 disabled:opacity-70"
+                className={`flex w-full items-center justify-center gap-2 rounded-full bg-emerald-900 py-3.5 text-sm font-semibold text-white transition hover:brightness-110 disabled:opacity-70 sm:mt-4 sm:py-4 ${digitando ? "" : "mt-3"}`}
               >
                 {submitting ? (
                   <>

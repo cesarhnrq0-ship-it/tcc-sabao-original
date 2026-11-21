@@ -338,9 +338,9 @@ export function ProductPage({ productId, onBack, onAdd, onCustomize, onOpenPage,
       {related.length > 0 && (
         <section className="mt-12">
           <h2 className="font-serif text-3xl text-stone-900">Você também pode gostar</h2>
-          <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {related.map((r) => (
-              <button key={r.id} onClick={() => onOpenPage(r.id)} className="group flex items-center gap-4 rounded-2xl border border-stone-200 bg-surface p-3 text-left transition hover:-translate-y-0.5 hover:shadow-lg">
+              <button key={r.id} onClick={() => onOpenPage(r.id)} className="group flex min-w-0 items-center gap-4 rounded-2xl border border-stone-200 bg-surface p-3 text-left transition hover:-translate-y-0.5 hover:shadow-lg">
                 <SafeImage src={r.image} alt={r.name} className="h-20 w-20 shrink-0 rounded-xl object-cover" />
                 <span className="min-w-0">
                   <span className="block truncate font-semibold text-stone-900 group-hover:text-emerald-800">{r.name}</span>
