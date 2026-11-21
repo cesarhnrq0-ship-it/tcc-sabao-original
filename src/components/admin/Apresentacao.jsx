@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { PixQR, StatusBadge } from "../ui";
-import { Leaf, Package, ShoppingBag, Sparkles, Trash2, X } from "../../lib/icones";
+import { Leaf, Package, ShoppingBag, Sparkles, Trash2, Users, X } from "../../lib/icones";
 import { PUBLIC_SITE_URL, formatBRL } from "../../lib/util";
 
 /* ============================================================================
@@ -46,7 +46,7 @@ export function useNovosPedidos(orders, onNovo) {
 }
 
 /** Tela cheia da apresentação */
-export function TelaApresentacao({ orders, onClose, onLoadDemo, onClearDemo, demoCount, som, setSom }) {
+export function TelaApresentacao({ pessoasAgora = null, orders, onClose, onLoadDemo, onClearDemo, demoCount, som, setSom }) {
   const [desde] = useState(() => Date.now());
   const [destaque, setDestaque] = useState(null);
   const [confirmarLimpar, setConfirmarLimpar] = useState(false);
@@ -120,16 +120,17 @@ export function TelaApresentacao({ orders, onClose, onLoadDemo, onClearDemo, dem
 
           {/* Pedidos ao vivo */}
           <section className="flex flex-col rounded-[2rem] bg-surface vidro-borda p-6 sm:p-8" aria-live="polite">
-            <div className="grid grid-cols-3 gap-3">
+            <div className={`grid gap-3 ${pessoasAgora !== null ? "grid-cols-2 sm:grid-cols-4" : "grid-cols-3"}`}>
               {[
+                ...(pessoasAgora !== null ? [{ label: "Pessoas no site agora", value: pessoasAgora, icon: Users, sufixo: false }] : []),
                 { label: "Pedidos", value: aoVivo.length, icon: Package },
                 { label: "Faturamento", value: formatBRL(total), icon: ShoppingBag },
                 { label: "Itens", value: unidades, icon: Sparkles },
-              ].map(({ label, value, icon: Icon }) => (
+              ].map(({ label, value, icon: Icon, sufixo = true }) => (
                 <div key={label} className="rounded-2xl bg-white/5 p-4 vidro-borda">
                   <Icon className="h-4 w-4 text-[rgb(var(--destaque))]" />
                   <p className="mt-2 truncate text-2xl font-bold tabular-nums text-stone-950 sm:text-3xl">{value}</p>
-                  <p className="text-[11px] text-stone-500">{label} nesta apresentação</p>
+                  <p className="text-[11px] text-stone-500">{sufixo ? `${label} nesta apresentação` : label}</p>
                 </div>
               ))}
             </div>

@@ -137,7 +137,7 @@ function Rosca({ fatias, total }) {
   );
 }
 
-export function AdminDashboard({ orders, donations, clients, messages, newsletter, chats, reviews, onUpdateStatus, onUpdateOrder, onDelete, onLogout, onStore, notify, actions }) {
+export function AdminDashboard({ pessoasAgora = null, orders, donations, clients, messages, newsletter, chats, reviews, onUpdateStatus, onUpdateOrder, onDelete, onLogout, onStore, notify, actions }) {
   const cloud = useCloud();
   const store = useStore();
   const { allProducts, settings, coupons } = store;
@@ -442,6 +442,12 @@ export function AdminDashboard({ orders, donations, clients, messages, newslette
             <button onClick={() => setApresentando(true)} className="inline-flex items-center gap-1.5 rounded-xl bg-destaque px-3 py-2 text-xs font-semibold text-destaque-fg btn-glow transition hover:brightness-105">
               <Play className="h-3.5 w-3.5" /> Apresentação
             </button>
+            {pessoasAgora !== null && (
+              <span className="inline-flex items-center gap-2 rounded-xl bg-white/5 px-3 py-2 text-xs font-semibold text-stone-800 vidro-borda" title="Visitantes com o site aberto no último minuto (a equipe não conta)">
+                <Users className="h-3.5 w-3.5 text-[rgb(var(--destaque))]" />
+                <span className="tabular-nums">{pessoasAgora}</span> no site agora
+              </span>
+            )}
             {cloud.status === "online" ? (
               <span className="inline-flex items-center gap-2 rounded-xl bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-800">
                 <span className="relative flex h-2 w-2">
@@ -1104,6 +1110,7 @@ export function AdminDashboard({ orders, donations, clients, messages, newslette
 
       {apresentando && (
         <TelaApresentacao
+          pessoasAgora={pessoasAgora}
           orders={orders}
           onClose={() => setApresentando(false)}
           onLoadDemo={actions.loadDemo}

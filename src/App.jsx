@@ -207,6 +207,42 @@ export function App() {
     })();
   }, [online, cloud.isAdmin, configReady, all.pedidos]);
 
+  /* ---------- Pessoas no site agora ---------- */
+  // Cada visitante com a aba visível manda um sinal por minuto (presenca/<pessoa> = { em: horário }).
+  // Só guarda um código anônimo e o horário. A equipe não entra na contagem.
+  const [presentes, setPresentes] = useState([]);
+  const [relogio, setRelogio] = useState(() => Date.now());
+  useEffect(() => {
+    if (!online || cloud.isAdmin || !cloud.uid || cloud.provider !== "firebase") return;
+    const ref = cloud.db.doc(`presenca/${cloud.uid}`);
+    const marcar = (em) => ref.set({ em }).catch(() => { /* sem permissão ou sem rede: só não conta */ });
+    const bater = () => { if (document.visibilityState === "visible") marcar(Date.now()); };
+    const trocouAba = () => marcar(document.visibilityState === "visible" ? Date.now() : 0);
+    const saiu = () => marcar(0);
+    bater();
+    const t = setInterval(bater, 60000);
+    document.addEventListener("visibilitychange", trocouAba);
+    window.addEventListener("pagehide", saiu);
+    return () => { clearInterval(t); document.removeEventListener("visibilitychange", trocouAba); window.removeEventListener("pagehide", saiu); };
+  }, [online, cloud.isAdmin, cloud.uid]);
+  useEffect(() => {
+    if (!online || !cloud.isAdmin || !cloud.db.recentes) return;
+    let parar = null;
+    const assinar = () => {
+      if (parar) parar();
+      parar = cloud.db.recentes("presenca", "em", Date.now() - 120000,
+        (qs) => setPresentes(qs.docs.map((d) => ({ uid: d.id, em: d.data().em }))),
+        (e) => console.warn("[banco] presença:", e && e.code));
+    };
+    assinar();
+    const renovar = setInterval(assinar, 10 * 60000); // a consulta usa um horário fixo: renova de tempos em tempos
+    const tic = setInterval(() => setRelogio(Date.now()), 15000);
+    return () => { if (parar) parar(); clearInterval(renovar); clearInterval(tic); };
+  }, [online, cloud.isAdmin]);
+  const pessoasAgora = online && cloud.isAdmin && cloud.provider === "firebase"
+    ? presentes.filter((p) => typeof p.em === "number" && p.em > relogio - 90000).length
+    : null;
+
   /** Junta as listas de cada pessoa numa lista só, guardando de quem é cada item */
   const gather = (col) => {
     const docs = online ? (cloud.isAdmin ? all[col] || [] : mine[col] ? [mine[col]] : []) : [];
@@ -1020,6 +1056,7 @@ export function App() {
         {/* Só a conta da equipe abre o painel; sem banco, apenas no computador de quem desenvolve */}
         {(online ? cloud.isAdmin : cloud.status === "local" && LOCAL_DEV) ? (
           <AdminDashboard
+            pessoasAgora={pessoasAgora}
             orders={ordersView}
             donations={donationsView}
             clients={clientsView}

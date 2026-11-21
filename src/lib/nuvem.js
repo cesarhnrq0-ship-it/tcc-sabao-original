@@ -67,6 +67,9 @@ export const firebaseAdapter = (fs, firestore) => {
       onSnapshot: (next, error) =>
         fs.onSnapshot(fs.collection(firestore, path), (qs) => next({ docs: qs.docs.map(wrap), size: qs.size, empty: qs.empty }), error),
     }),
+    /** Só os documentos com campo > valor (ex.: sinais de presença recentes), para não ler a coleção inteira */
+    recentes: (path, campo, desde, next, error) =>
+      fs.onSnapshot(fs.query(fs.collection(firestore, path), fs.where(campo, ">", desde)), (qs) => next({ docs: qs.docs.map(wrap) }), error),
   };
 };
 

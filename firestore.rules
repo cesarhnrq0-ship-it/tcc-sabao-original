@@ -19,6 +19,13 @@ service cloud.firestore {
         || (request.resource.data[campo] is list && request.resource.data[campo].size() <= max);
     }
 
+    // "Pessoas no site agora": cada visitante grava só o próprio sinal (apenas o horário); só a equipe lê
+    match /presenca/{pessoa} {
+      allow create, update: if request.auth != null && request.auth.uid == pessoa
+        && request.resource.data.keys().hasOnly(['em']) && request.resource.data.em is number;
+      allow read, delete: if isTeam();
+    }
+
     // Preços, estoque, cupons, regras e avaliações aprovadas: todos leem, só a equipe altera
     match /loja/{doc} {
       allow read: if true;
