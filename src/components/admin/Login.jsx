@@ -52,7 +52,7 @@ export function AdminLogin({ onLogin, onBack }) {
         return;
       }
       setError("");
-      onLogin();
+      onLogin(cred.user);
     } catch (err) {
       setError(authMessage(err));
     }

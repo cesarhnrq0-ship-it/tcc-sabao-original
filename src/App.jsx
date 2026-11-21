@@ -670,7 +670,12 @@ export function App() {
     return order;
   };
 
-  const loginAdmin = () => {
+  const loginAdmin = (user) => {
+    // Abre o painel já com a conta que acabou de entrar, sem depender do aviso de troca de usuário do Firebase
+    if (user) setCloud((c) => (c.status === "online" ? {
+      ...c, uid: user.uid, email: user.email, isAnonymous: !!user.isAnonymous,
+      isAdmin: isTeamEmail(user.email) && !!user.emailVerified,
+    } : c));
     notify("Bem-vindo ao Painel Admin");
   };
   const logoutAdmin = () => {
