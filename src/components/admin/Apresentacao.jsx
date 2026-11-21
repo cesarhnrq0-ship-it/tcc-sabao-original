@@ -120,17 +120,35 @@ export function TelaApresentacao({ pessoasAgora = null, pessoasHoje = null, orde
 
           {/* Pedidos ao vivo */}
           <section className="flex flex-col rounded-[2rem] bg-surface vidro-borda p-6 sm:p-8" aria-live="polite">
-            <div className={`grid gap-3 ${pessoasAgora !== null ? "grid-cols-2 sm:grid-cols-4" : "grid-cols-3"}`}>
+            {/* Quem está com o site aberto */}
+            {pessoasAgora !== null && (
+              <div className="mb-3 grid grid-cols-2 gap-3">
+                <div className="rounded-2xl bg-white/5 p-4 vidro-borda">
+                  <span className="relative flex h-3 w-3" aria-hidden="true">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-75" />
+                    <span className="relative inline-flex h-3 w-3 rounded-full bg-emerald-500" />
+                  </span>
+                  <p className="mt-2 text-3xl font-bold tabular-nums text-stone-950 sm:text-4xl">{pessoasAgora}</p>
+                  <p className="text-xs font-medium text-stone-600">Dispositivos abertos</p>
+                </div>
+                <div className="rounded-2xl bg-white/5 p-4 vidro-borda">
+                  <Users className="h-4 w-4 text-[rgb(var(--destaque))]" />
+                  <p className="mt-2 text-3xl font-bold tabular-nums text-stone-950 sm:text-4xl">{pessoasHoje ?? 0}</p>
+                  <p className="text-xs font-medium text-stone-600">Dispositivos acessados hoje</p>
+                </div>
+              </div>
+            )}
+            {/* Pedidos desta apresentação */}
+            <div className="grid grid-cols-3 gap-3">
               {[
-                ...(pessoasAgora !== null ? [{ label: `No site agora · ${pessoasHoje ?? 0} abriram hoje`, value: pessoasAgora, icon: Users, sufixo: false }] : []),
                 { label: "Pedidos", value: aoVivo.length, icon: Package },
                 { label: "Faturamento", value: formatBRL(total), icon: ShoppingBag },
                 { label: "Itens", value: unidades, icon: Sparkles },
-              ].map(({ label, value, icon: Icon, sufixo = true }) => (
+              ].map(({ label, value, icon: Icon }) => (
                 <div key={label} className="rounded-2xl bg-white/5 p-4 vidro-borda">
                   <Icon className="h-4 w-4 text-[rgb(var(--destaque))]" />
                   <p className="mt-2 truncate text-2xl font-bold tabular-nums text-stone-950 sm:text-3xl">{value}</p>
-                  <p className="text-[11px] text-stone-500">{sufixo ? `${label} nesta apresentação` : label}</p>
+                  <p className="text-[11px] text-stone-500">{label} nesta apresentação</p>
                 </div>
               ))}
             </div>

@@ -207,27 +207,31 @@ export function App() {
     })();
   }, [online, cloud.isAdmin, configReady, all.pedidos]);
 
-  /* ---------- Pessoas no site agora ---------- */
-  // Cada visitante com a aba visível manda um sinal por minuto (presenca/<pessoa> = { em: último horário, ativo }).
-  // Só guarda um código anônimo e o horário. A equipe não entra na contagem.
-  // "em" nunca zera (serve para "abriram hoje"); ao esconder a aba ou sair, "ativo" vira false.
+  /* ---------- Dispositivos abertos e acessados hoje ---------- */
+  // Cada dispositivo com a aba visível manda um sinal por minuto:
+  // presenca/<usuário> = { em: último horário, ativo, aparelho: código fixo deste navegador }.
+  // Não guarda nome nem IP. A contagem é por aparelho: entrar e sair do painel troca o usuário
+  // do Firebase, mas o aparelho continua o mesmo e conta uma vez só (a equipe também conta).
+  // "em" nunca zera (serve para "acessados hoje"); ao esconder a aba ou sair, "ativo" vira false.
   const [presentes, setPresentes] = useState([]);
   const [relogio, setRelogio] = useState(() => Date.now());
-  // Navegador onde a equipe já entrou no painel nunca conta como visitante
-  // (ao sair do painel o Firebase cria outro visitante anônimo, que senão contaria de novo)
-  const EQUIPE_KEY = "farmaura_equipe_neste_navegador";
-  const ehNavegadorDaEquipe = () => { try { return window.localStorage.getItem(EQUIPE_KEY) === "1"; } catch { return false; } };
-  useEffect(() => {
-    if (cloud.isAdmin) { try { window.localStorage.setItem(EQUIPE_KEY, "1"); } catch { /* ignora */ } }
-  }, [cloud.isAdmin]);
-  /** Desliga o sinal do visitante atual (chamado antes do login da equipe trocar de usuário) */
-  const encerrarPresenca = () => (online && cloud.uid && !cloud.isAdmin && cloud.provider === "firebase"
-    ? cloud.db.doc(`presenca/${cloud.uid}`).set({ em: Date.now(), ativo: false }).catch(() => {})
+  const [aparelho] = useState(() => {
+    try {
+      let id = window.localStorage.getItem("farmaura_aparelho");
+      if (!id) { id = "ap-" + Date.now().toString(36) + Math.random().toString(36).slice(2, 8); window.localStorage.setItem("farmaura_aparelho", id); }
+      return id;
+    } catch {
+      return "ap-" + Math.random().toString(36).slice(2, 10);
+    }
+  });
+  /** Desliga o sinal do usuário atual (chamado antes do login ou da saída da equipe trocar de usuário) */
+  const encerrarPresenca = () => (online && cloud.uid && cloud.provider === "firebase"
+    ? cloud.db.doc(`presenca/${cloud.uid}`).set({ em: Date.now(), ativo: false, aparelho }).catch(() => {})
     : Promise.resolve());
   useEffect(() => {
-    if (!online || cloud.isAdmin || !cloud.uid || cloud.provider !== "firebase" || ehNavegadorDaEquipe()) return;
+    if (!online || !cloud.uid || cloud.provider !== "firebase") return;
     const ref = cloud.db.doc(`presenca/${cloud.uid}`);
-    const marcar = (ativo) => ref.set({ em: Date.now(), ativo }).catch(() => { /* sem permissão ou sem rede: só não conta */ });
+    const marcar = (ativo) => ref.set({ em: Date.now(), ativo, aparelho }).catch(() => { /* sem permissão ou sem rede: só não conta */ });
     const bater = () => { if (document.visibilityState === "visible") marcar(true); };
     const trocouAba = () => marcar(document.visibilityState === "visible");
     const saiu = () => marcar(false);
@@ -236,7 +240,7 @@ export function App() {
     document.addEventListener("visibilitychange", trocouAba);
     window.addEventListener("pagehide", saiu);
     return () => { clearInterval(t); document.removeEventListener("visibilitychange", trocouAba); window.removeEventListener("pagehide", saiu); };
-  }, [online, cloud.isAdmin, cloud.uid]);
+  }, [online, cloud.uid]);
   useEffect(() => {
     if (!online || !cloud.isAdmin || !cloud.db.recentes) return;
     let parar = null;
@@ -245,7 +249,7 @@ export function App() {
       // Só os sinais de hoje (desde a meia-noite): servem para "agora" e para "abriram hoje"
       const meiaNoite = new Date(); meiaNoite.setHours(0, 0, 0, 0);
       parar = cloud.db.recentes("presenca", "em", meiaNoite.getTime() - 1,
-        (qs) => setPresentes(qs.docs.map((d) => ({ uid: d.id, em: d.data().em, ativo: d.data().ativo !== false }))),
+        (qs) => setPresentes(qs.docs.map((d) => ({ uid: d.id, em: d.data().em, ativo: d.data().ativo !== false, aparelho: d.data().aparelho || d.id }))),
         (e) => console.warn("[banco] presença:", e && e.code));
     };
     assinar();
@@ -255,11 +259,13 @@ export function App() {
   }, [online, cloud.isAdmin]);
   const contaPresenca = online && cloud.isAdmin && cloud.provider === "firebase";
   const inicioHoje = new Date(relogio); inicioHoje.setHours(0, 0, 0, 0);
+  // Conta aparelhos diferentes (vários usuários do mesmo aparelho contam uma vez)
+  const aparelhos = (lista) => new Set(lista.map((p) => p.aparelho)).size;
   const pessoasAgora = contaPresenca
-    ? presentes.filter((p) => p.ativo && typeof p.em === "number" && p.em > relogio - 90000).length
+    ? aparelhos(presentes.filter((p) => p.ativo && typeof p.em === "number" && p.em > relogio - 90000))
     : null;
   const pessoasHoje = contaPresenca
-    ? presentes.filter((p) => typeof p.em === "number" && p.em >= inicioHoje.getTime()).length
+    ? aparelhos(presentes.filter((p) => typeof p.em === "number" && p.em >= inicioHoje.getTime()))
     : null;
 
   /** Junta as listas de cada pessoa numa lista só, guardando de quem é cada item */
@@ -733,7 +739,9 @@ export function App() {
     } : c));
     notify("Bem-vindo ao Painel Admin");
   };
-  const logoutAdmin = () => {
+  const logoutAdmin = async () => {
+    // Desliga o sinal da conta da equipe antes de virar visitante anônimo (o aparelho segue contando)
+    await encerrarPresenca();
     if (cloud.provider === "firebase" && cloud.auth) cloud.auth.signOut();
     setView("store");
     window.scrollTo({ top: 0 });

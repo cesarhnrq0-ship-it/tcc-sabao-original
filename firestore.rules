@@ -19,12 +19,14 @@ service cloud.firestore {
         || (request.resource.data[campo] is list && request.resource.data[campo].size() <= max);
     }
 
-    // "No site agora" e "abriram hoje": cada visitante grava só o próprio sinal
-    // (último horário e se a aba está aberta); só a equipe lê
+    // "Dispositivos abertos" e "acessados hoje": cada usuário grava só o próprio sinal
+    // (último horário, se a aba está aberta e o código do aparelho); só a equipe lê
     match /presenca/{pessoa} {
       allow create, update: if request.auth != null && request.auth.uid == pessoa
-        && request.resource.data.keys().hasOnly(['em', 'ativo'])
-        && request.resource.data.em is number && request.resource.data.ativo is bool;
+        && request.resource.data.keys().hasOnly(['em', 'ativo', 'aparelho'])
+        && request.resource.data.em is number && request.resource.data.ativo is bool
+        && (!('aparelho' in request.resource.data)
+            || (request.resource.data.aparelho is string && request.resource.data.aparelho.size() <= 40));
       allow read, delete: if isTeam();
     }
 

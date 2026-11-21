@@ -443,12 +443,19 @@ export function AdminDashboard({ pessoasAgora = null, pessoasHoje = null, orders
               <Play className="h-3.5 w-3.5" /> Apresentação
             </button>
             {pessoasAgora !== null && (
-              <span className="inline-flex items-center gap-2 rounded-xl bg-white/5 px-3 py-2 text-xs font-semibold text-stone-800 vidro-borda" title="Visitantes com o site aberto no último minuto e quantos abriram hoje (cada navegador conta uma vez; a equipe não conta)">
-                <Users className="h-3.5 w-3.5 text-[rgb(var(--destaque))]" />
-                <span><span className="tabular-nums">{pessoasAgora}</span> agora</span>
-                <span className="text-stone-500">·</span>
-                <span><span className="tabular-nums">{pessoasHoje ?? 0}</span> hoje</span>
-              </span>
+              <>
+                <span className="inline-flex items-center gap-2 rounded-xl bg-white/5 px-3 py-2 text-xs font-semibold text-stone-800 vidro-borda" title="Dispositivos com o site aberto agora (cada aparelho conta uma vez)">
+                  <span className="relative flex h-2 w-2" aria-hidden="true">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-75" />
+                    <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+                  </span>
+                  <span className="tabular-nums">{pessoasAgora}</span> {pessoasAgora === 1 ? "dispositivo aberto" : "dispositivos abertos"}
+                </span>
+                <span className="inline-flex items-center gap-2 rounded-xl bg-white/5 px-3 py-2 text-xs font-semibold text-stone-800 vidro-borda" title="Dispositivos diferentes que abriram o site desde a meia-noite">
+                  <Users className="h-3.5 w-3.5 text-[rgb(var(--destaque))]" />
+                  <span className="tabular-nums">{pessoasHoje ?? 0}</span> {pessoasHoje === 1 ? "acessado hoje" : "acessados hoje"}
+                </span>
+              </>
             )}
             {cloud.status === "online" ? (
               <span className="inline-flex items-center gap-2 rounded-xl bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-800">
