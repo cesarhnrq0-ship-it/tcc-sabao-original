@@ -73,3 +73,31 @@ header.sticky{top:env(safe-area-inset-top,0px)!important}
 .letreiros-parados .botao-pausar{display:none}
 .letreiros-parados .letreiro-topo{padding-right:0}
 .letreiros-parados #inicio .marquee>div>span{font-size:1.875rem;padding:0 1rem;gap:1rem}
+
+/* ---------------------------------------------------------------------------
+ * PAINEL ADMIN EM VIDRO ESCURO (login e painel)
+ * Sempre escuro, independente do tema da loja: as cores escuras valem só aqui dentro.
+ * Fundo feito em CSS/SVG próprio (facetas e brilhos), sem imagem externa.
+ * ------------------------------------------------------------------------- */
+.vidro{--stone-50:29 33 31;--stone-100:35 40 37;--stone-200:46 52 49;--stone-300:62 69 65;--stone-400:108 115 111;--stone-500:153 160 155;--stone-600:181 186 181;--stone-700:205 209 204;--stone-800:224 227 222;--stone-900:238 240 234;--stone-950:247 248 244;--emerald-50:14 36 29;--emerald-100:12 46 36;--emerald-200:10 69 52;--emerald-300:110 231 183;--emerald-400:52 211 153;--emerald-500:16 185 129;--emerald-600:16 185 129;--emerald-700:52 211 153;--emerald-800:110 231 183;--emerald-900:6 95 70;--emerald-950:2 44 34;--amber-50:46 29 17;--amber-100:63 35 17;--amber-200:101 49 15;--amber-300:252 211 77;--amber-400:251 191 36;--amber-500:245 158 11;--amber-600:245 158 11;--amber-700:251 191 36;--amber-800:252 211 77;--amber-900:146 64 14;--amber-950:69 26 3;--sky-50:16 35 44;--sky-100:15 44 59;--sky-200:10 65 93;--sky-300:125 211 252;--sky-400:56 189 248;--sky-500:14 165 233;--sky-600:14 165 233;--sky-700:56 189 248;--sky-800:125 211 252;--sky-900:7 89 133;--sky-950:8 47 73;--rose-50:50 20 28;--rose-100:71 20 35;--rose-200:109 19 43;--rose-300:253 164 175;--rose-400:251 113 133;--rose-500:244 63 94;--rose-600:244 63 94;--rose-700:251 113 133;--rose-800:253 164 175;--rose-900:159 18 57;--rose-950:76 5 25;--violet-50:34 23 55;--violet-100:44 24 77;--violet-200:65 28 125;--violet-300:196 181 253;--violet-400:167 139 250;--violet-500:139 92 246;--violet-600:139 92 246;--violet-700:167 139 250;--violet-800:196 181 253;--violet-900:91 33 182;--violet-950:46 16 101;--lime-50:27 38 19;--lime-100:34 48 19;--lime-200:47 71 18;--lime-300:190 242 100;--lime-400:163 230 53;--lime-500:132 204 22;--lime-600:132 204 22;--lime-700:163 230 53;--lime-800:190 242 100;--lime-900:63 98 18;--lime-950:26 46 5;--page:17 20 18;--surface:24 28 26;--ink:236 239 232;--ink-fg:17 20 18;color-scheme:dark}
+.vidro{position:relative;isolation:isolate;min-height:100vh;min-height:100dvh;background:#0a0c0b;color:rgb(var(--stone-800))}
+.vidro-fundo{position:fixed;inset:0;z-index:-1;pointer-events:none;background:
+  radial-gradient(60rem 40rem at 12% -10%,rgb(var(--destaque) / .13),transparent 60%),
+  radial-gradient(50rem 36rem at 95% 15%,rgb(16 185 129 / .14),transparent 60%),
+  radial-gradient(40rem 30rem at 55% 110%,rgb(245 158 11 / .07),transparent 60%),
+  url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='520' height='520' viewBox='0 0 520 520'%3E%3Cg stroke='%23ffffff' stroke-opacity='.05' stroke-width='1'%3E%3Cpath fill='%23161a18' d='M0 0h150l-40 120L0 90z'/%3E%3Cpath fill='%231b201d' d='M150 0h170l-60 90-150 30z'/%3E%3Cpath fill='%23131614' d='M320 0h200v110l-120 40-140-60z'/%3E%3Cpath fill='%231e2320' d='M0 90l110 30 30 140L0 230z'/%3E%3Cpath fill='%23141715' d='M110 120l150-30 40 150-160 20z'/%3E%3Cpath fill='%231a1e1b' d='M260 90l140 60-30 150-70-60z'/%3E%3Cpath fill='%23121513' d='M400 150l120-40v190l-150 0z'/%3E%3Cpath fill='%23181c1a' d='M0 230l140 30-20 140L0 380z'/%3E%3Cpath fill='%231d2220' d='M140 260l160-20 0 0 70 60-80 120-170-20z'/%3E%3Cpath fill='%23131715' d='M370 300h150v120l-110 30-120-30z'/%3E%3Cpath fill='%231a1f1c' d='M0 380l120 20 40 120H0z'/%3E%3Cpath fill='%23151916' d='M120 400l170 20 0 100H160z'/%3E%3Cpath fill='%231c211e' d='M290 420l120 30 110-30v100H290z'/%3E%3C/g%3E%3C/svg%3E") 0 0/520px 520px,
+  #0a0c0b}
+.vidro-fundo::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgb(10 12 11 / .35),rgb(10 12 11 / .7))}
+/* Cartões e campos translúcidos */
+.vidro .bg-surface{background-color:rgb(255 255 255 / .045)!important;-webkit-backdrop-filter:blur(20px) saturate(140%);backdrop-filter:blur(20px) saturate(140%);box-shadow:inset 0 1px 0 rgb(255 255 255 / .07),0 24px 48px -28px rgb(0 0 0 / .8)}
+.vidro .fixed .bg-surface,.vidro [role="dialog"] .bg-surface,.vidro [role="dialog"].bg-surface{background-color:rgb(20 24 22 / .94)!important}
+.vidro .bg-page{background-color:rgb(255 255 255 / .04)!important}
+.vidro .bg-stone-50,.vidro .bg-stone-100{background-color:rgb(255 255 255 / .06)!important}
+.vidro .hover\:bg-stone-50:hover,.vidro .hover\:bg-stone-100:hover{background-color:rgb(255 255 255 / .07)!important}
+.vidro .border-stone-100,.vidro .border-stone-200,.vidro .border-stone-300{border-color:rgb(255 255 255 / .09)!important}
+.vidro .divide-stone-100>:not([hidden])~:not([hidden]),.vidro .divide-stone-200>:not([hidden])~:not([hidden]){border-color:rgb(255 255 255 / .07)!important}
+.vidro-borda{border:1px solid rgb(255 255 255 / .09)}
+.vidro-brilho{box-shadow:0 0 0 1px rgb(var(--destaque) / .35),0 10px 30px -10px rgb(var(--destaque) / .45)}
+.vidro ::-webkit-scrollbar{width:10px;height:10px}
+.vidro ::-webkit-scrollbar-thumb{background:rgb(255 255 255 / .1);border-radius:999px;border:3px solid transparent;background-clip:padding-box}
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){.vidro .bg-surface{background-color:rgb(22 26 24 / .92)!important}}

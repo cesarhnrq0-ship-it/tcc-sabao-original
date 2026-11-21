@@ -811,7 +811,7 @@ export function CouponsPanel({ onSave, onDelete, notify, orders }) {
 
   return (
     <div className="mt-6 grid items-start gap-6 lg:grid-cols-[380px_1fr]">
-      <form onSubmit={submit} className="space-y-4 rounded-3xl border border-stone-200 bg-surface p-6 lg:sticky lg:top-40" noValidate>
+      <form onSubmit={submit} className="space-y-4 rounded-3xl border border-stone-200 bg-surface p-6 lg:sticky lg:top-5" noValidate>
         <div>
           <h2 className="text-lg font-semibold text-stone-900">{editing ? `Editar ${editing}` : "Novo cupom"}</h2>
           <p className="text-xs text-stone-500">O cliente digita o código no carrinho.</p>

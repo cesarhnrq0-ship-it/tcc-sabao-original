@@ -123,7 +123,7 @@ export function AparenciaPanel({ onSave, onPreview, notify }) {
 function Previa({ d, products }) {
   const p = products.find((x) => x.id === d.hero.produtoId) || products.find((x) => x.bestSeller) || products[0];
   return (
-    <aside className="space-y-3 xl:sticky xl:top-28" aria-label="Prévia">
+    <aside className="space-y-3 xl:sticky xl:top-5" aria-label="Prévia">
       <p className="text-xs font-bold uppercase tracking-wider text-stone-500">Prévia ao vivo</p>
       <div className="palette-light grain relative isolate overflow-hidden rounded-[1.75rem] bg-banner p-5 text-white shadow-xl">
         <div className="pointer-events-none absolute -right-10 -top-10 -z-10 h-40 w-40 rounded-full bg-destaque/30 blur-2xl" />

@@ -955,7 +955,8 @@ export function App() {
       email: cloud.email || null, isAnonymous: !!cloud.isAnonymous, auth: cloud.auth || null,
     }}>
     <div className="min-h-screen bg-page font-sans text-stone-800 antialiased transition-colors duration-300">
-      <Header
+      {/* O painel e o login têm a própria barra (vidro escuro, tela cheia) */}
+      {view === "store" && <Header
         view={view}
         setView={(v) => {
           setView(v);
@@ -970,7 +971,7 @@ export function App() {
         cartBump={cartBump}
         onOpenAccount={() => setAccountOpen(true)}
         hasProfile={!!myProfile}
-      />
+      />}
 
       {view === "store" && pageId ? (
         <>
@@ -1010,7 +1011,7 @@ export function App() {
           <Footer notify={notify} onNavigate={navigateTo} onSubscribe={subscribeNewsletter} />
         </main>
       ) : (
-        <React.Suspense fallback={<CarregandoPainel />}>
+        <React.Suspense fallback={<div className="vidro"><div className="vidro-fundo" aria-hidden="true" /><CarregandoPainel /></div>}>
         {/* Só a conta da equipe abre o painel; sem banco, apenas no computador de quem desenvolve */}
         {(online ? cloud.isAdmin : cloud.status === "local" && LOCAL_DEV) ? (
           <AdminDashboard
@@ -1025,6 +1026,7 @@ export function App() {
             onUpdateOrder={updateOrder}
             onDelete={deleteOrder}
             onLogout={logoutAdmin}
+            onStore={() => { setView("store"); window.scrollTo({ top: 0 }); }}
             notify={notify}
             actions={adminActions}
           />
