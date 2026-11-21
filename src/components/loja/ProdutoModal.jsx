@@ -56,7 +56,7 @@ export function ProductModal({ product, onClose, onAdd, isFav, onToggleFav }) {
           <h3 className="mt-3 font-serif text-3xl text-stone-900">{product.name}</h3>
           <p className="text-sm font-medium text-emerald-800">{product.variant}</p>
           <p className="mt-4 text-sm leading-relaxed text-stone-600">{product.description}</p>
-          <button onClick={() => { onClose(); nav.openPage(product.id); }} className="mt-3 inline-flex items-center gap-1 self-start text-xs font-semibold text-emerald-800 hover:underline">
+          <button onClick={() => { onClose(); nav.openPage(product.id); }} className="toque mt-3 inline-flex items-center gap-1 self-start text-xs font-semibold text-emerald-800 hover:underline">
             Ver página completa, avaliações e QR Code <ArrowRight className="h-3.5 w-3.5" />
           </button>
 

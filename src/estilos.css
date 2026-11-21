@@ -101,3 +101,19 @@ header.sticky{top:env(safe-area-inset-top,0px)!important}
 .vidro ::-webkit-scrollbar{width:10px;height:10px}
 .vidro ::-webkit-scrollbar-thumb{background:rgb(255 255 255 / .1);border-radius:999px;border:3px solid transparent;background-clip:padding-box}
 @supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){.vidro .bg-surface{background-color:rgb(22 26 24 / .92)!important}}
+
+/* ---------------------------------------------------------------------------
+ * CELULAR
+ * Campos com menos de 16px fazem o iPhone dar zoom ao tocar (e a tela fica "presa" ampliada).
+ * .toque aumenta a área de toque de botões e links pequenos para 44px sem mudar o visual.
+ * ------------------------------------------------------------------------- */
+@media (max-width: 767px){
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]),select,textarea{font-size:16px!important}
+}
+@media (pointer: coarse){
+  .toque:not(.absolute):not(.fixed),footer nav>button,footer nav>a{position:relative}
+  .toque::after,footer nav>button::after,footer nav>a::after{content:"";position:absolute;left:50%;top:50%;width:max(100%,44px);height:max(100%,44px);transform:translate(-50%,-50%)}
+}
+/* Avisos (toast): no celular aparecem no topo, para não cobrir o botão do carrinho/checkout lá embaixo */
+.toast-pos{bottom:calc(1.5rem + env(safe-area-inset-bottom, 0px))}
+@media (max-width: 639px){.toast-pos{bottom:auto;top:calc(.75rem + env(safe-area-inset-top, 0px))}}

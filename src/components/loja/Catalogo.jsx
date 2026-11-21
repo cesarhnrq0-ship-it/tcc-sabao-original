@@ -182,7 +182,7 @@ export function ProductCard({ product, onOpen, onAdd, isFav, onToggleFav, notify
         </div>
 
         <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
-          <button onClick={() => nav.openPage(product.id)} className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-800 hover:underline">
+          <button onClick={() => nav.openPage(product.id)} className="toque inline-flex items-center gap-1 text-xs font-semibold text-emerald-800 hover:underline">
             Ver página do produto <ArrowRight className="h-3.5 w-3.5" />
           </button>
           <CompareToggle product={product} notify={notify} />

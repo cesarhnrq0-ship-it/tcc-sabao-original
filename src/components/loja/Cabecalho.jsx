@@ -108,7 +108,7 @@ export function Header({ view, setView, cartCount, onOpenCart, onNavigate, theme
               onClick={() => setView("store")}
               aria-label="Modo Loja"
               title="Modo Loja"
-              className={`flex items-center gap-1.5 rounded-full px-2.5 py-1.5 sm:px-3 transition ${
+              className={`toque flex items-center gap-1.5 rounded-full px-2.5 py-1.5 sm:px-3 transition ${
                 view === "store" ? "bg-surface text-emerald-800 shadow-sm" : "text-stone-500 hover:text-stone-800"
               }`}
             >
@@ -119,7 +119,7 @@ export function Header({ view, setView, cartCount, onOpenCart, onNavigate, theme
               onClick={() => setView("admin")}
               aria-label="Painel Admin"
               title="Painel Admin"
-              className={`flex items-center gap-1.5 rounded-full px-2.5 py-1.5 sm:px-3 transition ${
+              className={`toque flex items-center gap-1.5 rounded-full px-2.5 py-1.5 sm:px-3 transition ${
                 view === "admin" ? "bg-ink text-ink-fg shadow-sm" : "text-stone-500 hover:text-stone-800"
               }`}
             >

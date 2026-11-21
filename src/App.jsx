@@ -1098,7 +1098,8 @@ export function App() {
         </button>
       )}
 
-      <Toast toast={toast} onAction={() => { setToast(null); setCartOpen(true); }} />
+      {/* Com o carrinho aberto, o aviso "Ver carrinho" não faz sentido */}
+      <Toast toast={cartOpen && toast && toast.action ? null : toast} onAction={() => { setToast(null); setCartOpen(true); }} />
     </div>
     </CloudContext.Provider>
     </ReviewsContext.Provider>

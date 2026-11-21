@@ -202,7 +202,7 @@ export function CartDrawer({ open, onClose, cart, updateQty, removeItem, onPlace
                               </p>
                             )}
                           </div>
-                          <button onClick={() => removeItem(item.lineId)} className="text-stone-400 hover:text-rose-600" aria-label="Remover item">
+                          <button onClick={() => removeItem(item.lineId)} className="toque text-stone-400 hover:text-rose-600" aria-label="Remover item">
                             <Trash2 className="h-4 w-4" />
                           </button>
                         </div>

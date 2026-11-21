@@ -425,7 +425,7 @@ export function Toast({ toast, onAction }) {
   if (!toast) return null;
   const isError = toast.type === "error";
   return (
-    <div className="toast-in fixed left-1/2 z-[60] w-max max-w-[calc(100vw-2rem)] -translate-x-1/2" style={{ bottom: "calc(1.5rem + env(safe-area-inset-bottom, 0px))" }}>
+    <div className="toast-in toast-pos fixed left-1/2 z-[60] w-max max-w-[calc(100vw-2rem)] -translate-x-1/2" role="status">
       <div
         className={`flex items-center gap-3 rounded-full px-5 py-3 text-sm font-medium shadow-2xl ${
           isError ? "bg-rose-600 text-white" : "bg-[#1c1917] text-white ring-1 ring-white/10"

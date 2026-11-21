@@ -68,7 +68,7 @@ export function Hero({ onShop, onAbout }) {
               <Sparkles className="h-4 w-4 text-destaque" /> Quiz: qual é o meu?
             </button>
           </div>
-          <button onClick={onAbout} className="mt-4 text-xs font-semibold text-white/50 underline-offset-4 transition hover:text-white hover:underline">
+          <button onClick={onAbout} className="toque mt-4 text-xs font-semibold text-white/50 underline-offset-4 transition hover:text-white hover:underline">
             Conheça a história da Farmaura
           </button>
 
@@ -222,7 +222,7 @@ export function CategoryShowcase({ onNavigate }) {
           <p className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-700">Compre por linha</p>
           <h2 className="mt-2 font-serif text-4xl text-stone-900 sm:text-5xl">Escolha o seu ritual</h2>
         </div>
-        <button onClick={() => onNavigate("produtos")} className="inline-flex items-center gap-1.5 self-start text-sm font-semibold text-emerald-800 hover:underline sm:self-auto">
+        <button onClick={() => onNavigate("produtos")} className="toque inline-flex items-center gap-1.5 self-start text-sm font-semibold text-emerald-800 hover:underline sm:self-auto">
           Ver todos os {products.length} produtos <ArrowRight className="h-4 w-4" />
         </button>
       </div>

@@ -47,7 +47,7 @@ export function CompareToggle({ product, notify }) {
       onClick={() => { if (!alternarComparar(product.id)) notify && notify(`Dá para comparar até ${MAX_COMPARAR} produtos.`, "error"); }}
       aria-pressed={on}
       aria-label={`Comparar ${product.name}`}
-      className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold transition ${
+      className={`toque inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold transition ${
         on ? "border-emerald-700 bg-emerald-50 text-emerald-800" : "border-stone-300 text-stone-600 hover:border-stone-500"
       }`}
     >
@@ -272,7 +272,7 @@ export function FreteCalculator({ subtotal }) {
           </div>
         )}
       </div>
-      <a href="https://buscacepinter.correios.com.br/app/endereco/index.php" target="_blank" rel="noopener noreferrer" className="mt-2 inline-block text-[11px] text-stone-500 underline-offset-2 hover:underline">Não sei meu CEP</a>
+      <a href="https://buscacepinter.correios.com.br/app/endereco/index.php" target="_blank" rel="noopener noreferrer" className="toque mt-2 inline-block text-[11px] text-stone-500 underline-offset-2 hover:underline">Não sei meu CEP</a>
     </form>
   );
 }

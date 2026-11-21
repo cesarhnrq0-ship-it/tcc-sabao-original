@@ -200,7 +200,7 @@ export function ProductPage({ productId, onBack, onAdd, onCustomize, onOpenPage,
   return (
     <main id="conteudo" tabIndex={-1} className="page-in mx-auto max-w-7xl px-4 py-8 outline-none sm:px-6 lg:px-8 lg:py-12">
       <nav aria-label="Caminho" className="flex flex-wrap items-center gap-1.5 text-xs text-stone-500">
-        <button onClick={onBack} className="inline-flex items-center gap-1 font-semibold text-emerald-800 hover:underline">
+        <button onClick={onBack} className="toque inline-flex items-center gap-1 font-semibold text-emerald-800 hover:underline">
           <ArrowLeft className="h-3.5 w-3.5" /> Voltar à loja
         </button>
         <ChevronRight className="h-3 w-3" />
@@ -209,9 +209,10 @@ export function ProductPage({ productId, onBack, onAdd, onCustomize, onOpenPage,
         <span className="text-stone-800">{p.name}</span>
       </nav>
 
-      <div className="mt-6 grid gap-8 lg:grid-cols-2 lg:gap-12">
-        <div className={`relative overflow-hidden rounded-[2rem] bg-gradient-to-br ${p.accent} shadow-xl shadow-black/5 ring-1 ring-stone-900/5`}>
-          <SafeImage src={p.image} alt={p.name} className={`aspect-square w-full object-cover ${soldOut ? "opacity-60 grayscale" : ""}`} />
+      {/* A partir do tablet, foto e compra lado a lado; no celular a foto fica mais baixa para o preço aparecer logo */}
+      <div className="mt-6 grid gap-6 md:grid-cols-2 md:gap-8 lg:gap-12">
+        <div className={`relative overflow-hidden rounded-[2rem] bg-gradient-to-br ${p.accent} shadow-xl shadow-black/5 ring-1 ring-stone-900/5 md:sticky md:top-28 md:self-start`}>
+          <SafeImage src={p.image} alt={p.name} className={`aspect-[4/3] max-h-[75vh] w-full object-cover md:aspect-square ${soldOut ? "opacity-60 grayscale" : ""}`} />
           <span className="absolute left-4 top-4 rounded-full bg-emerald-900 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-white">{p.badge}</span>
         </div>
 

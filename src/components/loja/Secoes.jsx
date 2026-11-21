@@ -662,7 +662,7 @@ export function Footer({ notify, onNavigate, onSubscribe }) {
             <div className="min-w-0">
               <p className="text-sm font-semibold text-white">Leve a loja no celular</p>
               <p className="mt-0.5 text-[11px] leading-snug text-stone-400">Aponte a câmera para o código e abra o site.</p>
-              <button onClick={() => downloadQR(PUBLIC_SITE_URL, "qrcode-farmaura.png", notify)} className="mt-1.5 text-[11px] font-semibold text-emerald-300 underline-offset-2 hover:underline">
+              <button onClick={() => downloadQR(PUBLIC_SITE_URL, "qrcode-farmaura.png", notify)} className="toque mt-1.5 text-[11px] font-semibold text-emerald-300 underline-offset-2 hover:underline">
                 Baixar QR Code
               </button>
             </div>
