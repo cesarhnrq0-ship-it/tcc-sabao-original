@@ -42,6 +42,8 @@ export function AdminLogin({ onLogin, onBack }) {
     if (!cloud.auth) return setError("Sem conexão com o banco de dados. Tente de novo em alguns segundos.");
     setBusy(true);
     try {
+      // O visitante anônimo deste navegador sai da contagem antes de virar a conta da equipe
+      if (cloud.encerrarPresenca) await cloud.encerrarPresenca();
       const cred = await cloud.auth.signIn(email.trim(), password);
       // As regras do banco só aceitam a equipe com o e-mail confirmado
       if (!cred.user.emailVerified) {

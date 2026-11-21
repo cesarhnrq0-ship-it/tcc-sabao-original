@@ -213,8 +213,19 @@ export function App() {
   // "em" nunca zera (serve para "abriram hoje"); ao esconder a aba ou sair, "ativo" vira false.
   const [presentes, setPresentes] = useState([]);
   const [relogio, setRelogio] = useState(() => Date.now());
+  // Navegador onde a equipe já entrou no painel nunca conta como visitante
+  // (ao sair do painel o Firebase cria outro visitante anônimo, que senão contaria de novo)
+  const EQUIPE_KEY = "farmaura_equipe_neste_navegador";
+  const ehNavegadorDaEquipe = () => { try { return window.localStorage.getItem(EQUIPE_KEY) === "1"; } catch { return false; } };
   useEffect(() => {
-    if (!online || cloud.isAdmin || !cloud.uid || cloud.provider !== "firebase") return;
+    if (cloud.isAdmin) { try { window.localStorage.setItem(EQUIPE_KEY, "1"); } catch { /* ignora */ } }
+  }, [cloud.isAdmin]);
+  /** Desliga o sinal do visitante atual (chamado antes do login da equipe trocar de usuário) */
+  const encerrarPresenca = () => (online && cloud.uid && !cloud.isAdmin && cloud.provider === "firebase"
+    ? cloud.db.doc(`presenca/${cloud.uid}`).set({ em: Date.now(), ativo: false }).catch(() => {})
+    : Promise.resolve());
+  useEffect(() => {
+    if (!online || cloud.isAdmin || !cloud.uid || cloud.provider !== "firebase" || ehNavegadorDaEquipe()) return;
     const ref = cloud.db.doc(`presenca/${cloud.uid}`);
     const marcar = (ativo) => ref.set({ em: Date.now(), ativo }).catch(() => { /* sem permissão ou sem rede: só não conta */ });
     const bater = () => { if (document.visibilityState === "visible") marcar(true); };
@@ -1001,7 +1012,7 @@ export function App() {
     <ReviewsContext.Provider value={{ ...reviewsCtx, submit: submitReview }}>
     <CloudContext.Provider value={{
       status: cloud.status, provider: cloud.provider || null, isAdmin: !!cloud.isAdmin, uid: cloud.uid || null,
-      email: cloud.email || null, isAnonymous: !!cloud.isAnonymous, auth: cloud.auth || null,
+      email: cloud.email || null, isAnonymous: !!cloud.isAnonymous, auth: cloud.auth || null, encerrarPresenca,
     }}>
     <div className="min-h-screen bg-page font-sans text-stone-800 antialiased transition-colors duration-300">
       {/* O painel e o login têm a própria barra (vidro escuro, tela cheia) */}
