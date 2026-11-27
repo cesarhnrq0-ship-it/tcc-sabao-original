@@ -135,7 +135,7 @@ export const MOCK_ORDERS = [
       city: "São Paulo", state: "SP", zip: "01426-001",
     },
     items: [
-      { id: "sabonete-cha-verde", name: "Wayfarer Refil", variant: "Chá Verde · 100g", price: 59.9, qty: 2 },
+      { id: "sabonete-cha-verde", name: "Wayfarer Refil", variant: "Chá Verde · 50g", price: 59.9, qty: 2 },
       { id: "aura-vital", name: "Aura Vital", variant: "Protetor Solar FPS 67", price: 89.9, qty: 1 },
     ],
     subtotal: 209.7, shipping: 0, discount: 10.49, total: 199.21,
@@ -162,7 +162,7 @@ export const MOCK_ORDERS = [
       city: "Belo Horizonte", state: "MG", zip: "30160-011",
     },
     items: [
-      { id: "sabonete-cha-verde", name: "Wayfarer Refil", variant: "Chá Verde · 100g", price: 59.9, qty: 2 },
+      { id: "sabonete-cha-verde", name: "Wayfarer Refil", variant: "Chá Verde · 50g", price: 59.9, qty: 2 },
       { lineId: "acc-chaveiro::pedro::manuscrita::creme", id: "acc-chaveiro", name: "Chaveiro Wayfarer", variant: "Emborrachado · 7 cm", price: 27.8, qty: 1, custom: "Pedro", customStyle: { font: "manuscrita", color: "creme" } },
     ],
     subtotal: 147.6, shipping: 15.9, discount: 0, total: 171.4,

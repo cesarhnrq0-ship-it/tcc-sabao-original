@@ -323,7 +323,7 @@ export const buildAssistant = (st, coupons) => {
     { id: "uso", q: "Como usar o sabonete em pó", keys: ["usar", "uso", "como usa", "pó", "po ", "espuma", "sabonete"],
       a: "Com as mãos molhadas, coloque cerca de meia colher de chá do pó e esfregue até virar espuma. Aplique no corpo e enxágue. Mantenha a embalagem fechada e seca." },
     { id: "diferenca", q: "Refil, Kit ou Combo?", keys: ["refil", "kit", "combo", "diferen", "qual escolher"],
-      a: "O Refil tem 100 g para usar em casa. O Kit Viagem tem 5 sachês de 10 g para levar. O Combo junta os dois com preço menor do que separado. Se ainda tiver dúvida, faça o quiz na página." },
+      a: "O Refil tem 50 g para usar em casa. O Kit Viagem tem 15 g em sachês para levar. O Combo junta os dois com preço menor do que separado. Se ainda tiver dúvida, faça o quiz na página." },
     { id: "protetor", q: "Protetor no rosto?", keys: ["protetor", "aura", "rosto", "fps", "solar"],
       a: "Sim, o Aura Vital FPS 67 é facial e corporal, com toque seco. Reaplique a cada 2 horas e depois de entrar na água." },
     { id: "troca", q: "Trocas e devoluções", keys: ["troca", "devol", "arrepend", "defeito"],
@@ -374,7 +374,7 @@ export const buildFaq = (st) => [
   },
   {
     q: "Qual a diferença entre o Refil, o Kit Viagem e o Combo?",
-    a: "O Refil tem 100g para usar em casa. O Kit Viagem tem 5 sachês de 10g, um por banho, para levar na mochila. O Combo junta os dois com preço menor do que comprando separado.",
+    a: "O Refil tem 50g para usar em casa. O Kit Viagem tem 15g em sachês, para levar na mochila. O Combo junta os dois com preço menor do que comprando separado.",
   },
   {
     q: "Posso usar o Aura Vital no rosto?",

@@ -21,7 +21,7 @@ export const DEMO_PEOPLE = [
 export const DEMO_STREETS = ["Rua das Palmeiras", "Av. Brasil", "Rua São Bento", "Rua XV de Novembro", "Av. Paulista", "Rua das Acácias", "Rua Sete de Setembro", "Rua dos Ipês"];
 export const DEMO_MESSAGES = [
   "Olá! Vocês fazem venda para revenda? Tenho uma loja de produtos naturais.",
-  "O refil de 100g dura quanto tempo, mais ou menos?",
+  "O refil de 50g dura quanto tempo, mais ou menos?",
   "Comprei o kit e adorei a espuma. Quando chega o protetor de novo?",
   "Vocês entregam em todo o Brasil?",
   "Posso usar o sabonete em pó no rosto também?",

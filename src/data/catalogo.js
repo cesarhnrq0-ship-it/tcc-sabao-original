@@ -6,7 +6,7 @@ export const PRODUCTS = [
     id: "sabonete-cha-verde",
     category: "sabonete",
     name: "Wayfarer Refil",
-    variant: "Sabonete Corporal em Pó · Chá Verde · 100g",
+    variant: "Sabonete Corporal em Pó · Chá Verde · 50g",
     tagline: "O refil econômico para reabastecer em casa.",
     price: 59.9,
     oldPrice: 74.9,
@@ -31,7 +31,7 @@ export const PRODUCTS = [
       "Enxágue bem. Mantenha a embalagem sempre seca e fechada.",
     ],
     description:
-      "O Wayfarer for Men é um sabonete corporal em pó que vira espuma cremosa em contato com a água. O refil de 100g é a forma mais econômica de manter o ritual em casa: fórmula concentrada, sem água, com a ação antioxidante do Chá Verde e embalagem com menos plástico.",
+      "O Wayfarer for Men é um sabonete corporal em pó que vira espuma cremosa em contato com a água. O refil de 50g é a forma mais econômica de manter o ritual em casa: fórmula concentrada, sem água, com a ação antioxidante do Chá Verde e embalagem com menos plástico.",
     benefits: [
       "Limpa, refresca e hidrata a pele",
       "Ação antioxidante do Chá Verde",
@@ -49,7 +49,7 @@ export const PRODUCTS = [
     id: "wayfarer-kit",
     category: "sabonete",
     name: "Wayfarer Kit Viagem",
-    variant: "Kit 5 sachês × 10g · 50g",
+    variant: "Kit Viagem em sachês · 15g",
     tagline: "Um sachê por banho, pronto para a mochila.",
     price: 39.9,
     oldPrice: null,
@@ -74,9 +74,9 @@ export const PRODUCTS = [
       "Enxágue bem. Mantenha a embalagem sempre seca e fechada.",
     ],
     description:
-      "Higiene e cuidado onde você estiver. O kit traz 5 sachês individuais de 10g do sabonete corporal em pó Wayfarer, leves e compactos, ideais para viagens, trilhas e aventuras. Sem líquido, não vaza na mala e passa sem problema na bagagem de mão.",
+      "Higiene e cuidado onde você estiver. O kit traz 15g do sabonete corporal em pó Wayfarer, leves e compactos, ideais para viagens, trilhas e aventuras. Sem líquido, não vaza na mala e passa sem problema na bagagem de mão.",
     benefits: [
-      "5 sachês individuais de 10g (50g no total)",
+      "Sachês individuais, 15g no total",
       "Leve e compacto, não vaza na mochila",
       "Ideal para viagens, trilhas e acampamentos",
       "Hidrata a pele com Chá Verde antioxidante",
@@ -92,7 +92,7 @@ export const PRODUCTS = [
     id: "wayfarer-combo",
     category: "sabonete",
     name: "Wayfarer Combo",
-    variant: "Refil 100g + Kit 5 sachês × 10g · 150g",
+    variant: "Refil 50g + Kit Viagem 15g · 65g",
     tagline: "O refil para casa e o kit para a estrada.",
     price: 89.9,
     oldPrice: 99.8,
@@ -117,9 +117,9 @@ export const PRODUCTS = [
       "Enxágue bem. Mantenha a embalagem sempre seca e fechada.",
     ],
     description:
-      "O combo completo Wayfarer for Men: o refil de 100g para usar em casa e o kit com 5 sachês de 10g para levar nas viagens. São 150g de sabonete corporal em pó de Chá Verde com preço menor do que comprando separado.",
+      "O combo completo Wayfarer for Men: o refil de 50g para usar em casa e o kit viagem de 15g para levar nas viagens. São 65g de sabonete corporal em pó de Chá Verde com preço menor do que comprando separado.",
     benefits: [
-      "Refil 100g + Kit 5 sachês de 10g",
+      "Refil 50g + Kit Viagem 15g",
       "Economia em relação à compra separada",
       "Casa e viagem cobertos com um só pedido",
       "Hidratação com ação antioxidante do Chá Verde",
@@ -441,9 +441,9 @@ export const SORTS = [
 
 /** Ficha técnica e características de cada produto (vêm das descrições do catálogo) */
 export const PRODUCT_FACTS = {
-  "sabonete-cha-verde": { conteudo: "100 g", linha: "Wayfarer for Men", tags: ["refil", "economia", "casa"] },
-  "wayfarer-kit": { conteudo: "50 g (5 sachês de 10 g)", linha: "Wayfarer for Men", tags: ["viagem", "pratico"] },
-  "wayfarer-combo": { conteudo: "150 g (refil de 100 g + 5 sachês de 10 g)", linha: "Wayfarer for Men", tags: ["refil", "viagem", "economia", "presente"] },
+  "sabonete-cha-verde": { conteudo: "50 g", linha: "Wayfarer for Men", tags: ["refil", "economia", "casa"] },
+  "wayfarer-kit": { conteudo: "15 g (sachês individuais)", linha: "Wayfarer for Men", tags: ["viagem", "pratico"] },
+  "wayfarer-combo": { conteudo: "65 g (refil de 50 g + kit viagem de 15 g)", linha: "Wayfarer for Men", tags: ["refil", "viagem", "economia", "presente"] },
   "aura-vital": { conteudo: null, linha: "Aura Vital", tags: ["protecao", "praia"] },
   "acc-ecobag": { conteudo: "38 × 42 cm · alças de 60 cm", linha: "Wayfarer for Men", tags: ["reutilizavel", "presente"] },
   "acc-chaveiro": { conteudo: "7 × 4,5 cm · 15 g", linha: "Wayfarer for Men", tags: ["presente"] },

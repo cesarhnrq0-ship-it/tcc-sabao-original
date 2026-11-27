@@ -253,7 +253,7 @@ export function SustainabilitySection() {
       icon: Package,
       title: "Embalagens",
       items: [
-        "O Refil de 100 g serve para reabastecer em casa, sem precisar de um kit novo a cada compra.",
+        "O Refil de 50 g serve para reabastecer em casa, sem precisar de um kit novo a cada compra.",
         "O Kit Viagem tem sachês de dose única: você leva e usa só o que precisa.",
         "A embalagem para presente só é usada quando você escolhe no checkout.",
       ],

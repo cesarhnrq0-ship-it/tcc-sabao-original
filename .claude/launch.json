@@ -1,0 +1,18 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "preview-local",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["vite", "preview", "--outDir", "publicar", "--port", "4173", "--strictPort"],
+      "port": 4173
+    },
+    {
+      "name": "preview-como-no-ar",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-m", "http.server", "4174", "--bind", "127.0.0.2", "--directory", "publicar"],
+      "port": 4174,
+      "url": "http://127.0.0.2:4174"
+    }
+  ]
+}
